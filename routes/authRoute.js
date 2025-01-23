@@ -10,6 +10,9 @@ const {
   unblockUser,
   handleRefreshToken,
   logout,
+  updatePassword,
+  forgotPasswordToken,
+  resetPassword,
   getAllBrandUser,
   getAllContentUser,
   getAllMediaUser,
@@ -53,15 +56,6 @@ const router = express.Router();
  *         roleID:
  *           type: string
  *           description: Role ID of the user
- *         isActive:
- *           type: boolean
- *           description: Indicates if the user is active
- *         isVerifiedEmail:
- *           type: boolean
- *           description: Indicates if the user's email is verified
- *         isVerifiedPhone:
- *           type: boolean
- *           description: Indicates if the user's phone is verified
  */
 
 /**
@@ -98,15 +92,6 @@ const router = express.Router();
  *               roleID:
  *                 type: string
  *                 description: Role ID of the user
- *               isActive:
- *                 type: boolean
- *                 description: Indicates if the user is active
- *               isVerifiedEmail:
- *                 type: boolean
- *                 description: Indicates if the user's email is verified
- *               isVerifiedPhone:
- *                 type: boolean
- *                 description: Indicates if the user's phone is verified
  *     responses:
  *       201:
  *         description: User registered successfully
@@ -141,6 +126,89 @@ router.post("/register", createUser);
  *         description: Invalid credentials
  */
 router.post("/login", loginUserCtrl);
+
+/**
+ * @swagger
+ * /api/user/forgot-password-token:
+ *   post:
+ *     summary: Generate a forgot password token
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: User email address
+ *     responses:
+ *       200:
+ *         description: Token generated successfully
+ *       404:
+ *         description: User not found
+ */
+router.post("/forgot-password-token", forgotPasswordToken);
+
+/**
+ * @swagger
+ * /api/user/reset-password/{token}:
+ *   put:
+ *     summary: Reset user password
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: token
+ *         required: true
+ *         description: Reset password token
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 description: New password for the user
+ *     responses:
+ *       200:
+ *         description: Password reset successfully
+ *       400:
+ *         description: Invalid token or input
+ */
+router.put("/reset-password/:token", resetPassword);
+
+/**
+ * @swagger
+ * /api/user/password:
+ *   put:
+ *     summary: Update user password
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               currentPassword:
+ *                 type: string
+ *                 description: Current password
+ *               newPassword:
+ *                 type: string
+ *                 description: New password
+ *     responses:
+ *       200:
+ *         description: Password updated successfully
+ *       401:
+ *         description: Unauthorized or invalid credentials
+ */
+router.put("/password", authMiddleware, updatePassword);
+
 
 /**
  * @swagger
@@ -179,6 +247,18 @@ router.get("/logout", logout);
 
 /**
  * @swagger
+ * /api/user/all-users:
+ *   get:
+ *     summary: Get all users
+ *     tags: [Auth]
+ *     responses:
+ *       200:
+ *         description: List of all users
+ */
+router.get("/all-users", authMiddleware, isAdmin, getAllUser);
+
+/**
+ * @swagger
  * /api/user/{id}:
  *   get:
  *     summary: Get a user by ID
@@ -196,7 +276,7 @@ router.get("/logout", logout);
  *       404:
  *         description: User not found
  */
-router.get("/:id", authMiddleware, getUser);
+router.get("/:id", authMiddleware, isAdmin, getUser);
 
 /**
  * @swagger
@@ -267,6 +347,6 @@ router.put("/block-user/:id", authMiddleware, isAdmin, blockUser);
  *         description: User not found
  */
 router.put("/unblock-user/:id", authMiddleware, isAdmin, unblockUser);
-router.delete("/:id", deleteUser);
+//router.delete("/:id", deleteUser);
 
 module.exports = router;
