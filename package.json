@@ -17,7 +17,6 @@
     "url": "https://github.com/SEP-490-Booking-Accomodation/BE/issues"
   },
   "homepage": "https://github.com/SEP-490-Booking-Accomodation/BE#readme",
-  "description": "",
   "dependencies": {
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
@@ -28,7 +27,8 @@
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.2",
     "moment-timezone": "^0.5.46",
-    "mongoose": "^8.9.3",
+    "mongodb": "^6.12.0",
+    "mongoose": "^8.9.5",
     "morgan": "^1.10.0",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
@@ -36,5 +36,6 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uniqid": "^5.4.0"
-  }
+  },
+  "description": ""
 }

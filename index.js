@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 4000;
 // Import routes
 const authRouter = require("./routes/authRoute");
 const roleRouter = require("./routes/roleRoute");
+const staffRouter = require("./routes/staffRoute");
 
 const bodyParser = require("body-parser");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
@@ -31,6 +32,7 @@ app.use(
 
 app.use("/api/user", authRouter);
 app.use("/api/role", roleRouter);
+app.use("/api/staff", staffRouter);
 
 app.use(notFound);
 app.use(errorHandler);

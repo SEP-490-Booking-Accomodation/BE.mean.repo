@@ -13,9 +13,6 @@ const {
   updatePassword,
   forgotPasswordToken,
   resetPassword,
-  getAllBrandUser,
-  getAllContentUser,
-  getAllMediaUser,
 } = require("../controller/userCtrl");
 
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
