@@ -32,7 +32,7 @@ const {
 
 /**
  * @swagger
- * /api/policy-system-categories/create-policysystemcategory:
+ * /api/policy-system-category/create-policy-system-category:
  *   post:
  *     summary: Create a new policy system category
  *     description: Adds a new policy system category to the database
@@ -55,7 +55,7 @@ const {
  *         description: Forbidden, requires admin privileges
  */
 router.post(
-  "/create-policysystemcategory",
+  "/create-policy-system-category",
   authMiddleware,
   isAdmin,
   createPolicySystemCategory
@@ -63,7 +63,7 @@ router.post(
 
 /**
  * @swagger
- * /api/policy-system-categories/{id}:
+ * /api/policy-system-category/{id}:
  *   put:
  *     summary: Update an existing policy system category
  *     description: Updates a policy system category by its ID
@@ -96,36 +96,36 @@ router.post(
  */
 router.put("/:id", authMiddleware, isAdmin, updatePolicySystemCategory);
 
-/**
- * @swagger
- * /api/policy-system-categories/{id}:
- *   delete:
- *     summary: Delete a policy system category
- *     description: Deletes a policy system category by its ID
- *     tags:
- *       - PolicySystemCategory
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: The ID of the policy system category to delete
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: Policy system category deleted successfully
- *       404:
- *         description: Policy system category not found
- *       401:
- *         description: Unauthorized access
- *       403:
- *         description: Forbidden, requires admin privileges
- */
-router.delete("/:id", authMiddleware, isAdmin, deletePolicySystemCategory);
+// /**
+//  * @swagger
+//  * /api/policy-system-category/{id}:
+//  *   delete:
+//  *     summary: Delete a policy system category
+//  *     description: Deletes a policy system category by its ID
+//  *     tags:
+//  *       - PolicySystemCategory
+//  *     parameters:
+//  *       - in: path
+//  *         name: id
+//  *         required: true
+//  *         description: The ID of the policy system category to delete
+//  *         schema:
+//  *           type: string
+//  *     responses:
+//  *       200:
+//  *         description: Policy system category deleted successfully
+//  *       404:
+//  *         description: Policy system category not found
+//  *       401:
+//  *         description: Unauthorized access
+//  *       403:
+//  *         description: Forbidden, requires admin privileges
+//  */
+// router.delete("/:id", authMiddleware, isAdmin, deletePolicySystemCategory);
 
 /**
  * @swagger
- * /api/policy-system-categories/all-policysystemcategories:
+ * /api/policy-system-category/all-policy-system-categories:
  *   get:
  *     summary: Get all policy system categories
  *     description: Retrieves a list of all policy system categories
@@ -146,7 +146,7 @@ router.delete("/:id", authMiddleware, isAdmin, deletePolicySystemCategory);
  *         description: Forbidden, requires admin privileges
  */
 router.get(
-  "/all-policysystemcategories",
+  "/all-policy-system-categories",
   authMiddleware,
   isAdmin,
   getAllPolicySystemCategory
@@ -154,7 +154,7 @@ router.get(
 
 /**
  * @swagger
- * /api/policy-system-categories/{id}:
+ * /api/policy-system-category/{id}:
  *   get:
  *     summary: Get a specific policy system category by ID
  *     description: Retrieves a single policy system category by its ID
