@@ -30,7 +30,7 @@ const isAdmin = asyncHandler(async (req, res, next) => {
     next();
   }
 });
-const isBrand = asyncHandler(async (req, res, next) => {
+const isOwner = asyncHandler(async (req, res, next) => {
   const { email } = req.user;
   const brandUser = await User.findOne({ email });
   if (!brandUser.roleID.equals("67927ff7a0a58ce4f7e8e83d")) {
@@ -39,7 +39,7 @@ const isBrand = asyncHandler(async (req, res, next) => {
     next();
   }
 });
-const isBA = asyncHandler(async (req, res, next) => {
+const isCustomer = asyncHandler(async (req, res, next) => {
   const { email } = req.user;
   const BAUser = await User.findOne({ email });
   if (BAUser.roleID.equals("67927ffda0a58ce4f7e8e840")) {
@@ -52,5 +52,6 @@ const isBA = asyncHandler(async (req, res, next) => {
 module.exports = {
   authMiddleware,
   isAdmin,
-  isBA,
+  isOwner,
+  isCustomer,
 };

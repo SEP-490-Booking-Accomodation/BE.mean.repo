@@ -253,42 +253,6 @@ const getAllUser = asyncHandler(async (req, res) => {
   }
 });
 
-//Get all brand users
-const getAllBrandUser = asyncHandler(async (req, res) => {
-  try {
-    const getBrandUsers = await Role.findOne({ roleName: 'BrandAssistant' });
-    // Tìm tất cả người dùng có roleID là của "BrandAssistant"
-    const getUsers = await User.find({ roleID: getBrandUsers._id });
-    res.json(getUsers);
-  } catch (error) {
-    throw new Error(error);
-  }
-});
-
-//Get all content users
-const getAllContentUser = asyncHandler(async (req, res) => {
-  try {
-    const getContentUsers = await Role.findOne({ roleName: 'ContentAssistant' });
-    // Tìm tất cả người dùng có roleID là của "BrandAssistant"
-    const getUsers = await User.find({ roleID: getContentUsers._id });
-    res.json(getUsers);
-  } catch (error) {
-    throw new Error(error);
-  }
-});
-
-//Get all brand users
-const getAllMediaUser = asyncHandler(async (req, res) => {
-  try {
-    const getMediaUsers = await Role.findOne({ roleName: 'MediaAssistant' });
-    // Tìm tất cả người dùng có roleID là của "BrandAssistant"
-    const getUsers = await User.find({ roleID: getMediaUsers._id });
-    res.json(getUsers);
-  } catch (error) {
-    throw new Error(error);
-  }
-});
-
 //Get a single use
 const getUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -339,13 +303,16 @@ const blockUser = asyncHandler(async (req, res) => {
     const block = await User.findByIdAndUpdate(
       id,
       {
-        isBlocked: true,
+        isActive: false,
       },
       {
         new: true,
       }
     );
-    res.json(block);
+    res.status(201).json({
+      message: "User block successfully",
+      user: block,
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -359,13 +326,16 @@ const unblockUser = asyncHandler(async (req, res) => {
     const unBlock = await User.findByIdAndUpdate(
       id,
       {
-        isBlocked: false,
+        isActive: true,
       },
       {
         new: true,
       }
     );
-    res.json(unBlock);
+    res.status(201).json({
+      message: "User active successfully",
+      user: unBlock,
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -378,9 +348,6 @@ module.exports = {
   forgotPasswordToken,
   resetPassword,
   getAllUser,
-  getAllBrandUser,
-  getAllContentUser,
-  getAllMediaUser,
   getUser,
   deleteUser,
   updateUser,

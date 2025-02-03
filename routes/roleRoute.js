@@ -19,7 +19,7 @@ const {
 
 /**
  * @swagger
- * /api/role/createrole:
+ * /api/role/create-role:
  *   post:
  *     summary: Create a new role
  *     tags: [Role]
@@ -41,7 +41,7 @@ const {
  *       400:
  *         description: Invalid input
  */
-router.post("/createrole", authMiddleware, isAdmin, createRole);
+router.post("/create-role", authMiddleware, isAdmin, createRole);
 
 /**
  * @swagger
@@ -101,7 +101,7 @@ router.delete("/:id", authMiddleware, isAdmin, deleteRole);
 
 /**
  * @swagger
- * /api/role/allrole:
+ * /api/role/all-roles:
  *   get:
  *     summary: Get all roles
  *     tags: [Role]
@@ -123,7 +123,7 @@ router.delete("/:id", authMiddleware, isAdmin, deleteRole);
  *                     type: string
  *                     description: The name of the role
  */
-router.get("/allrole", authMiddleware, isAdmin, getAllRole);
+router.get("/all-roles", authMiddleware, isAdmin, getAllRole);
 
 /**
  * @swagger
