@@ -10,10 +10,10 @@
 //   getStaff,
 // } = require("../controller/staffCtrl");
 
-// router.post("/createstaff", authMiddleware, isAdmin, createStaff);
+// router.post("/create-staff", authMiddleware, isAdmin, createStaff);
 // router.put("/:id", authMiddleware, isAdmin, updateStaff);
 // router.delete("/:id", authMiddleware, isAdmin, deleteStaff);
-// router.get("/allstaff", authMiddleware, isAdmin, getAllStaff);
+// router.get("/all-staffs", authMiddleware, isAdmin, getAllStaff);
 // router.get("/:id", authMiddleware, isAdmin, getStaff);
 
 // module.exports = router;
@@ -42,29 +42,29 @@ const {
  *           description: ID của người dùng (tham chiếu đến User).
  */
 
-/**
- * @swagger
- * /api/staff/createstaff:
- *   post:
- *     summary: Tạo mới một staff.
- *     tags: [Staff]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             $ref: '#/components/schemas/Staff'
- *     responses:
- *       201:
- *         description: Staff đã được tạo thành công.
- *       401:
- *         description: Unauthorized.
- *       403:
- *         description: Forbidden.
- */
-router.post("/createstaff", authMiddleware, isAdmin, createStaff);
+// /**
+//  * @swagger
+//  * /api/staff/create-staff:
+//  *   post:
+//  *     summary: Tạo mới một staff.
+//  *     tags: [Staff]
+//  *     security:
+//  *       - bearerAuth: []
+//  *     requestBody:
+//  *       required: true
+//  *       content:
+//  *         application/json:
+//  *           schema:
+//  *             $ref: '#/components/schemas/Staff'
+//  *     responses:
+//  *       201:
+//  *         description: Staff đã được tạo thành công.
+//  *       401:
+//  *         description: Unauthorized.
+//  *       403:
+//  *         description: Forbidden.
+//  */
+// router.post("/create-staff", authMiddleware, isAdmin, createStaff);
 
 /**
  * @swagger
@@ -95,32 +95,32 @@ router.post("/createstaff", authMiddleware, isAdmin, createStaff);
  */
 router.put("/:id", authMiddleware, isAdmin, updateStaff);
 
-/**
- * @swagger
- * /api/staff/{id}:
- *   delete:
- *     summary: Xóa staff theo ID.
- *     tags: [Staff]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         schema:
- *           type: string
- *         required: true
- *         description: ID của staff cần xóa.
- *     responses:
- *       200:
- *         description: Staff đã được xóa.
- *       404:
- *         description: Không tìm thấy staff.
- */
-router.delete("/:id", authMiddleware, isAdmin, deleteStaff);
+// /**
+//  * @swagger
+//  * /api/staff/{id}:
+//  *   delete:
+//  *     summary: Xóa staff theo ID.
+//  *     tags: [Staff]
+//  *     security:
+//  *       - bearerAuth: []
+//  *     parameters:
+//  *       - in: path
+//  *         name: id
+//  *         schema:
+//  *           type: string
+//  *         required: true
+//  *         description: ID của staff cần xóa.
+//  *     responses:
+//  *       200:
+//  *         description: Staff đã được xóa.
+//  *       404:
+//  *         description: Không tìm thấy staff.
+//  */
+// router.delete("/:id", authMiddleware, isAdmin, deleteStaff);
 
 /**
  * @swagger
- * /api/staff/allstaff:
+ * /api/staff/all-staffs:
  *   get:
  *     summary: Lấy danh sách tất cả staff.
  *     tags: [Staff]
@@ -136,7 +136,7 @@ router.delete("/:id", authMiddleware, isAdmin, deleteStaff);
  *               items:
  *                 $ref: '#/components/schemas/Staff'
  */
-router.get("/allstaff", authMiddleware, isAdmin, getAllStaff);
+router.get("/all-staffs", authMiddleware, isAdmin, getAllStaff);
 
 /**
  * @swagger

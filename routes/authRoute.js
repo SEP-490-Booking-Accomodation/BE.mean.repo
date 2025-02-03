@@ -50,6 +50,11 @@ const router = express.Router();
  *           pattern: "^\\d{2}-\\d{2}-\\d{4}$"
  *           description: Date of birth of the user
  *           example: "12-02-2001"
+ *         avatarUrl:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: List of user's avatar URLs
  *         roleID:
  *           type: string
  *           description: Role ID of the user
@@ -86,6 +91,12 @@ const router = express.Router();
  *                 pattern: "^\\d{2}-\\d{2}-\\d{4}$"
  *                 description: Date of birth of the user
  *                 example: "12-02-2001"
+ *               avatarUrl:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: List of user's avatar URLs
+ *                 nullable: true
  *               roleID:
  *                 type: string
  *                 description: Role ID of the user
@@ -164,7 +175,7 @@ router.post("/forgot-password-token", forgotPasswordToken);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         application/x-www-form-urlencoded:
  *           schema:
  *             type: object
  *             properties:
@@ -188,7 +199,7 @@ router.put("/reset-password/:token", resetPassword);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         application/x-www-form-urlencoded:
  *           schema:
  *             type: object
  *             properties:
@@ -206,17 +217,6 @@ router.put("/reset-password/:token", resetPassword);
  */
 router.put("/password", authMiddleware, updatePassword);
 
-
-/**
- * @swagger
- * /api/user/all-users:
- *   get:
- *     summary: Get all users
- *     tags: [Auth]
- *     responses:
- *       200:
- *         description: List of all users
- */
 
 /**
  * @swagger
@@ -291,7 +291,7 @@ router.get("/:id", authMiddleware, isAdmin, getUser);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         application/x-www-form-urlencoded:
  *           schema:
  *             $ref: '#/components/schemas/User'
  *     responses:
@@ -326,7 +326,7 @@ router.put("/block-user/:id", authMiddleware, isAdmin, blockUser);
 
 /**
  * @swagger
- * /api/user/unblock-user/{id}:
+ * /api/user/active/{id}:
  *   put:
  *     summary: Unblock a user
  *     tags: [Auth]
@@ -343,7 +343,7 @@ router.put("/block-user/:id", authMiddleware, isAdmin, blockUser);
  *       404:
  *         description: User not found
  */
-router.put("/unblock-user/:id", authMiddleware, isAdmin, unblockUser);
+router.put("/active/:id", authMiddleware, isAdmin, unblockUser);
 //router.delete("/:id", deleteUser);
 
 module.exports = router;

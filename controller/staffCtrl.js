@@ -1,5 +1,6 @@
 const Staff = require("../models/staffModel");
 const Role = require("../models/roleModel");
+const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 
@@ -19,7 +20,7 @@ const updateStaff = asyncHandler(async (req, res) => {
     const updateStaff = await Staff.findByIdAndUpdate(id, req.body, {
       new: true,
     });
-    res.json(updateRole);
+    res.json(updateStaff);
   } catch (error) {
     throw new Error(error);
   }
@@ -40,8 +41,9 @@ const getStaff = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const get1Staff = await Staff.findById(id);
-    res.json(get1Staff);
+    // const get1Staff = await Staff.findOne({userId: id});
+    const staffInfor = await User.findById(id);
+    res.json(staffInfor);
   } catch (error) {
     throw new Error(error);
   }
@@ -49,8 +51,18 @@ const getStaff = asyncHandler(async (req, res) => {
 
 const getAllStaff = asyncHandler(async (req, res) => {
   try {
-    const getStaffUsers = await Role.findOne({ roleName: 'Staff' });
-    const getStaffs = await Staff.find({ roleID: getStaffUsers._id });
+    const getStaffUsers = await Role.findOne({ roleName: "Staff" });
+    const getStaffs = await User.find({ roleID: getStaffUsers._id });
+
+    // Lưu các Staff vào bảng Owner (nếu chưa có)
+    for (const staff of getStaffs) {
+      const existingStaff = await Staff.findOne({ userId: staff._id });
+      if (!existingStaff) {
+        // Thêm Staff vào bảng Staff nếu chưa tồn tại
+        await Staff.create({ userId: staff._id });
+      }
+    }
+
     res.json(getStaffs);
   } catch (error) {
     throw new Error(error);

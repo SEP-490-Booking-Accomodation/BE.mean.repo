@@ -28,6 +28,7 @@ var userSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
+    avatarUrl: [],
     roleID: {
       type: mongoose.Schema.ObjectId,
       ref: "Role",
@@ -92,7 +93,10 @@ var userSchema = new mongoose.Schema(
 userSchema.pre("save", async function (next) {
   if (this.doB && typeof this.doB === "string") {
     // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-    this.doB = moment.tz(this.doB, "DD-MM-YYYY", "Asia/Ho_Chi_Minh").utc().toDate();
+    this.doB = moment
+      .tz(this.doB, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
+      .utc()
+      .toDate();
   }
   if (!this.isModified("password")) {
     next();

@@ -10,6 +10,9 @@ const PORT = process.env.PORT || 4000;
 const authRouter = require("./routes/authRoute");
 const roleRouter = require("./routes/roleRoute");
 const staffRouter = require("./routes/staffRoute");
+const ownerRouter = require("./routes/ownerRoute");
+const customerRouter = require("./routes/customerRoute");
+const policySystemRoute = require("./routes/policySystemRoute");
 
 const bodyParser = require("body-parser");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
@@ -33,6 +36,9 @@ app.use(
 app.use("/api/user", authRouter);
 app.use("/api/role", roleRouter);
 app.use("/api/staff", staffRouter);
+app.use("/api/owner", ownerRouter);
+app.use("/api/customer", customerRouter);
+app.use("/api/policy-system", policySystemRoute);
 
 app.use(notFound);
 app.use(errorHandler);
@@ -40,3 +46,5 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+//token admin test: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YTAzMDg0MjNjMDM4YjU0MWRjMjEzZSIsImlhdCI6MTczODU1MTQ0NCwiZXhwIjoxNzM4NjM3ODQ0fQ.my-PaZbfaooz1HgHO01KMnoayCETvsFRQhjRuSdFJ3g
