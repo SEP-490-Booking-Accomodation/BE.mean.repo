@@ -17,6 +17,8 @@ const {
  *       type: object
  *       required:
  *         - staffId
+ *         - policySystemCategoryId
+ *         - policySystemBookingId
  *         - name
  *         - startDate
  *         - endDate
