@@ -45,7 +45,7 @@ const {
 
 /**
  * @swagger
- * /api/reports/create-report:
+ * /api/report/create-report:
  *   post:
  *     summary: Create a new report
  *     description: Creates a new report and associates it with a booking
@@ -71,7 +71,7 @@ router.post("/create-report", authMiddleware, isCustomer, createReport);
 
 /**
  * @swagger
- * /api/reports/{id}:
+ * /api/report/{id}:
  *   put:
  *     summary: Update an existing report
  *     description: Updates the report details by ID
@@ -102,7 +102,7 @@ router.put("/:id", authMiddleware, updateReport);
 
 /**
  * @swagger
- * /api/reports/all-reports:
+ * /api/report/all-reports:
  *   get:
  *     summary: Get all reports
  *     description: Retrieves a list of all reports
@@ -124,7 +124,7 @@ router.get("/all-reports", authMiddleware, getAllReport);
 
 /**
  * @swagger
- * /api/reports/{id}:
+ * /api/report/{id}:
  *   get:
  *     summary: Get a specific report by ID
  *     description: Retrieves a single report by its ID

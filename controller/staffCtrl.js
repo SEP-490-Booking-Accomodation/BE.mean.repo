@@ -71,25 +71,41 @@ const getStaff = asyncHandler(async (req, res) => {
 
 const getAllStaff = async (req, res) => {
   try {
-    const staffList = await Staff.find()
-      .populate({
-        path: "userId",
-        match: { roleID: "67927feaa0a58ce4f7e8e83a" },
-        select: "-password", // Loại bỏ password khi trả về
-      })
-      .lean();
+    // Lấy danh sách người dùng (User) có roleID phù hợp
+    const userList = await User.find({
+      roleID: "67927feaa0a58ce4f7e8e83a",
+    }).select("-password");
+
+    // Kiểm tra nếu không có người dùng nào thỏa mãn điều kiện
+    if (!userList.length) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+      });
+    }
 
     // Lọc ra các user hợp lệ và đảm bảo đúng format
-    const formattedStaff = staffList
-      .filter((staff) => staff.userId) // Bỏ các Staff không có user hợp lệ
-      .map((staff) => ({
-        ...staff,
-        userId: staff.userId ? new User(staff.userId).toJSON() : null, // Áp dụng format
-      }));
+    const formattedStaff = userList.map(async (user) => {
+      // Tạo mới Customer từ User
+      const newStaff = new Staff({
+        userId: user._id, // Lưu userId vào bảng Customer
+      });
+
+      // Lưu thông tin customer vào bảng Customer
+      await newStaff.save();
+
+      // Trả về thông tin đã định dạng từ bảng User
+      return {
+        userId: new User(user).toJSON(), // Format dữ liệu của User trước khi trả về
+      };
+    });
+
+    // Đợi tất cả các bản ghi được lưu vào bảng Customer
+    const savedStaffs = await Promise.all(formattedStaff);
 
     res.status(200).json({
       success: true,
-      data: formattedStaff,
+      data: savedStaffs,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

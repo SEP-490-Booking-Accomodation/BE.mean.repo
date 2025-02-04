@@ -1,6 +1,6 @@
 const Customer = require("../models/customerModel");
 const Role = require("../models/roleModel");
-const User = require("../models/userModel")
+const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 
@@ -71,7 +71,9 @@ const getCustomer = asyncHandler(async (req, res) => {
 const getAllCustomer = async (req, res) => {
   try {
     // Lấy danh sách người dùng (User) có roleID phù hợp
-    const userList = await User.find({ roleID: "67927ffda0a58ce4f7e8e840" }).select("-password");
+    const userList = await User.find({
+      roleID: "67927ffda0a58ce4f7e8e840",
+    }).select("-password");
 
     // Kiểm tra nếu không có người dùng nào thỏa mãn điều kiện
     if (!userList.length) {
@@ -108,7 +110,6 @@ const getAllCustomer = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
-
 
 module.exports = {
   createCustomer,
