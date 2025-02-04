@@ -48,25 +48,32 @@ const getOwner = asyncHandler(async (req, res) => {
   }
 });
 
-const getAllOwner = asyncHandler(async (req, res) => {
+const getAllOwner = async (req, res) => {
   try {
-    const getOwnerUsers = await Role.findOne({ roleName: "Owner" });
-    const getOwners = await User.find({ roleID: getOwnerUsers._id });
+    const ownerList = await Owner.find()
+      .populate({
+        path: "userId",
+        match: { roleID: "67927ff7a0a58ce4f7e8e83d" },
+        select: "-password", // Loại bỏ password khi trả về
+      })
+      .lean();
 
-    // Lưu các Owner vào bảng Owner (nếu chưa có)
-    for (const owner of getOwners) {
-      const existingOwner = await Owner.findOne({ userId: owner._id });
-      if (!existingOwner) {
-        // Thêm Owner vào bảng Owner nếu chưa tồn tại
-        await Owner.create({ userId: owner._id });
-      }
-    }
+    // Lọc ra các user hợp lệ và đảm bảo đúng format
+    const formattedOwner = ownerList
+      .filter((owner) => owner.userId) // Bỏ các Owner không có user hợp lệ
+      .map((owner) => ({
+        ...owner,
+        userId: owner.userId ? new User(owner.userId).toJSON() : null, // Áp dụng format
+      }));
 
-    res.json(getOwners);
+    res.status(200).json({
+      success: true,
+      data: formattedOwner,
+    });
   } catch (error) {
-    throw new Error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
-});
+};
 
 module.exports = {
   createOwner,

@@ -49,25 +49,52 @@ const getStaff = asyncHandler(async (req, res) => {
   }
 });
 
-const getAllStaff = asyncHandler(async (req, res) => {
+// const getAllStaff = asyncHandler(async (req, res) => {
+//   try {
+//     const getStaffUsers = await Role.findOne({ roleName: "Staff" });
+//     const getStaffs = await User.find({ roleID: getStaffUsers._id });
+
+//     // Lưu các Staff vào bảng Owner (nếu chưa có)
+//     for (const staff of getStaffs) {
+//       const existingStaff = await Staff.findOne({ userId: staff._id });
+//       if (!existingStaff) {
+//         // Thêm Staff vào bảng Staff nếu chưa tồn tại
+//         await Staff.create({ userId: staff._id });
+//       }
+//     }
+
+//     res.json(getStaffs);
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// });
+
+const getAllStaff = async (req, res) => {
   try {
-    const getStaffUsers = await Role.findOne({ roleName: "Staff" });
-    const getStaffs = await User.find({ roleID: getStaffUsers._id });
+    const staffList = await Staff.find()
+      .populate({
+        path: "userId",
+        match: { roleID: "67927feaa0a58ce4f7e8e83a" },
+        select: "-password", // Loại bỏ password khi trả về
+      })
+      .lean();
 
-    // Lưu các Staff vào bảng Owner (nếu chưa có)
-    for (const staff of getStaffs) {
-      const existingStaff = await Staff.findOne({ userId: staff._id });
-      if (!existingStaff) {
-        // Thêm Staff vào bảng Staff nếu chưa tồn tại
-        await Staff.create({ userId: staff._id });
-      }
-    }
+    // Lọc ra các user hợp lệ và đảm bảo đúng format
+    const formattedStaff = staffList
+      .filter((staff) => staff.userId) // Bỏ các Staff không có user hợp lệ
+      .map((staff) => ({
+        ...staff,
+        userId: staff.userId ? new User(staff.userId).toJSON() : null, // Áp dụng format
+      }));
 
-    res.json(getStaffs);
+    res.status(200).json({
+      success: true,
+      data: formattedStaff,
+    });
   } catch (error) {
-    throw new Error(error);
+    res.status(500).json({ success: false, message: error.message });
   }
-});
+};
 
 module.exports = {
   createStaff,

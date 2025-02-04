@@ -1,26 +1,45 @@
 const PolicySystem = require("../models/policySystemModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
+const moment = require("moment-timezone");
 
 const createPolicySystem = asyncHandler(async (req, res) => {
   try {
     //   const newPolicySystem = await PolicySystem.create(req.body);
-    const { name, description, value, unit, startDate, endDate, isActive } =
-      req.body;
+    const {
+      name,
+      policySystemCategoryId,
+      policySystemBookingId,
+      description,
+      value,
+      unit,
+      startDate,
+      endDate,
+      isActive,
+    } = req.body;
 
     // Chuyển đổi từ định dạng DD-MM-YYYY sang giờ Việt Nam trước khi lưu
-    const vietnamTime1 = moment
-      .tz(startDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-      .toDate();
-    const vietnamTime2 = moment
-      .tz(endDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
+    // const vietnamTime1 = moment
+    //   .tz(startDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
+    //   .toDate();
+    const vietnamTime1 = moment(startDate, "DD-MM-YYYY HH:mm:ss")
+      .tz("Asia/Ho_Chi_Minh")
       .toDate();
 
+    // const vietnamTime2 = moment
+    //   .tz(endDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
+    //   .toDate();
+    const vietnamTime2 = moment(endDate, "DD-MM-YYYY HH:mm:ss")
+      .tz("Asia/Ho_Chi_Minh")
+      .toDate();
     // Kiểm tra điều kiện startDate phải sau ngày tạo hệ thống (createdAt)
     const currentDate = new Date();
-    if (vietnamTime1 <= currentDate) {
+    const currentDateVN = moment(currentDate, "DD/MM/YYYY HH:mm:ss")
+      .tz("Asia/Ho_Chi_Minh");
+
+    if (vietnamTime1 <= currentDateVN) {
       return res.status(400).json({
-        message: "Start date must be after the current date (createdAt).",
+        message: "Start date must be after the current date.",
       });
     }
 
@@ -33,6 +52,8 @@ const createPolicySystem = asyncHandler(async (req, res) => {
 
     const newPolicySystem = new PolicySystem({
       name,
+      policySystemCategoryId,
+      policySystemBookingId,
       description,
       value,
       unit,

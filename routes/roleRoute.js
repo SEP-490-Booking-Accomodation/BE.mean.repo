@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
-
 const {
   createRole,
   updateRole,
@@ -12,9 +11,16 @@ const {
 
 /**
  * @swagger
- * tags:
- *   name: Role
- *   description: Role management
+ * components:
+ *   schemas:
+ *     Role:
+ *       type: object
+ *       properties:
+ *         roleName:
+ *           type: string
+ *           description: The name of the role
+ *       required:
+ *         - roleName
  */
 
 /**
@@ -30,11 +36,7 @@ const {
  *       content:
  *         application/x-www-form-urlencoded:
  *           schema:
- *             type: object
- *             properties:
- *               roleName:
- *                 type: string
- *                 description: The name of the role
+ *             $ref: '#/components/schemas/Role'
  *     responses:
  *       201:
  *         description: Role created successfully
@@ -61,13 +63,9 @@ router.post("/create-role", authMiddleware, isAdmin, createRole);
  *     requestBody:
  *       required: true
  *       content:
- *         application/x-www-form-urlencoded:
+ *         application/json:
  *           schema:
- *             type: object
- *             properties:
- *               roleName:
- *                 type: string
- *                 description: The name of the role
+ *             $ref: '#/components/schemas/Role'
  *     responses:
  *       200:
  *         description: Role updated successfully
@@ -115,13 +113,7 @@ router.delete("/:id", authMiddleware, isAdmin, deleteRole);
  *             schema:
  *               type: array
  *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: string
- *                   roleName:
- *                     type: string
- *                     description: The name of the role
+ *                 $ref: '#/components/schemas/Role'
  */
 router.get("/all-roles", authMiddleware, isAdmin, getAllRole);
 
@@ -144,15 +136,9 @@ router.get("/all-roles", authMiddleware, isAdmin, getAllRole);
  *       200:
  *         description: Role details
  *         content:
- *           application/x-www-form-urlencoded:
+ *           application/json:
  *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: string
- *                 roleName:
- *                   type: string
- *                   description: The name of the role
+ *               $ref: '#/components/schemas/Role'
  */
 router.get("/:id", authMiddleware, isAdmin, getRole);
 
