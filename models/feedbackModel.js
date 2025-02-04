@@ -2,12 +2,23 @@ const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
 
 // Declare the Schema of the Mongo model
-var customerSchema = new mongoose.Schema(
+var feedbackSchema = new mongoose.Schema(
   {
-    userId: {
+    bookingId: {
       type: mongoose.Schema.ObjectId,
-      ref: "User",
+      ref: "Booking",
     },
+    content: {
+      type: String,
+    },
+    rating: {
+      type: Number,
+    },
+    isHidden: {
+      type: Boolean,
+      default: false,
+    },
+    images: [],
   },
   {
     timestamps: true,
@@ -39,4 +50,4 @@ var customerSchema = new mongoose.Schema(
 );
 
 //Export the model
-module.exports = mongoose.model("Customer", customerSchema);
+module.exports = mongoose.model("Feedback", feedbackSchema);

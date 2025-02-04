@@ -18,7 +18,6 @@ const {
  *       required:
  *         - staffId
  *         - policySystemCategoryId
- *         - policySystemBookingId
  *         - name
  *         - startDate
  *         - endDate
@@ -26,6 +25,12 @@ const {
  *         staffId:
  *           type: string
  *           description: The ID of the staff member
+ *         policySystemCategoryId:
+ *           type: string
+ *           description: The ID of the Policy System Category
+ *         policySystemBookingId:
+ *           type: string
+ *           description: The ID of the Policy System Booking
  *         name:
  *           type: string
  *           description: The name of the policy system
@@ -40,28 +45,16 @@ const {
  *           description: The unit for the value
  *         startDate:
  *           type: string
- *           format: date
- *           pattern: "^\\d{2}-\\d{2}-\\d{4}$"
+ *           format: date-time
+ *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
  *           description: Start date of the policy system
- *           example: "01-01-2025"
+ *           example: "04-02-2025 15:30:45 +07:00"
  *         endDate:
  *           type: string
- *           format: date
- *           pattern: "^\\d{2}-\\d{2}-\\d{4}$"
+ *           format: date-time
+ *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
  *           description: End date of the policy system
- *           example: "01-01-2025"
- *         isActive:
- *           type: boolean
- *           description: Status if the policy system is active
- *       example:
- *         staffId: "605c72ef153207001f67d8c"
- *         name: "New Policy"
- *         description: "This policy system is active from now on."
- *         value: "10"
- *         unit: "VND"
- *         startDate: "2025-01-01"
- *         endDate: "2025-12-31"
- *         isActive: true
+ *           example: "04-02-2025 15:30:45 +07:00"
  */
 
 /**
@@ -89,7 +82,7 @@ const {
  *         description: Forbidden, requires admin privileges
  */
 router.post(
-  "/create-policysystem",
+  "/create-policy-system",
   authMiddleware,
   isAdmin,
   createPolicySystem
