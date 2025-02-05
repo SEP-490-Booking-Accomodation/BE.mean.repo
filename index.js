@@ -24,6 +24,8 @@ const policyOwnerRoute = require("./routes/policyOwnerRoute");
 const rentalLocationRoute = require("./routes/rentalLocationRoute");
 const accommodationRoute = require("./routes/accommodationRoute");
 const accommodationTypeRoute = require("./routes/accommodationTypeRoute");
+const serviceRoute = require("./routes/serviceRoute");
+const paymentInformationRoute = require("./routes/paymentInformationRoute");
 
 const bodyParser = require("body-parser");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
@@ -61,6 +63,8 @@ app.use("/api/policy-owner", policyOwnerRoute);
 app.use("/api/rental-location", rentalLocationRoute);
 app.use("/api/accommodation", accommodationRoute);
 app.use("/api/accommodation-type", accommodationTypeRoute);
+app.use("/api/service", serviceRoute);
+app.use("/api/payment-information", paymentInformationRoute);
 app.use(notFound);
 app.use(errorHandler);
 
