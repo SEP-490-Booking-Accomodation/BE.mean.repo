@@ -19,6 +19,11 @@ const bookingRoute = require("./routes/bookingRoute");
 const couponRoute = require("./routes/couponRoute");
 const reportRoute = require("./routes/reportRoute");
 const feedbackRoute = require("./routes/feedbackRoute");
+const businessInformationRoute = require("./routes/businessInformationRoute");
+const policyOwnerRoute = require("./routes/policyOwnerRoute");
+const rentalLocationRoute = require("./routes/rentalLocationRoute");
+const accommodationRoute = require("./routes/accommodationRoute");
+const accommodationTypeRoute = require("./routes/accommodationTypeRoute");
 
 const bodyParser = require("body-parser");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
@@ -51,7 +56,11 @@ app.use("/api/booking", bookingRoute);
 app.use("/api/coupon", couponRoute);
 app.use("/api/report", reportRoute);
 app.use("/api/feedback", feedbackRoute);
-
+app.use("/api/business-information", businessInformationRoute);
+app.use("/api/policy-owner", policyOwnerRoute);
+app.use("/api/rental-location", rentalLocationRoute);
+app.use("/api/accommodation", accommodationRoute);
+app.use("/api/accommodation-type", accommodationTypeRoute);
 app.use(notFound);
 app.use(errorHandler);
 
