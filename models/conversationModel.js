@@ -1,26 +1,25 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
-var policyOwnerSchema = new mongoose.Schema(
+var conversationSchema = new mongoose.Schema(
     {
-        ownerId: {
+        userId: {
             type: mongoose.Schema.ObjectId,
-            ref: "Owner",
+            ref: "User",
         },
-        policyTitle: {
-            type: String,
-            required: true,
-        },
-        policyDescription: {
-            type: String,
-            required: true,
-        },
-        startDate: {
+        startedDate: {
             type: Date,
-            require: true,
+            default: () => moment().tz("Asia/Ho_Chi_Minh").toDate(),
         },
-        endDate: {
+        lastMessage: {
+            type: String,
+        },
+        lastMessageDate: {
             type: Date,
-            require: true,
+            default: () => moment().tz("Asia/Ho_Chi_Minh").toDate(),
+        },
+        status: {
+            type: Boolean,
+            default: false,
         },
     },
     {
@@ -34,16 +33,19 @@ var policyOwnerSchema = new mongoose.Schema(
                 ret.updatedAt = moment(ret.updatedAt)
                     .tz("Asia/Ho_Chi_Minh")
                     .format("DD/MM/YYYY HH:mm:ss");
-                if (ret.startDate) {
-                    ret.startDate = moment(ret.startDate)
+
+                if (ret.startedDate) {
+                    ret.startedDate = moment(ret.startedDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
-                if (ret.endDate) {
-                    ret.endDate = moment(ret.endDate)
+
+                if (ret.lastMessageDate) {
+                    ret.lastMessageDate = moment(ret.lastMessageDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
+
                 return ret;
             },
         },
@@ -56,36 +58,24 @@ var policyOwnerSchema = new mongoose.Schema(
                 ret.updatedAt = moment(ret.updatedAt)
                     .tz("Asia/Ho_Chi_Minh")
                     .format("DD/MM/YYYY HH:mm:ss");
-                if (ret.startDate) {
-                    ret.startDate = moment(ret.startDate)
+
+                if (ret.startedDate) {
+                    ret.startedDate = moment(ret.startedDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
-                if (ret.endDate) {
-                    ret.endDate = moment(ret.endDate)
+
+                if (ret.lastMessageDate) {
+                    ret.lastMessageDate = moment(ret.lastMessageDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
+
                 return ret;
             },
         },
     }
 );
-policyOwnerSchema.pre("save", async function (next) {
-    if (this.startDate && typeof this.startDate === "string") {
-        // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-        this.startDate = moment
-            .tz(this.startDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-            .utc()
-            .toDate();
-    }
-    if (this.endDate && typeof this.endDate === "string") {
-        // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-        this.endDate = moment
-            .tz(this.endDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-            .utc()
-            .toDate();
-    }
-});
+
 //Export the model
-module.exports = mongoose.model("PolicyOwner", policyOwnerSchema);
+module.exports = mongoose.model("Conversation", conversationSchema);

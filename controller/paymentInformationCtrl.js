@@ -5,8 +5,8 @@ const moment = require("moment-timezone");
 
 const createPaymentInformation= asyncHandler(async(req, res) => {
     try{
-        const newPaymentInformation = await Service.create(req.body);
-        res.join(newPaymentInformation);
+        const newPaymentInformation = await PaymentInformation.create(req.body);
+        res.json(newPaymentInformation);
     } catch (error){
         throw new Error(error);
     }
@@ -39,7 +39,7 @@ const getPaymentInformation= asyncHandler(async (req, res) => {
     const { id } = req.params;
     validateMongoDbId(id);
     try {
-      const getPaymentInformation = await Accommodation.findById(id);
+      const getPaymentInformation = await PaymentInformation.findById(id);
       res.json(getPaymentInformation);
     } catch (error) {
       throw new Error(error);
@@ -47,12 +47,19 @@ const getPaymentInformation= asyncHandler(async (req, res) => {
 });
 
 const getAllPaymentInformation = asyncHandler(async (req, res) => {
-    try {
-      const getAllPaymentInformation = await Accommodation.find();
-      res.json(getAllPaymentInformation);
-    } catch (error) {
-      throw new Error(error);
-    }
+  try {
+    const paymentInformations = await PaymentInformation.find();
+    const formattedPaymentInformations = paymentInformations.map(doc => doc.toJSON());
+    res.status(200).json({
+      success: true,
+      data: formattedPaymentInformations
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
 });
 
 module.exports = {

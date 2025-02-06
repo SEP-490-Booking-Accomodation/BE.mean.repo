@@ -6,7 +6,7 @@ const moment = require("moment-timezone");
 const createPolicyOwner= asyncHandler(async(req, res) => {
     try{
         const newPolicyOwner= await PolicyOwner.create(req.body);
-        res.join(newPolicyOwner);
+        res.json(newPolicyOwner);
     } catch (error){
         throw new Error(error);
     }
@@ -47,12 +47,19 @@ const getPolicyOwner = asyncHandler(async (req, res) => {
 });
 
 const getAllPolicyOwner = asyncHandler(async (req, res) => {
-    try {
-      const getAllPolicyOwner = await PolicyOwner.find();
-      res.json(getAllPolicyOwner);
-    } catch (error) {
-      throw new Error(error);
-    }
+  try {
+    const policyOwners = await PolicyOwner.find();
+    const formattedPolicyOwners = policyOwners.map(doc => doc.toJSON());
+    res.status(200).json({
+      success: true,
+      data: formattedPolicyOwners
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
 });
 
 module.exports = {

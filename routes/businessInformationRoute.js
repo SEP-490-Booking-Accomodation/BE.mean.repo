@@ -131,6 +131,23 @@ router.put("/:id", authMiddleware, updateBusinessInformation);
  */
 router.delete("/:id", authMiddleware, deleteBusinessInformation);
 
+/**
+ * @swagger
+ * /api/business-information/all-business-information:
+ *   get:
+ *     summary: Get all business information
+ *     description: Retrieves a list of all business information records
+ *     tags:
+ *       - BusinessInformation
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all business information
+ *       404:
+ *         description: No business information records found
+ */
+router.get("/all-business-information", authMiddleware, getAllBusinessInformation);
 
 /**
  * @swagger
@@ -156,23 +173,5 @@ router.delete("/:id", authMiddleware, deleteBusinessInformation);
  *         description: Business information not found
  */
 router.get("/:id", authMiddleware, getBusinessInformation);
-
-/**
- * @swagger
- * /api/business-information/all-business-information:
- *   get:
- *     summary: Get all business information
- *     description: Retrieves a list of all business information records
- *     tags:
- *       - BusinessInformation
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Successfully retrieved all business information
- *       404:
- *         description: No business information records found
- */
-router.get("/all-business-information", authMiddleware, getAllBusinessInformation);
 
 module.exports = router;

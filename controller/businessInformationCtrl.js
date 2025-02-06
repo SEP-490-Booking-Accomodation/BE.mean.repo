@@ -6,7 +6,7 @@ const moment = require("moment-timezone");
 const createBusinessInformation= asyncHandler(async(req, res) => {
     try{
         const newBusinessInformation= await BusinessInformation.create(req.body);
-        res.join(newBusinessInformation);
+        res.json(newBusinessInformation);
     } catch (error){
         throw new Error(error);
     }
@@ -47,12 +47,19 @@ const getBusinessInformation = asyncHandler(async (req, res) => {
 });
 
 const getAllBusinessInformation = asyncHandler(async (req, res) => {
-    try {
-      const getAllBusinessInformation = await BusinessInformation.find();
-      res.json(getAllBusinessInformation);
-    } catch (error) {
-      throw new Error(error);
-    }
+  try {
+    const businessInformations = await BusinessInformation.find();
+    const formattedBusinessInformations = businessInformations.map(doc => doc.toJSON());
+    res.status(200).json({
+      success: true,
+      data: formattedBusinessInformations
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
 });
 
 module.exports = {
