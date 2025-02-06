@@ -122,6 +122,24 @@ router.delete("/:id", authMiddleware, deleteService);
 
 /**
  * @swagger
+ * /api/service/all-services:
+ *   get:
+ *     summary: Get all services
+ *     description: Retrieves a list of all services
+ *     tags:
+ *       - Service
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all services
+ *       404:
+ *         description: No services found
+ */
+router.get("/all-services", authMiddleware, getAllService);
+
+/**
+ * @swagger
  * /api/service/{id}:
  *   get:
  *     summary: Get a service
@@ -144,23 +162,5 @@ router.delete("/:id", authMiddleware, deleteService);
  *         description: Service not found
  */
 router.get("/:id", authMiddleware, getService);
-
-/**
- * @swagger
- * /api/service/all-services:
- *   get:
- *     summary: Get all services
- *     description: Retrieves a list of all services
- *     tags:
- *       - Service
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Successfully retrieved all services
- *       404:
- *         description: No services found
- */
-router.get("/all-services", authMiddleware, getAllService);
 
 module.exports = router;

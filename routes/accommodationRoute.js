@@ -127,6 +127,24 @@ router.delete("/:id", authMiddleware, deleteAccommodation);
 
 /**
  * @swagger
+ * /api/accommodation/all-accommodations:
+ *   get:
+ *     summary: Get all accommodations
+ *     description: Retrieves a list of all accommodations
+ *     tags:
+ *       - Accommodation
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all accommodations
+ *       404:
+ *         description: No accommodations found
+ */
+router.get("/all-accommodations", authMiddleware, getAllAccommodation);
+
+/**
+ * @swagger
  * /api/accommodation/{id}:
  *   get:
  *     summary: Get an accommodation
@@ -149,22 +167,4 @@ router.delete("/:id", authMiddleware, deleteAccommodation);
  *         description: Accommodation not found
  */
 router.get("/:id", authMiddleware, getAccommodation);
-
-/**
- * @swagger
- * /api/accommodation/all-accommodations:
- *   get:
- *     summary: Get all accommodations
- *     description: Retrieves a list of all accommodations
- *     tags:
- *       - Accommodation
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Successfully retrieved all accommodations
- *       404:
- *         description: No accommodations found
- */
-router.get("/all-accommodations", authMiddleware, getAllAccommodation);
 module.exports = router;

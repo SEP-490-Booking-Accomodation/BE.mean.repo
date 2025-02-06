@@ -137,6 +137,25 @@ router.delete("/:id", authMiddleware, deleteAccommodationType);
 
 /**
  * @swagger
+ * /api/accommodation-type/all-accommodation-types:
+ *   get:
+ *     summary: Get all accommodation types
+ *     description: Retrieves a list of all accommodation types
+ *     tags:
+ *       - AccommodationType
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all accommodation types
+ *       404:
+ *         description: No accommodation types found
+ */
+
+router.get("/all-accommodation-types", authMiddleware, getAllAccommodationType);
+
+/**
+ * @swagger
  * /api/accommodation-type/{id}:
  *   get:
  *     summary: Get an accommodation type
@@ -159,24 +178,5 @@ router.delete("/:id", authMiddleware, deleteAccommodationType);
  *         description: Accommodation type not found
  */
 router.get("/:id", authMiddleware, getAccommodationType);
-
-/**
- * @swagger
- * /api/accommodation-type/all-accommodation-types:
- *   get:
- *     summary: Get all accommodation types
- *     description: Retrieves a list of all accommodation types
- *     tags:
- *       - AccommodationType
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Successfully retrieved all accommodation types
- *       404:
- *         description: No accommodation types found
- */
-
-router.get("/all-accommodation-types", authMiddleware, getAllAccommodationType);
 
 module.exports = router;

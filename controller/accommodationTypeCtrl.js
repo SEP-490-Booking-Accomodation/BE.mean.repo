@@ -6,7 +6,7 @@ const moment = require("moment-timezone");
 const createAccommodationType= asyncHandler(async(req, res) => {
     try{
         const newAccommodationType= await AccommodationType.create(req.body);
-        res.join(newAccommodationType);
+        res.json(newAccommodationType);
     } catch (error){
         throw new Error(error);
     }
@@ -47,12 +47,19 @@ const getAccommodationType = asyncHandler(async (req, res) => {
 });
 
 const getAllAccommodationType = asyncHandler(async (req, res) => {
-    try {
-      const getAllAccommodationType = await AccommodationType.find();
-      res.json(getAllAccommodationType);
-    } catch (error) {
-      throw new Error(error);
-    }
+  try {
+    const accommodationTypes = await AccommodationType.find();
+    const formattedAccommodationTypes = accommodationTypes.map(doc => doc.toJSON());
+    res.status(200).json({
+      success: true,
+      data: formattedAccommodationTypes
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
 });
 
 module.exports = {

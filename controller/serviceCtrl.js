@@ -6,7 +6,7 @@ const moment = require("moment-timezone");
 const createService= asyncHandler(async(req, res) => {
     try{
         const newService = await Service.create(req.body);
-        res.join(newService);
+        res.json(newService);
     } catch (error){
         throw new Error(error);
     }
@@ -47,12 +47,19 @@ const getService= asyncHandler(async (req, res) => {
 });
 
 const getAllService = asyncHandler(async (req, res) => {
-    try {
-      const getAllService = await Accommodation.find();
-      res.json(getAllService);
-    } catch (error) {
-      throw new Error(error);
-    }
+  try {
+    const services = await Service.find();
+    const formattedServices = services.map(doc => doc.toJSON());
+    res.status(200).json({
+      success: true,
+      data: formattedServices
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
 });
 
 module.exports = {

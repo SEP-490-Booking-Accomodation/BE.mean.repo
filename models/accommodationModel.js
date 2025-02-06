@@ -14,10 +14,11 @@ var accommodationSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        image: {
-            type: String,
-            required: true,
-        },
+        image: [
+            {
+                type: String,
+            },
+        ],
         status: {
             type: Boolean,
             required: true,

@@ -116,6 +116,24 @@ router.delete("/:id", authMiddleware, deletePaymentInformation);
 
 /**
  * @swagger
+ * /api/payment-information/all-payment-information:
+ *   get:
+ *     summary: Get all payment information
+ *     description: Retrieves a list of all payment information records
+ *     tags:
+ *       - PaymentInformation
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all payment information
+ *       404:
+ *         description: No payment information found
+ */
+router.get("/all-payment-information", authMiddleware, getAllPaymentInformation);
+
+/**
+ * @swagger
  * /api/payment-information/{id}:
  *   get:
  *     summary: Get payment information
@@ -138,23 +156,5 @@ router.delete("/:id", authMiddleware, deletePaymentInformation);
  *         description: Payment information not found
  */
 router.get("/:id", authMiddleware, getPaymentInformation);
-
-/**
- * @swagger
- * /api/payment-information/all-payment-information:
- *   get:
- *     summary: Get all payment information
- *     description: Retrieves a list of all payment information records
- *     tags:
- *       - PaymentInformation
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Successfully retrieved all payment information
- *       404:
- *         description: No payment information found
- */
-router.get("/all-payment-information", authMiddleware, getAllPaymentInformation);
 
 module.exports = router;

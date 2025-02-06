@@ -23,7 +23,7 @@ const {
  *         - startDate
  *         - endDate
  *       properties:
- *         bookingId:
+ *         ownerId:
  *           type: string
  *           description: The ID of the owner associated with the policy (reference to Owner model)
  *         policyTitle:
@@ -49,11 +49,9 @@ const {
  *           format: date-time
  *           description: The ending date of the policy
  *       example:
- *         bookingId: "63b92f4e17d7b3c2a4e4f3d2"
+ *         ownerId: "63b92f4e17d7b3c2a4e4f3d2"
  *         policyTitle: "Cancellation Policy"
  *         policyDescription: "This policy covers cancellation terms for bookings."
- *         createdDate: "2025-02-01T12:00:00Z"
- *         updatedDate: "2025-02-01T12:00:00Z"
  *         startDate: "2025-02-01T12:00:00Z"
  *         endDate: "2025-12-31T12:00:00Z"
  */
@@ -139,6 +137,36 @@ router.put("/:id", authMiddleware, updatePolicyOwner);
  */
 router.put("/:id", authMiddleware, deletePolicyOwner);
 
+/**
+ * @swagger
+ * /api/policy-owner/all-policy-owner:
+ *   get:
+ *     summary: Get all policy owners
+ *     description: Retrieves a list of all policy owners
+ *     tags:
+ *       - PolicyOwner
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all policy owners
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/PolicyOwner'
+ *       404:
+ *         description: No policy owners found
+ */
+
+router.get("/all-policy-owner", authMiddleware, getAllPolicyOwner);
+
 
 /**
  * @swagger
@@ -165,22 +193,6 @@ router.put("/:id", authMiddleware, deletePolicyOwner);
  */
 router.get("/:id", authMiddleware, getPolicyOwner);
 
-/**
- * @swagger
- * /api/policy-owner/all-policy-owner:
- *   get:
- *     summary: Get all policy owners
- *     description: Retrieves a list of all policy owners
- *     tags:
- *       - PolicyOwner
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Successfully retrieved all policy owners
- *       404:
- *         description: No policy owners found
- */
-router.get("/all-policy-owner", authMiddleware, getAllPolicyOwner);
+
 
 module.exports = router;

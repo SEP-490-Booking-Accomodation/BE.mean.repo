@@ -1,18 +1,15 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
-var serviceSchema = new mongoose.Schema(
+
+// Declare the Schema of the Mongo model
+var messageSchema = new mongoose.Schema(
   {
-    accommodationTypeId: {
-        type: mongoose.Schema.ObjectId,
-        ref: "AccommodationType",
+    conversationId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Conversation",
     },
-    name: {
+    content: {
       type: String,
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
     },
     status: {
       type: Boolean,
@@ -47,5 +44,6 @@ var serviceSchema = new mongoose.Schema(
     },
   }
 );
+
 //Export the model
-module.exports = mongoose.model("Service", serviceSchema);
+module.exports = mongoose.model("Message", messageSchema);

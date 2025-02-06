@@ -161,6 +161,25 @@ router.delete("/:id", authMiddleware, deleteRentalLocation);
 
 /**
  * @swagger
+ * /api/rental-location/all-rental-location:
+ *   get:
+ *     summary: Get all rental locations
+ *     description: Retrieves a list of all rental locations
+ *     tags:
+ *       - RentalLocation
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all rental locations
+ *       404:
+ *         description: No rental locations found
+ */
+
+router.get("/all-rental-location", authMiddleware, getAllRentalLocation);
+
+/**
+ * @swagger
  * /api/rental-location/{id}:
  *   get:
  *     summary: Get a rental location
@@ -183,24 +202,5 @@ router.delete("/:id", authMiddleware, deleteRentalLocation);
  *         description: Rental location not found
  */
 router.get("/:id", authMiddleware, getRentalLocation);
-
-/**
- * @swagger
- * /api/rental-location/all-rental-location:
- *   get:
- *     summary: Get all rental locations
- *     description: Retrieves a list of all rental locations
- *     tags:
- *       - RentalLocation
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: Successfully retrieved all rental locations
- *       404:
- *         description: No rental locations found
- */
-
-router.get("/all-rental-location", authMiddleware, getAllRentalLocation);
 
 module.exports = router;

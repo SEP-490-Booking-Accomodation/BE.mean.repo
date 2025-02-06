@@ -1,53 +1,29 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
-var rentalLocationSchema = new mongoose.Schema(
+
+// Declare the Schema of the Mongo model
+var notificationSchema = new mongoose.Schema(
     {
-        ownerId: {
+        userId: {
             type: mongoose.Schema.ObjectId,
-            ref: "Owner",
+            ref: "User",
         },
-        name: {
+        bookingId: {
+            type: mongoose.Schema.ObjectId,
+            ref: "Booking",
+        },
+        title: {
             type: String,
-            required: true,
         },
-        status: {
+        content: {
+            type: String,
+        },
+        isRead: {
             type: Boolean,
-            required: true,
+            default: false,
         },
-        image: [
-            {
-                type: String,
-            },
-        ],
-        description: {
-            type: String,
-            required: true,
-        },
-        landUsesRightsFile: {
-            type: String,
-            required: true,
-        },
-        address: {
-            type: String,
-            required: true,
-        },
-        longtitude: {
-            type: String,
-        },
-        attitude: {
-            type: String,
-        },
-        openHour: {
-            type: String,
-            required: true,
-        },
-        closeHour: {
-            type: String,
-            required: true,
-        },
-        isOverNight: {
-            type: Boolean,
-            default: false
+        type: {
+            type: Number,
         },
     },
     {
@@ -78,5 +54,6 @@ var rentalLocationSchema = new mongoose.Schema(
         },
     }
 );
+
 //Export the model
-module.exports = mongoose.model("RentalLocation", rentalLocationSchema);
+module.exports = mongoose.model("Notification", notificationSchema);

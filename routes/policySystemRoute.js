@@ -81,12 +81,7 @@ const {
  *       403:
  *         description: Forbidden, requires admin privileges
  */
-router.post(
-  "/create-policy-system",
-  authMiddleware,
-  isAdmin,
-  createPolicySystem
-);
+router.post("/create-policy-system", authMiddleware, isAdmin, createPolicySystem);
 
 /**
  * @swagger

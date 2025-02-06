@@ -8,6 +8,21 @@ var userSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: "User",
     },
+    paymentInformationId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "PaymentInformation",
+    },
+    businessInformationId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "BusinessInformation",
+    },
+    isApproved: {
+      type: Boolean,
+      default: false,
+    },
+    note: {
+      type: String
+    }
   },
   {
     timestamps: true,
