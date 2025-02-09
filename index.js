@@ -1,6 +1,7 @@
 const express = require("express");
 const dbConnect = require("./config/dbConnect");
 const { swaggerUi, swaggerSpec } = require("./config/swaggerConfig");
+const cors = require("cors");
 
 const app = express();
 const dotenv = require("dotenv").config();
@@ -38,6 +39,8 @@ const morgan = require("morgan");
 
 dbConnect();
 
+// Cấu hình CORS cho phép tất cả các nguồn
+app.use(cors());
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
