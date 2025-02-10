@@ -13,6 +13,8 @@ const {
   updatePassword,
   forgotPasswordToken,
   resetPassword,
+  sendEmailOTP,
+  verifyEmailOTP
 } = require("../controller/userCtrl");
 
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
@@ -189,6 +191,59 @@ router.post("/forgot-password-token", forgotPasswordToken);
  *         description: Invalid token or input
  */
 router.put("/reset-password/:token", resetPassword);
+
+/**
+ * @swagger
+ * /api/user/send-otp:
+ *   post:
+ *     summary: Send OTP to user's email
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "user@example.com"
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *       400:
+ *         description: Invalid email
+ */
+router.post("/send-otp", sendEmailOTP);
+
+/**
+ * @swagger
+ * /api/user/verify-email:
+ *   post:
+ *     summary: Verify user's email using OTP
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *                 example: "user@example.com"
+ *               otp:
+ *                 type: string
+ *                 example: "123456"
+ *     responses:
+ *       200:
+ *         description: Email verified successfully
+ *       400:
+ *         description: Invalid or expired OTP
+ */
+router.post("/verify-email", verifyEmailOTP);
 
 /**
  * @swagger

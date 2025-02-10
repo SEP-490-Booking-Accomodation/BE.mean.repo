@@ -7,7 +7,7 @@ const jwt = require("jsonwebtoken");
 const moment = require("moment-timezone");
 const { generateToken } = require("../config/jwtToken");
 const { generateRefreshToken } = require("../config/refreshToken");
-const sendEmail = require("./emailCrtl");
+const { sendEmail, sendOTPEmail} = require("./emailCrtl");
 const crypto = require("crypto");
 
 //Create a user
@@ -171,25 +171,66 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 
-//handle refresh token
+// //handle refresh token
+// const handleRefreshToken = asyncHandler(async (req, res) => {
+//   const cookie = req.cookies;
+//   if (!cookie?.refreshToken)
+//     throw new Error("Không làm mới Token trong Cookies");
+//   const refreshToken = cookie.refreshToken;
+//   const user = await User.findOne({ refreshToken });
+//   if (!user)
+//     throw new Error(
+//       "Không làm mới Token hiện tại trong cơ sở dữ liệu hoặc không phù hợp"
+//     );
+//   jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+//     if (err || user.id !== decoded.id) {
+//       throw new Error("Có gì đó sai xót với refresh Token");
+//     }
+//     const accessToken = generateToken(user?._id);
+//     res.json({ accessToken });
+//   });
+// });
+
 const handleRefreshToken = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
-  if (!cookie?.refreshToken)
-    throw new Error("Không làm mới Token trong Cookies");
+  if (!cookie?.refreshToken) {
+    throw new Error("Không tìm thấy refreshToken trong Cookies");
+  }
+
   const refreshToken = cookie.refreshToken;
-  const user = await User.findOne({ refreshToken });
-  if (!user)
-    throw new Error(
-      "Không làm mới Token hiện tại trong cơ sở dữ liệu hoặc không phù hợp"
-    );
-  jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
-    if (err || user.id !== decoded.id) {
-      throw new Error("Có gì đó sai xót với refresh Token");
+
+  // Tìm refreshToken trong bảng Token
+  const tokenDoc = await Token.findOne({ refreshToken });
+
+  if (!tokenDoc) {
+    throw new Error("Refresh Token không hợp lệ hoặc đã hết hạn");
+  }
+
+  // Xác thực refresh token
+  jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, decoded) => {
+    if (err) {
+      await Token.deleteOne({ refreshToken }); // Xóa token nếu không hợp lệ
+      throw new Error("Refresh Token không hợp lệ");
     }
-    const accessToken = generateToken(user?._id);
-    res.json({ accessToken });
+
+    // Tìm user dựa trên userId trong token
+    const user = await User.findById(tokenDoc.userId);
+    if (!user) {
+      await Token.deleteOne({ refreshToken });
+      throw new Error("Người dùng không tồn tại");
+    }
+
+    // Tạo access token mới
+    const newAccessToken = generateToken(user._id);
+
+    // Cập nhật accessToken mới vào bảng Token
+    tokenDoc.value = newAccessToken;
+    await tokenDoc.save();
+
+    res.json({ accessToken: newAccessToken });
   });
 });
+
 
 const updatePassword = asyncHandler(async (req, res) => {
   const { _id } = req.user;
@@ -242,6 +283,65 @@ const resetPassword = asyncHandler(async (req, res) => {
   await user.save();
   res.json(user);
 });
+
+//Gửi OTP
+const sendEmailOTP = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  // Kiểm tra xem người dùng có tồn tại không
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Tạo mã OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 chữ số
+  user.emailVerificationOTP = crypto
+    .createHash("sha256")
+    .update(otp)
+    .digest("hex");
+  user.emailVerificationExpires = Date.now() + 10 * 60 * 1000; // Hết hạn sau 10 phút
+
+  await user.save();
+
+  // Gửi OTP qua email
+  await sendOTPEmail(email, otp);
+
+  res.status(200).json({ message: "OTP sent to email" });
+});
+
+//Xác thực OTP
+const verifyEmailOTP = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  // Tìm người dùng theo email
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Kiểm tra OTP hợp lệ
+  const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
+  if (
+    user.emailVerificationOTP !== hashedOTP ||
+    user.emailVerificationExpires < Date.now()
+  ) {
+    res.status(400);
+    throw new Error("Invalid or expired OTP");
+  }
+
+  // Cập nhật trạng thái email đã xác minh
+  user.isVerifiedEmail = true;
+  user.emailVerificationOTP = undefined;
+  user.emailVerificationExpires = undefined;
+
+  await user.save();
+
+  res.status(200).json({ message: "Email verified successfully" });
+});
+
 
 //Get all users
 const getAllUser = asyncHandler(async (req, res) => {
@@ -347,6 +447,8 @@ module.exports = {
   updatePassword,
   forgotPasswordToken,
   resetPassword,
+  sendEmailOTP,
+  verifyEmailOTP,
   getAllUser,
   getUser,
   deleteUser,
