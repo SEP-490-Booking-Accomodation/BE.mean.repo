@@ -23,15 +23,11 @@ var rentalLocationSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
-        landUsesRightsFile: {
-            type: String,
-            required: true,
-        },
         address: {
             type: String,
             required: true,
         },
-        longtitude: {
+        longitude: {
             type: String,
         },
         attitude: {
