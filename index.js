@@ -27,8 +27,8 @@ const accommodationRoute = require("./routes/accommodationRoute");
 const accommodationTypeRoute = require("./routes/accommodationTypeRoute");
 const serviceRoute = require("./routes/serviceRoute");
 const paymentInformationRoute = require("./routes/paymentInformationRoute");
-const conversationRoute =  require("./routes/conversationRoute");
-const messageRoute =  require("./routes/messageRoute");
+const conversationRoute = require("./routes/conversationRoute");
+const messageRoute = require("./routes/messageRoute");
 const notificationRoute = require("./routes/notificationRoute");
 const transactionRoute = require("./routes/transactionRoute");
 
@@ -40,7 +40,11 @@ const morgan = require("morgan");
 dbConnect();
 
 // Cấu hình CORS cho phép tất cả các nguồn
-app.use(cors());
+app.use(
+  cors({
+    Credentials: true,
+  })
+);
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -72,7 +76,7 @@ app.use("/api/accommodation", accommodationRoute);
 app.use("/api/accommodation-type", accommodationTypeRoute);
 app.use("/api/service", serviceRoute);
 app.use("/api/payment-information", paymentInformationRoute);
-app.use("/api/conversation", conversationRoute)
+app.use("/api/conversation", conversationRoute);
 app.use("/api/message", messageRoute);
 app.use("/api/notification", notificationRoute);
 app.use("/api/transaction", transactionRoute);
