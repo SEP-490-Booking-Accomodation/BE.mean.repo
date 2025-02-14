@@ -40,9 +40,17 @@ const morgan = require("morgan");
 dbConnect();
 
 // Cấu hình CORS cho phép tất cả các nguồn
+const allowedOrigins = ["http://localhost:3000", "https://myapp.com"];
 app.use(
   cors({
-    Credentials: true,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
   })
 );
 app.use(morgan("dev"));
