@@ -40,10 +40,12 @@ const morgan = require("morgan");
 dbConnect();
 
 // Cấu hình CORS cho phép tất cả các nguồn
-const allowedOrigins = ["http://localhost:3000", "https://myapp.com"];
+//const allowedOrigins = ["http://localhost:3000", "https://myapp.com", "http://localhost:5000"];
 app.use(
   cors({
-    origin: "*", // Cho phép tất cả domain
+    origin: (origin, callback) => {
+      callback(null, origin || "*");
+    },
     methods: ["GET", "POST", "PUT", "DELETE"], // Các phương thức HTTP được phép
     allowedHeaders: ["Content-Type", "Authorization"], // Các header được phép
   })
