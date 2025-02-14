@@ -14,7 +14,7 @@ const {
   forgotPasswordToken,
   resetPassword,
   sendEmailOTP,
-  verifyEmailOTP
+  verifyEmailOTP,
 } = require("../controller/userCtrl");
 
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
@@ -268,7 +268,6 @@ router.post("/verify-email", verifyEmailOTP);
  */
 router.put("/password", authMiddleware, updatePassword);
 
-
 /**
  * @swagger
  * /api/user/refresh:
@@ -324,7 +323,7 @@ router.get("/all-users", authMiddleware, isAdmin, getAllUser);
  *       404:
  *         description: User not found
  */
-router.get("/:id", authMiddleware, isAdmin, getUser);
+router.get("/:id", authMiddleware, getUser);
 
 /**
  * @swagger
