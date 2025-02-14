@@ -48,6 +48,7 @@ app.use(
     },
     methods: ["GET", "POST", "PUT", "DELETE"], // Các phương thức HTTP được phép
     allowedHeaders: ["Content-Type", "Authorization"], // Các header được phép
+    credentials: true,
   })
 );
 app.use(morgan("dev"));
