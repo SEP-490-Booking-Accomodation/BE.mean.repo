@@ -43,14 +43,9 @@ dbConnect();
 const allowedOrigins = ["http://localhost:3000", "https://myapp.com"];
 app.use(
   cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
+    origin: "*", // Cho phép tất cả domain
+    methods: ["GET", "POST", "PUT", "DELETE"], // Các phương thức HTTP được phép
+    allowedHeaders: ["Content-Type", "Authorization"], // Các header được phép
   })
 );
 app.use(morgan("dev"));

@@ -51,7 +51,7 @@ var userSchema = new mongoose.Schema(
     },
     passwordChangedAt: Date,
     passwordResetToken: String,
-    passwordResetExprires: Date,
+    passwordResetExpires: Date,
     emailVerificationOTP: String,
     emailVerificationExpires: Date,
   },
@@ -111,14 +111,14 @@ userSchema.methods.isPasswordMatched = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-userSchema.methods.createPasswordResetToken = async function () {
-  const resettoken = crypto.randomBytes(32).toString("hex");
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
   this.passwordResetToken = crypto
     .createHash("sha256")
-    .update(resettoken)
+    .update(resetToken)
     .digest("hex");
   this.passwordResetExpires = Date.now() + 30 * 60 * 1000; // 10 minutes
-  return resettoken;
+  return resetToken;
 };
 
 //Export the model

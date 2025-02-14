@@ -167,13 +167,6 @@ router.post("/forgot-password-token", forgotPasswordToken);
  *   put:
  *     summary: Reset user password
  *     tags: [Auth]
- *     parameters:
- *       - in: path
- *         name: token
- *         required: true
- *         description: Reset password token
- *         schema:
- *           type: string
  *     requestBody:
  *       required: true
  *       content:
@@ -181,6 +174,9 @@ router.post("/forgot-password-token", forgotPasswordToken);
  *           schema:
  *             type: object
  *             properties:
+ *               token:
+ *                 type: string
+ *                 description: New password for the user
  *               password:
  *                 type: string
  *                 description: New password for the user
