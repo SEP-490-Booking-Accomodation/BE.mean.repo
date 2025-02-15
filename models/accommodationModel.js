@@ -23,6 +23,10 @@ var accommodationSchema = new mongoose.Schema(
             type: Boolean,
             required: true,
         },
+        isDelete: {
+            type: Boolean,
+            default: false,
+        }
     },
     {
         timestamps: true,

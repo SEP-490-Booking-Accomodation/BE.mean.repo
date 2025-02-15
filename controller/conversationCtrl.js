@@ -2,6 +2,8 @@ const Conversation = require("../models/conversationModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
+const softDelete = require("../utils/softDelete");
+const Booking = require("../models/bookingModel");
 
 const createConversation = asyncHandler(async (req, res) => {
     try {
@@ -38,13 +40,17 @@ const updateConversation = asyncHandler(async (req, res) => {
 });
 
 const deleteConversation = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    validateMongoDbId(id);
+    const {id} = req.params;
+
     try {
-        const deleteConversation = await Conversation.findByIdAndDelete(id);
-        res.json(deleteConversation);
+        const deletedConversation = await softDelete(Conversation, id);
+
+        if (!deletedConversation) {
+            return res.status(404).json({message: "Conversation not found"});
+        }
+        res.json({message: "Conversation deleted successfully", data: deletedConversation});
     } catch (error) {
-        throw new Error(error);
+        res.status(500).json({message: error.message});
     }
 });
 
@@ -52,7 +58,7 @@ const getConversation = asyncHandler(async (req, res) => {
     const { id } = req.params;
     validateMongoDbId(id);
     try {
-        const getConversation = await Conversation.findById(id);
+        const getConversation = await Conversation.findOne({_id: id, isDelete: false});
         res.json(getConversation);
     } catch (error) {
         throw new Error(error);
@@ -61,7 +67,7 @@ const getConversation = asyncHandler(async (req, res) => {
 
 const getAllConversation = asyncHandler(async (req, res) => {
     try {
-        const conversations = await Conversation.find();
+        const conversations = await Conversation.find({isDelete: false});
         const formattedConversations = conversations.map(doc => doc.toJSON());
         res.status(200).json({
             success: true,

@@ -131,6 +131,13 @@ router.delete("/:id", authMiddleware, deleteAccommodation);
  *   get:
  *     summary: Get all accommodations
  *     description: Retrieves a list of all accommodations
+ *     parameters:
+ *       - in: query
+ *         name: rentalLocationId
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: The ID of the rental location to filter accommodation
  *     tags:
  *       - Accommodation
  *     security:
@@ -141,7 +148,7 @@ router.delete("/:id", authMiddleware, deleteAccommodation);
  *       404:
  *         description: No accommodations found
  */
-router.get("/all-accommodations", authMiddleware, getAllAccommodation);
+router.get("/all-accommodations", getAllAccommodation);
 
 /**
  * @swagger
@@ -166,5 +173,5 @@ router.get("/all-accommodations", authMiddleware, getAllAccommodation);
  *       404:
  *         description: Accommodation not found
  */
-router.get("/:id", authMiddleware, getAccommodation);
+router.get("/:id", getAccommodation);
 module.exports = router;

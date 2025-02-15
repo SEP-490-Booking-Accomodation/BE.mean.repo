@@ -46,22 +46,24 @@ const updateMessage = asyncHandler(async (req, res) => {
 });
   
 const deleteMessage = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    validateMongoDbId(id);
-    try {
-      const deleteMessage = await Message.findByIdAndDelete(id);
-      res.json(deleteMessage);
-    } catch (error) {
-      throw new Error(error);
+  const {id} = req.params;
+  try {
+    const deletedMessage= await softDelete(Message, id);
+    if (!deletedMessage) {
+      return res.status(404).json({message: "Message not found"});
     }
+    res.json({message: "Message deleted successfully", data: deletedMessage});
+  } catch (error) {
+    res.status(500).json({message: error.message});
+  }
 });
   
 const getMessage = asyncHandler(async (req, res) => {
     const { id } = req.params;
     validateMongoDbId(id);
     try {
-      const getMessage = await Message.findById(id);
-      res.json(getMessage);
+      const getMessages = await Message.findOne({_id: id, isDelete: false});
+      res.json(getMessages);
     } catch (error) {
       throw new Error(error);
     }
@@ -69,7 +71,7 @@ const getMessage = asyncHandler(async (req, res) => {
 
 const getAllMessage = asyncHandler(async (req, res) => {
   try {
-    const messages = await Message.find();
+    const messages = await Message.find({isDelete: false});
     const formattedMessages = messages.map(doc => doc.toJSON());
     res.status(200).json({
       success: true,
