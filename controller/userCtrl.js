@@ -1,14 +1,24 @@
 const User = require("../models/userModel");
 const Token = require("../models/tokenModel");
-const Role = require("../models/roleModel")
+const Role = require("../models/roleModel");
+const Staff = require("../models/staffModel");
+const Owner = require("../models/ownerModel");
+const Customer = require("../models/customerModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const jwt = require("jsonwebtoken");
 const moment = require("moment-timezone");
 const { generateToken } = require("../config/jwtToken");
 const { generateRefreshToken } = require("../config/refreshToken");
-const sendEmail = require("./emailCrtl");
+const { sendEmail, sendOTPEmail} = require("./emailCrtl");
 const crypto = require("crypto");
+
+// Định nghĩa các role ID
+const ROLE_IDS = {
+  staff: "67927feaa0a58ce4f7e8e83a",
+  owner: "67927ff7a0a58ce4f7e8e83d",
+  customer: "67927ffda0a58ce4f7e8e840",
+};
 
 //Create a user
 const createUser = asyncHandler(async (req, res) => {
@@ -24,6 +34,7 @@ const createUser = asyncHandler(async (req, res) => {
       password,
       phone,
       doB,
+      avatarUrl,
       roleID,
       isActive,
       isVerifiedEmail,
@@ -42,6 +53,7 @@ const createUser = asyncHandler(async (req, res) => {
       password,
       phone,
       doB: vietnamTime, // Lưu đúng giờ Việt Nam
+      avatarUrl,
       roleID,
       isActive,
       isVerifiedEmail,
@@ -49,6 +61,15 @@ const createUser = asyncHandler(async (req, res) => {
     });
 
     await newUser.save();
+
+    // Kiểm tra roleID và lưu vào bảng tương ứng
+    if (roleID === ROLE_IDS.staff) {
+      await Staff.create({ userId: newUser._id});
+    } else if (roleID === ROLE_IDS.owner) {
+      await Owner.create({ userId: newUser._id});
+    } else if (roleID === ROLE_IDS.customer) {
+      await Customer.create({ userId: newUser._id});
+    }
 
     res.status(201).json({
       message: "User registered successfully",
@@ -171,25 +192,66 @@ const logout = asyncHandler(async (req, res) => {
 });
 
 
-//handle refresh token
+// //handle refresh token
+// const handleRefreshToken = asyncHandler(async (req, res) => {
+//   const cookie = req.cookies;
+//   if (!cookie?.refreshToken)
+//     throw new Error("Không làm mới Token trong Cookies");
+//   const refreshToken = cookie.refreshToken;
+//   const user = await User.findOne({ refreshToken });
+//   if (!user)
+//     throw new Error(
+//       "Không làm mới Token hiện tại trong cơ sở dữ liệu hoặc không phù hợp"
+//     );
+//   jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+//     if (err || user.id !== decoded.id) {
+//       throw new Error("Có gì đó sai xót với refresh Token");
+//     }
+//     const accessToken = generateToken(user?._id);
+//     res.json({ accessToken });
+//   });
+// });
+
 const handleRefreshToken = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
-  if (!cookie?.refreshToken)
-    throw new Error("Không làm mới Token trong Cookies");
+  if (!cookie?.refreshToken) {
+    throw new Error("Không tìm thấy refreshToken trong Cookies");
+  }
+
   const refreshToken = cookie.refreshToken;
-  const user = await User.findOne({ refreshToken });
-  if (!user)
-    throw new Error(
-      "Không làm mới Token hiện tại trong cơ sở dữ liệu hoặc không phù hợp"
-    );
-  jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
-    if (err || user.id !== decoded.id) {
-      throw new Error("Có gì đó sai xót với refresh Token");
+
+  // Tìm refreshToken trong bảng Token
+  const tokenDoc = await Token.findOne({ refreshToken });
+
+  if (!tokenDoc) {
+    throw new Error("Refresh Token không hợp lệ hoặc đã hết hạn");
+  }
+
+  // Xác thực refresh token
+  jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, decoded) => {
+    if (err) {
+      await Token.deleteOne({ refreshToken }); // Xóa token nếu không hợp lệ
+      throw new Error("Refresh Token không hợp lệ");
     }
-    const accessToken = generateToken(user?._id);
-    res.json({ accessToken });
+
+    // Tìm user dựa trên userId trong token
+    const user = await User.findById(tokenDoc.userId);
+    if (!user) {
+      await Token.deleteOne({ refreshToken });
+      throw new Error("Người dùng không tồn tại");
+    }
+
+    // Tạo access token mới
+    const newAccessToken = generateToken(user._id);
+
+    // Cập nhật accessToken mới vào bảng Token
+    tokenDoc.value = newAccessToken;
+    await tokenDoc.save();
+
+    res.json({ accessToken: newAccessToken });
   });
 });
+
 
 const updatePassword = asyncHandler(async (req, res) => {
   const { _id } = req.user;
@@ -211,9 +273,12 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
   if (!user) throw new Error("Không tìm thấy người dùng với email này");
   try {
-    const token = await user.createPasswordResetToken();
-    await user.save();
-    const resetURL = `Xin chào, vui lòng theo đường dẫn này để thay đổi mật khẩu của bạn. Đường dẫn này khả dụng trong 10 phút kể từ giờ. <a href='http://localhost:5000/api/user/reset-password/${token}'>Nhấn vào đây</a>`;
+    const resetToken = await user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false }); // Lưu token vào DB mà không cần validate các field khác
+    const resetURL = `Xin chào, vui lòng theo đường dẫn này để thay đổi mật khẩu của bạn. Đường dẫn này khả dụng trong 10 phút kể từ giờ. <a href='http://localhost:3000/set-new-password/${resetToken}'>Nhấn vào đây</a>`;
+    if (!resetToken) {
+      throw new Error("Failed to generate reset token");
+    }
     const data = {
       to: email,
       text: "Hey User",
@@ -221,16 +286,23 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
       html: resetURL,
     };
     sendEmail(data);
-    res.json(token);
+    res.json(resetToken);
   } catch (error) {
     throw new Error(error);
   }
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
-  const { password } = req.body;
-  const { token } = req.params;
+  const { token, password } = req.body;
+  // const token = req.params.token;;
+  console.log("Received Token from Client:", token); // Debug token
+  if (!token) {
+    throw new Error("Reset token is required");
+  }
+
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  console.log("Hashed Token:", hashedToken); // Debug hashed token
+
   const user = await User.findOne({
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
@@ -239,9 +311,68 @@ const resetPassword = asyncHandler(async (req, res) => {
   user.password = password;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
-  await user.save();
+  await user.save({ validateBeforeSave: false });
   res.json(user);
 });
+
+//Gửi OTP
+const sendEmailOTP = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  // Kiểm tra xem người dùng có tồn tại không
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Tạo mã OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6 chữ số
+  user.emailVerificationOTP = crypto
+    .createHash("sha256")
+    .update(otp)
+    .digest("hex");
+  user.emailVerificationExpires = Date.now() + 10 * 60 * 1000; // Hết hạn sau 10 phút
+
+  await user.save();
+
+  // Gửi OTP qua email
+  await sendOTPEmail(email, otp);
+
+  res.status(200).json({ message: "OTP sent to email" });
+});
+
+//Xác thực OTP
+const verifyEmailOTP = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  // Tìm người dùng theo email
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Kiểm tra OTP hợp lệ
+  const hashedOTP = crypto.createHash("sha256").update(otp).digest("hex");
+  if (
+    user.emailVerificationOTP !== hashedOTP ||
+    user.emailVerificationExpires < Date.now()
+  ) {
+    res.status(400);
+    throw new Error("Invalid or expired OTP");
+  }
+
+  // Cập nhật trạng thái email đã xác minh
+  user.isVerifiedEmail = true;
+  user.emailVerificationOTP = undefined;
+  user.emailVerificationExpires = undefined;
+
+  await user.save();
+
+  res.status(200).json({ message: "Email verified successfully" });
+});
+
 
 //Get all users
 const getAllUser = asyncHandler(async (req, res) => {
@@ -349,6 +480,8 @@ module.exports = {
   updatePassword,
   forgotPasswordToken,
   resetPassword,
+  sendEmailOTP,
+  verifyEmailOTP,
   getAllUser,
   getUser,
   deleteUser,

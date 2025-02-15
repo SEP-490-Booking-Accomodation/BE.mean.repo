@@ -1,6 +1,7 @@
 const express = require("express");
 const dbConnect = require("./config/dbConnect");
 const { swaggerUi, swaggerSpec } = require("./config/swaggerConfig");
+const cors = require("cors");
 
 const app = express();
 const dotenv = require("dotenv").config();
@@ -26,8 +27,8 @@ const accommodationRoute = require("./routes/accommodationRoute");
 const accommodationTypeRoute = require("./routes/accommodationTypeRoute");
 const serviceRoute = require("./routes/serviceRoute");
 const paymentInformationRoute = require("./routes/paymentInformationRoute");
-const conversationRoute =  require("./routes/conversationRoute");
-const messageRoute =  require("./routes/messageRoute");
+const conversationRoute = require("./routes/conversationRoute");
+const messageRoute = require("./routes/messageRoute");
 const notificationRoute = require("./routes/notificationRoute");
 const transactionRoute = require("./routes/transactionRoute");
 
@@ -38,6 +39,18 @@ const morgan = require("morgan");
 
 dbConnect();
 
+// Cấu hình CORS cho phép tất cả các nguồn
+//const allowedOrigins = ["http://localhost:3000", "https://myapp.com", "http://localhost:5000"];
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      callback(null, origin || "*");
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"], // Các phương thức HTTP được phép
+    allowedHeaders: ["Content-Type", "Authorization"], // Các header được phép
+    credentials: true,
+  })
+);
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -69,7 +82,7 @@ app.use("/api/accommodation", accommodationRoute);
 app.use("/api/accommodation-type", accommodationTypeRoute);
 app.use("/api/service", serviceRoute);
 app.use("/api/payment-information", paymentInformationRoute);
-app.use("/api/conversation", conversationRoute)
+app.use("/api/conversation", conversationRoute);
 app.use("/api/message", messageRoute);
 app.use("/api/notification", notificationRoute);
 app.use("/api/transaction", transactionRoute);
