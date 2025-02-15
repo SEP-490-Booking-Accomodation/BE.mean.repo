@@ -27,7 +27,6 @@ const updateAccommodation = asyncHandler(async (req, res) => {
 
 const deleteAccommodation = asyncHandler(async (req, res) => {
     const {id} = req.params;
-
     try {
         const deletedAccommodation = await softDelete(Accommodation, id);
 
@@ -35,21 +34,40 @@ const deleteAccommodation = asyncHandler(async (req, res) => {
             return res.status(404).json({message: "Accommodation not found"});
         }
 
-        res.json({message: "Accommodation soft deleted successfully", data: deletedAccommodation});
+        res.json({message: "Accommodation deleted successfully", data: deletedAccommodation});
     } catch (error) {
         res.status(500).json({message: error.message});
     }
 });
 
 const getAccommodation = asyncHandler(async (req, res) => {
-    const {id} = req.params;
-    validateMongoDbId(id);
     try {
-        const getAccommodation = await Accommodation.findOne({_id: id, isDelete: false});
-        res.json(getAccommodation);
-    } catch (error) {
-        throw new Error(error);
-    }
+        const { rentalLocationId  } = req.query; 
+    
+        const filter = { isDelete: false };
+        if (rentalLocationId) {
+          if (!isValidObjectId(rentalLocationId)) {
+            return res.status(400).json({
+              success: false,
+              message: "Invalid rentalLocationId format"
+            });
+          }
+          filter.rentalLocationId = rentalLocationId;
+        }
+    
+        const accommodations = await Accommodation.find(filter);
+        const formattedAccommodations = accommodations.map(doc => doc.toJSON());
+    
+        res.status(200).json({
+          success: true,
+          data: formattedAccommodations
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: error.message || "Internal Server Error",
+        });
+      }
 });
 
 const getAllAccommodation = asyncHandler(async (req, res) => {

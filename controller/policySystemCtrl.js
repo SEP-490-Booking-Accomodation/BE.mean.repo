@@ -90,21 +90,25 @@ const updatePolicySystem = asyncHandler(async (req, res) => {
 });
 
 const deletePolicySystem = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  validateMongoDbId(id);
-  try {
-    const deletePolicySystem = await PolicySystem.findByIdAndDelete(id);
-    res.json(deletePolicySystem);
-  } catch (error) {
-    throw new Error(error);
-  }
+  const {id} = req.params;
+    try {
+        const deletedPolicySystem = await softDelete(PolicySystem, id);
+
+        if (!deletedPolicySystem) {
+            return res.status(404).json({message: "PolicySystem not found"});
+        }
+
+        res.json({message: "PolicySystem deleted successfully", data: deletedPolicySystem});
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
 });
 
 const getPolicySystem = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const get1PolicySystem = await PolicySystem.findById(id);
+    const get1PolicySystem = await PolicySystem.findOne({_id: id, isDelete: false});
     res.json(get1PolicySystem);
   } catch (error) {
     throw new Error(error);
@@ -113,7 +117,7 @@ const getPolicySystem = asyncHandler(async (req, res) => {
 
 const getAllPolicySystem = asyncHandler(async (req, res) => {
   try {
-    const getAllPolicySystem = await PolicySystem.find();
+    const getAllPolicySystem = await PolicySystem.find({isDelete: false});
     res.json(getAllPolicySystem);
   } catch (error) {
     throw new Error(error);

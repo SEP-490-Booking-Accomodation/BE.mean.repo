@@ -3,6 +3,7 @@ const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
+const { isValidObjectId } = require("../utils/mongoose-helpers");
 
 const createBusinessInformation = asyncHandler(async (req, res) => {
     try {
@@ -13,7 +14,7 @@ const createBusinessInformation = asyncHandler(async (req, res) => {
     }
 });
 const updateBusinessInformation = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     validateMongoDbId(id);
     try {
         const updateBusinessInformation = await BusinessInformation.findByIdAndUpdate(id, req.body, {
@@ -26,26 +27,26 @@ const updateBusinessInformation = asyncHandler(async (req, res) => {
 });
 
 const deleteBusinessInformation = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
 
     try {
         const deletedBusinessInformation = await softDelete(BusinessInformation, id);
 
         if (!deletedBusinessInformation) {
-            return res.status(404).json({message: "BusinessInformation not found"});
+            return res.status(404).json({ message: "BusinessInformation not found" });
         }
 
-        res.json({message: "BusinessInformation deleted successfully", data: deletedBusinessInformation});
+        res.json({ message: "BusinessInformation deleted successfully", data: deletedBusinessInformation });
     } catch (error) {
-        res.status(500).json({message: error.message});
+        res.status(500).json({ message: error.message });
     }
 });
 
 const getBusinessInformation = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     validateMongoDbId(id);
     try {
-        const getBusinessInformation = await BusinessInformation.findOne({_id: id, isDelete: false});
+        const getBusinessInformation = await BusinessInformation.findOne({ _id: id, isDelete: false });
         res.json(getBusinessInformation);
     } catch (error) {
         throw new Error(error);
@@ -54,7 +55,7 @@ const getBusinessInformation = asyncHandler(async (req, res) => {
 
 const getAllBusinessInformation = asyncHandler(async (req, res) => {
     try {
-        const businessInformations = await BusinessInformation.find({isDelete: false});
+        const businessInformations = await BusinessInformation.find({ isDelete: false });
         const formattedBusinessInformations = businessInformations.map(doc => doc.toJSON());
         res.status(200).json({
             success: true,

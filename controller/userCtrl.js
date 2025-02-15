@@ -246,7 +246,7 @@ const resetPassword = asyncHandler(async (req, res) => {
 //Get all users
 const getAllUser = asyncHandler(async (req, res) => {
   try {
-    const getUsers = await User.find();
+    const getUsers = await User.find({isDelete: false});
     res.json(getUsers);
   } catch (error) {
     throw new Error(error);
@@ -283,16 +283,18 @@ const updateUser = asyncHandler(async (req, res) => {
 
 //Delete a user
 const deleteUser = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  validateMongoDbId(id);
-  try {
-    const deleteUser = await User.findByIdAndDelete(id);
-    res.json({
-      deleteUser,
-    });
-  } catch (error) {
-    throw new Error(error);
-  }
+  const {id} = req.params;
+    try {
+        const deletedUser = await softDelete(User, id);
+
+        if (!deletedUser) {
+            return res.status(404).json({message: "User not found"});
+        }
+
+        res.json({message: "User deleted successfully", data: deletedUser});
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
 });
 
 //Block user
