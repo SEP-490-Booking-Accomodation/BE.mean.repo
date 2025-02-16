@@ -399,14 +399,44 @@ const getUser = asyncHandler(async (req, res) => {
 });
 
 //Update a user
+// const updateUser = asyncHandler(async (req, res) => {
+//   const { id } = req.params;
+//   validateMongoDbId(id);
+//   try {
+//     const updateUser = await User.findByIdAndUpdate(id, req.body, {
+//       new: true,
+//     });
+//     res.json(updateUser);
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// });
+
 const updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
+
   try {
-    const updateUser = await User.findByIdAndUpdate(id, req.body, {
+    const updateData = { ...req.body };
+
+    if (updateData.doB) {
+      updateData.doB = moment(updateData.doB, "DD-MM-YYYY")
+        .tz("Asia/Ho_Chi_Minh")
+        .toDate();
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
       new: true,
     });
-    res.json(updateUser);
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      message: "User updated successfully",
+      user: updatedUser,
+    });
   } catch (error) {
     throw new Error(error);
   }
