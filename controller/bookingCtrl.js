@@ -78,14 +78,73 @@ const createBooking = asyncHandler(async (req, res) => {
   }
 });
 
+// const updateBooking = asyncHandler(async (req, res) => {
+//   const { id } = req.params;
+//   validateMongoDbId(id);
+//   try {
+//     const updateBooking = await Booking.findByIdAndUpdate(id, req.body, {
+//       new: true,
+//     });
+//     res.json(updateBooking);
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// });
 const updateBooking = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
+
   try {
-    const updateBooking = await Booking.findByIdAndUpdate(id, req.body, {
+    const updateData = { ...req.body };
+
+    if (updateData.checkInHour) {
+      updateData.checkInHour = moment(
+        updateData.checkInHour,
+        "DD-MM-YYYY HH:mm:ss"
+      )
+        .tz("Asia/Ho_Chi_Minh")
+        .toDate();
+    }
+
+    if (updateData.checkOutHour) {
+      updateData.checkOutHour = moment(
+        updateData.checkOutHour,
+        "DD-MM-YYYY HH:mm:ss"
+      )
+        .tz("Asia/Ho_Chi_Minh")
+        .toDate();
+    }
+
+    if (updateData.confirmDate) {
+      updateData.confirmDate = moment(
+        updateData.confirmDate,
+        "DD-MM-YYYY HH:mm:ss"
+      )
+        .tz("Asia/Ho_Chi_Minh")
+        .toDate();
+    }
+
+    if (updateData.completedDate) {
+      updateData.completedDate = moment(
+        updateData.completedDate,
+        "DD-MM-YYYY HH:mm:ss"
+      )
+        .tz("Asia/Ho_Chi_Minh")
+        .toDate();
+    }
+
+    const updatedBooking = await Booking.findByIdAndUpdate(id, updateData, {
       new: true,
     });
-    res.json(updateBooking);
+
+    if (!updatedBooking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    res.json({
+      message: "Booking updated successfully",
+      booking: updatedBooking,
+    });
   } catch (error) {
     throw new Error(error);
   }

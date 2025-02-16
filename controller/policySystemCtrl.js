@@ -72,22 +72,84 @@ const createPolicySystem = asyncHandler(async (req, res) => {
   }
 });
 
+// const updatePolicySystem = asyncHandler(async (req, res) => {
+//   const { id } = req.params;
+//   validateMongoDbId(id);
+//   try {
+//     const updatePolicySystem = await PolicySystem.findByIdAndUpdate(
+//       id,
+//       req.body,
+//       {
+//         new: true,
+//       }
+//     );
+//     res.json(updatePolicySystem);
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// });
+
 const updatePolicySystem = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
+
   try {
-    const updatePolicySystem = await PolicySystem.findByIdAndUpdate(
+    const updateData = { ...req.body };
+
+    if (updateData.startDate) {
+      const vietnamTimeStart = moment(
+        updateData.startDate,
+        "DD-MM-YYYY HH:mm:ss"
+      )
+        .tz("Asia/Ho_Chi_Minh")
+        .toDate();
+
+      const currentDateVN = moment(new Date()).tz("Asia/Ho_Chi_Minh").toDate();
+
+      if (vietnamTimeStart <= currentDateVN) {
+        return res.status(400).json({
+          message: "Start date must be after the current date.",
+        });
+      }
+
+      updateData.startDate = vietnamTimeStart;
+    }
+
+    if (updateData.endDate) {
+      const vietnamTimeEnd = moment(updateData.endDate, "DD-MM-YYYY HH:mm:ss")
+        .tz("Asia/Ho_Chi_Minh")
+        .toDate();
+
+      if (updateData.startDate && vietnamTimeEnd <= updateData.startDate) {
+        return res.status(400).json({
+          message: "End date must be after the start date.",
+        });
+      }
+
+      updateData.endDate = vietnamTimeEnd;
+    }
+
+    const updatedPolicySystem = await PolicySystem.findByIdAndUpdate(
       id,
-      req.body,
+      updateData,
       {
         new: true,
       }
     );
-    res.json(updatePolicySystem);
+
+    if (!updatedPolicySystem) {
+      return res.status(404).json({ message: "Policy System not found" });
+    }
+
+    res.json({
+      message: "Policy System updated successfully",
+      policySystem: updatedPolicySystem,
+    });
   } catch (error) {
     throw new Error(error);
   }
 });
+
 
 const deletePolicySystem = asyncHandler(async (req, res) => {
   const { id } = req.params;
