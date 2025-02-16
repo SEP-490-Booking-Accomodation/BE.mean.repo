@@ -1,6 +1,8 @@
 const Feedback = require("../models/feedbackModel")
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
+const softDelete = require("../utils/softDelete");
+const Coupon = require("../models/couponModel");
 
 const createFeedback = asyncHandler(async (req, res) => {
     try {
@@ -25,13 +27,15 @@ const createFeedback = asyncHandler(async (req, res) => {
   });
   
   const deleteFeedback = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    validateMongoDbId(id);
+    const {id} = req.params;
     try {
-      const deleteFeedback = await Feedback.findByIdAndDelete(id);
-      res.json(deleteFeedback);
+      const deletedFeedback = await softDelete(Feedback, id);
+      if (!deletedFeedback) {
+        return res.status(404).json({message: "Feedback not found"});
+      }
+      res.json({message: "Feedback deleted successfully", data: deletedFeedback});
     } catch (error) {
-      throw new Error(error);
+      res.status(500).json({message: error.message});
     }
   });
   
@@ -39,7 +43,7 @@ const createFeedback = asyncHandler(async (req, res) => {
     const { id } = req.params;
     validateMongoDbId(id);
     try {
-      const get1Feedback = await Feedback.findById(id);
+      const get1Feedback = await Feedback.findOne({_id: id, isDelete: false});
       res.json(get1Feedback);
     } catch (error) {
       throw new Error(error);
@@ -48,7 +52,7 @@ const createFeedback = asyncHandler(async (req, res) => {
   
   const getAllFeedback = asyncHandler(async (req, res) => {
     try {
-      const getAllFeedback = await Feedback.find();
+      const getAllFeedback = await Feedback.find({isDelete: false});
       res.json(getAllFeedback);
     } catch (error) {
       throw new Error(error);

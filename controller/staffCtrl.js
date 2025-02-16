@@ -27,14 +27,18 @@ const updateStaff = asyncHandler(async (req, res) => {
 });
 
 const deleteStaff = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  validateMongoDbId(id);
-  try {
-    const deleteStaff = await Staff.findByIdAndDelete(id);
-    res.json(deleteStaff);
-  } catch (error) {
-    throw new Error(error);
-  }
+  const {id} = req.params;
+    try {
+        const deletedStaff = await softDelete(Staff, id);
+
+        if (!deletedStaff) {
+            return res.status(404).json({message: "Staff not found"});
+        }
+
+        res.json({message: "Staff deleted successfully", data: deletedStaff});
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
 });
 
 const getStaff = asyncHandler(async (req, res) => {
@@ -42,7 +46,7 @@ const getStaff = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     // const get1Staff = await Staff.findOne({userId: id});
-    const staffInfor = await User.findById(id);
+    const staffInfor = await User.findOne({_id: id, isDelete: false});
     res.json(staffInfor);
   } catch (error) {
     throw new Error(error);
@@ -73,7 +77,7 @@ const getAllStaff = async (req, res) => {
   try {
     // Lấy danh sách người dùng (User) có roleID phù hợp
     const userList = await User.find({
-      roleID: "67927feaa0a58ce4f7e8e83a",
+      roleID: "67927feaa0a58ce4f7e8e83a", isDelete: false
     }).select("-password");
 
     // Kiểm tra nếu không có người dùng nào thỏa mãn điều kiện

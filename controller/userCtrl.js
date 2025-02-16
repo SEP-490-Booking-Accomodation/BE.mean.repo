@@ -273,9 +273,12 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
   if (!user) throw new Error("Không tìm thấy người dùng với email này");
   try {
-    const token = await user.createPasswordResetToken();
-    await user.save();
-    const resetURL = `Xin chào, vui lòng theo đường dẫn này để thay đổi mật khẩu của bạn. Đường dẫn này khả dụng trong 10 phút kể từ giờ. <a href='http://localhost:5000/api/user/reset-password/${token}'>Nhấn vào đây</a>`;
+    const resetToken = await user.createPasswordResetToken();
+    await user.save({ validateBeforeSave: false }); // Lưu token vào DB mà không cần validate các field khác
+    const resetURL = `Xin chào, vui lòng theo đường dẫn này để thay đổi mật khẩu của bạn. Đường dẫn này khả dụng trong 10 phút kể từ giờ. <a href='http://localhost:3000/set-new-password/${resetToken}'>Nhấn vào đây</a>`;
+    if (!resetToken) {
+      throw new Error("Failed to generate reset token");
+    }
     const data = {
       to: email,
       text: "Hey User",
@@ -283,16 +286,23 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
       html: resetURL,
     };
     sendEmail(data);
-    res.json(token);
+    res.json(resetToken);
   } catch (error) {
     throw new Error(error);
   }
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
-  const { password } = req.body;
-  const { token } = req.params;
+  const { token, password } = req.body;
+  // const token = req.params.token;;
+  console.log("Received Token from Client:", token); // Debug token
+  if (!token) {
+    throw new Error("Reset token is required");
+  }
+
   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  console.log("Hashed Token:", hashedToken); // Debug hashed token
+
   const user = await User.findOne({
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
@@ -301,7 +311,7 @@ const resetPassword = asyncHandler(async (req, res) => {
   user.password = password;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
-  await user.save();
+  await user.save({ validateBeforeSave: false });
   res.json(user);
 });
 
@@ -367,7 +377,7 @@ const verifyEmailOTP = asyncHandler(async (req, res) => {
 //Get all users
 const getAllUser = asyncHandler(async (req, res) => {
   try {
-    const getUsers = await User.find();
+    const getUsers = await User.find({isDelete: false});
     res.json(getUsers);
   } catch (error) {
     throw new Error(error);
@@ -389,14 +399,44 @@ const getUser = asyncHandler(async (req, res) => {
 });
 
 //Update a user
+// const updateUser = asyncHandler(async (req, res) => {
+//   const { id } = req.params;
+//   validateMongoDbId(id);
+//   try {
+//     const updateUser = await User.findByIdAndUpdate(id, req.body, {
+//       new: true,
+//     });
+//     res.json(updateUser);
+//   } catch (error) {
+//     throw new Error(error);
+//   }
+// });
+
 const updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
+
   try {
-    const updateUser = await User.findByIdAndUpdate(id, req.body, {
+    const updateData = { ...req.body };
+
+    if (updateData.doB) {
+      updateData.doB = moment(updateData.doB, "DD-MM-YYYY")
+        .tz("Asia/Ho_Chi_Minh")
+        .toDate();
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
       new: true,
     });
-    res.json(updateUser);
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({
+      message: "User updated successfully",
+      user: updatedUser,
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -404,16 +444,18 @@ const updateUser = asyncHandler(async (req, res) => {
 
 //Delete a user
 const deleteUser = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  validateMongoDbId(id);
-  try {
-    const deleteUser = await User.findByIdAndDelete(id);
-    res.json({
-      deleteUser,
-    });
-  } catch (error) {
-    throw new Error(error);
-  }
+  const {id} = req.params;
+    try {
+        const deletedUser = await softDelete(User, id);
+
+        if (!deletedUser) {
+            return res.status(404).json({message: "User not found"});
+        }
+
+        res.json({message: "User deleted successfully", data: deletedUser});
+    } catch (error) {
+        res.status(500).json({message: error.message});
+    }
 });
 
 //Block user

@@ -14,7 +14,7 @@ const {
   forgotPasswordToken,
   resetPassword,
   sendEmailOTP,
-  verifyEmailOTP
+  verifyEmailOTP,
 } = require("../controller/userCtrl");
 
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
@@ -167,13 +167,6 @@ router.post("/forgot-password-token", forgotPasswordToken);
  *   put:
  *     summary: Reset user password
  *     tags: [Auth]
- *     parameters:
- *       - in: path
- *         name: token
- *         required: true
- *         description: Reset password token
- *         schema:
- *           type: string
  *     requestBody:
  *       required: true
  *       content:
@@ -181,6 +174,9 @@ router.post("/forgot-password-token", forgotPasswordToken);
  *           schema:
  *             type: object
  *             properties:
+ *               token:
+ *                 type: string
+ *                 description: New password for the user
  *               password:
  *                 type: string
  *                 description: New password for the user
@@ -272,7 +268,6 @@ router.post("/verify-email", verifyEmailOTP);
  */
 router.put("/password", authMiddleware, updatePassword);
 
-
 /**
  * @swagger
  * /api/user/refresh:
@@ -328,7 +323,7 @@ router.get("/all-users", authMiddleware, isAdmin, getAllUser);
  *       404:
  *         description: User not found
  */
-router.get("/:id", authMiddleware, isAdmin, getUser);
+router.get("/:id", authMiddleware, getUser);
 
 /**
  * @swagger

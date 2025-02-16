@@ -20,6 +20,17 @@ const bookingRoute = require("./routes/bookingRoute");
 const couponRoute = require("./routes/couponRoute");
 const reportRoute = require("./routes/reportRoute");
 const feedbackRoute = require("./routes/feedbackRoute");
+const businessInformationRoute = require("./routes/businessInformationRoute");
+const policyOwnerRoute = require("./routes/policyOwnerRoute");
+const rentalLocationRoute = require("./routes/rentalLocationRoute");
+const accommodationRoute = require("./routes/accommodationRoute");
+const accommodationTypeRoute = require("./routes/accommodationTypeRoute");
+const serviceRoute = require("./routes/serviceRoute");
+const paymentInformationRoute = require("./routes/paymentInformationRoute");
+const conversationRoute = require("./routes/conversationRoute");
+const messageRoute = require("./routes/messageRoute");
+const notificationRoute = require("./routes/notificationRoute");
+const transactionRoute = require("./routes/transactionRoute");
 
 const bodyParser = require("body-parser");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
@@ -29,7 +40,17 @@ const morgan = require("morgan");
 dbConnect();
 
 // Cấu hình CORS cho phép tất cả các nguồn
-app.use(cors());
+//const allowedOrigins = ["http://localhost:3000", "https://myapp.com", "http://localhost:5000"];
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      callback(null, origin || "*");
+    },
+    methods: ["GET", "POST", "PUT", "DELETE"], // Các phương thức HTTP được phép
+    allowedHeaders: ["Content-Type", "Authorization"], // Các header được phép
+    credentials: true,
+  })
+);
 app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -54,6 +75,17 @@ app.use("/api/booking", bookingRoute);
 app.use("/api/coupon", couponRoute);
 app.use("/api/report", reportRoute);
 app.use("/api/feedback", feedbackRoute);
+app.use("/api/business-information", businessInformationRoute);
+app.use("/api/policy-owner", policyOwnerRoute);
+app.use("/api/rental-location", rentalLocationRoute);
+app.use("/api/accommodation", accommodationRoute);
+app.use("/api/accommodation-type", accommodationTypeRoute);
+app.use("/api/service", serviceRoute);
+app.use("/api/payment-information", paymentInformationRoute);
+app.use("/api/conversation", conversationRoute);
+app.use("/api/message", messageRoute);
+app.use("/api/notification", notificationRoute);
+app.use("/api/transaction", transactionRoute);
 
 app.use(notFound);
 app.use(errorHandler);

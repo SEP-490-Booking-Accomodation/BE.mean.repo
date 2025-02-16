@@ -115,7 +115,7 @@ router.delete("/:id", authMiddleware, isAdmin, deleteRole);
  *               items:
  *                 $ref: '#/components/schemas/Role'
  */
-router.get("/all-roles", authMiddleware, isAdmin, getAllRole);
+router.get("/all-roles", authMiddleware, getAllRole);
 
 /**
  * @swagger
@@ -140,6 +140,6 @@ router.get("/all-roles", authMiddleware, isAdmin, getAllRole);
  *             schema:
  *               $ref: '#/components/schemas/Role'
  */
-router.get("/:id", authMiddleware, isAdmin, getRole);
+router.get("/:id", authMiddleware, getRole);
 
 module.exports = router;

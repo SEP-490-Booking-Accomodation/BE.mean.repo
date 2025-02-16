@@ -51,7 +51,7 @@ var userSchema = new mongoose.Schema(
     },
     passwordChangedAt: Date,
     passwordResetToken: String,
-    passwordResetExprires: Date,
+    passwordResetExpires: Date,
     emailVerificationOTP: String,
     emailVerificationExpires: Date,
   },
@@ -93,32 +93,32 @@ var userSchema = new mongoose.Schema(
 );
 
 userSchema.pre("save", async function (next) {
-  if (this.doB && typeof this.doB === "string") {
-    // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-    this.doB = moment
-      .tz(this.doB, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-      .utc()
-      .toDate();
-  }
-  if (!this.isModified("password")) {
-    next();
-  }
-  const salt = await bcrypt.genSaltSync(10);
-  this.password = await bcrypt.hash(this.password, salt);
+    if (this.doB && typeof this.doB === "string") {
+        // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
+        this.doB = moment
+            .tz(this.doB, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
+            .utc()
+            .toDate();
+    }
+    if (!this.isModified("password")) {
+        next();
+    }
+    const salt = await bcrypt.genSaltSync(10);
+    this.password = await bcrypt.hash(this.password, salt);
 });
 
 userSchema.methods.isPasswordMatched = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+    return await bcrypt.compare(enteredPassword, this.password);
 };
 
-userSchema.methods.createPasswordResetToken = async function () {
-  const resettoken = crypto.randomBytes(32).toString("hex");
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
   this.passwordResetToken = crypto
     .createHash("sha256")
-    .update(resettoken)
+    .update(resetToken)
     .digest("hex");
   this.passwordResetExpires = Date.now() + 30 * 60 * 1000; // 10 minutes
-  return resettoken;
+  return resetToken;
 };
 
 //Export the model
