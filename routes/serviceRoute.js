@@ -136,7 +136,7 @@ router.delete("/:id", authMiddleware, deleteService);
  *       404:
  *         description: No services found
  */
-router.get("/all-services", authMiddleware, getAllService);
+router.get("/all-services", getAllService);
 
 /**
  * @swagger
@@ -161,6 +161,6 @@ router.get("/all-services", authMiddleware, getAllService);
  *       404:
  *         description: Service not found
  */
-router.get("/:id", authMiddleware, getService);
+router.get("/:id", getService);
 
-module.exports = router;
+module.exports = router;  

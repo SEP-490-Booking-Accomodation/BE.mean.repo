@@ -165,6 +165,13 @@ router.delete("/:id", authMiddleware, deleteRentalLocation);
  *   get:
  *     summary: Get all rental locations
  *     description: Retrieves a list of all rental locations
+ *     parameters:
+ *       - in: query
+ *         name: ownerId
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: The ID of the owner to filter rental locations
  *     tags:
  *       - RentalLocation
  *     security:
@@ -176,7 +183,7 @@ router.delete("/:id", authMiddleware, deleteRentalLocation);
  *         description: No rental locations found
  */
 
-router.get("/all-rental-location", authMiddleware, getAllRentalLocation);
+router.get("/all-rental-location", getAllRentalLocation);
 
 /**
  * @swagger
@@ -201,6 +208,6 @@ router.get("/all-rental-location", authMiddleware, getAllRentalLocation);
  *       404:
  *         description: Rental location not found
  */
-router.get("/:id", authMiddleware, getRentalLocation);
+router.get("/:id", getRentalLocation);
 
 module.exports = router;

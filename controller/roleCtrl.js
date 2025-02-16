@@ -25,13 +25,17 @@ const createRole = asyncHandler(async (req, res) => {
   });
   
   const deleteRole = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    validateMongoDbId(id);
+    const {id} = req.params;
     try {
-      const deleteRole = await Role.findByIdAndDelete(id);
-      res.json(deleteRole);
+        const deletedRole = await softDelete(Role, id);
+
+        if (!deletedRole) {
+            return res.status(404).json({message: "Role not found"});
+        }
+
+        res.json({message: "Role deleted successfully", data: deletedRole});
     } catch (error) {
-      throw new Error(error);
+        res.status(500).json({message: error.message});
     }
   });
   
@@ -39,7 +43,7 @@ const createRole = asyncHandler(async (req, res) => {
     const { id } = req.params;
     validateMongoDbId(id);
     try {
-      const get1Role = await Role.findById(id);
+      const get1Role = await Role.findOne({_id: id, isDelete: false});
       res.json(get1Role);
     } catch (error) {
       throw new Error(error);
@@ -48,7 +52,7 @@ const createRole = asyncHandler(async (req, res) => {
   
   const getAllRole = asyncHandler(async (req, res) => {
     try {
-      const getAllRole = await Role.find();
+      const getAllRole = await Role.find({isDelete: false});
       res.json(getAllRole);
     } catch (error) {
       throw new Error(error);

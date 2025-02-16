@@ -25,6 +25,10 @@ var notificationSchema = new mongoose.Schema(
         type: {
             type: Number,
         },
+        isDelete: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true,

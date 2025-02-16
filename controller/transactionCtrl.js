@@ -25,21 +25,25 @@ const updateTransaction = asyncHandler(async (req, res) => {
 });
   
 const deleteTransaction = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    validateMongoDbId(id);
-    try {
-      const deleteTransaction = await Transaction.findByIdAndDelete(id);
-      res.json(deleteTransaction);
-    } catch (error) {
-      throw new Error(error);
-    }
+  const {id} = req.params;
+  try {
+      const deletedTransaction = await softDelete(Transaction, id);
+
+      if (!deletedTransaction) {
+          return res.status(404).json({message: "Transaction not found"});
+      }
+
+      res.json({message: "Transaction deleted successfully", data: deletedTransaction});
+  } catch (error) {
+      res.status(500).json({message: error.message});
+  }
 });
   
 const getTransaction= asyncHandler(async (req, res) => {
     const { id } = req.params;
     validateMongoDbId(id);
     try {
-      const getTransaction = await Transaction.findById(id);
+      const getTransaction = await Transaction.findOne({_id: id, isDelete: false});
       res.json(getTransaction);
     } catch (error) {
       throw new Error(error);
@@ -48,7 +52,7 @@ const getTransaction= asyncHandler(async (req, res) => {
 
 const getAllTransaction = asyncHandler(async (req, res) => {
   try {
-    const transactions = await Transaction.find();
+    const transactions = await Transaction.find({isDelete: false});
     const formattedTransactions = transactions.map(doc => doc.toJSON());
     res.status(200).json({
       success: true,

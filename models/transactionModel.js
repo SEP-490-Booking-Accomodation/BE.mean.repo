@@ -26,7 +26,11 @@ var transactionSchema = new mongoose.Schema(
         },
         amount: {
             type: Number,
-        }
+        },
+        isDelete: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true,
@@ -69,12 +73,12 @@ var transactionSchema = new mongoose.Schema(
     }
 );
 transactionSchema.pre("save", async function (next) {
-  if (this.transactionEndDate && typeof this.transactionEndDate === "string") {
-    this.transactionEndDate = moment
-      .tz(this.transactionEndDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-      .utc()
-      .toDate();
-  }
+    if (this.transactionEndDate && typeof this.transactionEndDate === "string") {
+        this.transactionEndDate = moment
+            .tz(this.transactionEndDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
+            .utc()
+            .toDate();
+    }
 });
 //Export the model
 module.exports = mongoose.model("Transaction", transactionSchema);

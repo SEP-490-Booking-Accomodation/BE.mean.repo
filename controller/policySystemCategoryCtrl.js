@@ -25,13 +25,17 @@ const createPolicySystemCategory = asyncHandler(async (req, res) => {
   });
   
   const deletePolicySystemCategory = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    validateMongoDbId(id);
+    const {id} = req.params;
     try {
-      const deletePolicySystemCategory = await PolicySystemCategory.findByIdAndDelete(id);
-      res.json(deletePolicySystemCategory);
+        const deletedPolicySystemCategory = await softDelete(PolicySystemCategory, id);
+
+        if (!deletedPolicySystemCategory) {
+            return res.status(404).json({message: "PolicySystemCategory not found"});
+        }
+
+        res.json({message: "PolicySystemCategory deleted successfully", data: deletedPolicySystemCategory});
     } catch (error) {
-      throw new Error(error);
+        res.status(500).json({message: error.message});
     }
   });
   
@@ -39,7 +43,7 @@ const createPolicySystemCategory = asyncHandler(async (req, res) => {
     const { id } = req.params;
     validateMongoDbId(id);
     try {
-      const get1PolicySystemCategory = await PolicySystemCategory.findById(id);
+      const get1PolicySystemCategory = await PolicySystemCategory.findOne({_id: id, isDelete: false});
       res.json(get1PolicySystemCategory);
     } catch (error) {
       throw new Error(error);
@@ -48,7 +52,7 @@ const createPolicySystemCategory = asyncHandler(async (req, res) => {
   
   const getAllPolicySystemCategory = asyncHandler(async (req, res) => {
     try {
-      const getAllPolicySystemCategory = await PolicySystemCategory.find();
+      const getAllPolicySystemCategory = await PolicySystemCategory.find({isDelete: false});
       res.json(getAllPolicySystemCategory);
     } catch (error) {
       throw new Error(error);
