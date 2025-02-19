@@ -16,6 +16,7 @@ const createPolicySystem = asyncHandler(async (req, res) => {
       startDate,
       endDate,
       isActive,
+      staffId,
     } = req.body;
 
     // Chuyển đổi từ định dạng DD-MM-YYYY sang giờ Việt Nam trước khi lưu
@@ -60,6 +61,7 @@ const createPolicySystem = asyncHandler(async (req, res) => {
       startDate: vietnamTime1,
       endDate: vietnamTime2,
       isActive: true,
+      staffId
     });
 
     await newPolicySystem.save();
@@ -170,7 +172,12 @@ const getPolicySystem = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const get1PolicySystem = await PolicySystem.findOne({_id: id, isDelete: false});
+    const get1PolicySystem = await PolicySystem.findOne({_id: id, isDelete: false})
+      .populate({
+        path: 'staffId',
+        model: 'User',
+        select: '-password -roleID -isVerifiedEmail -isVerifiedPhone -tokenId -createdAt -updatedAt -isDelete'
+      });
     res.json(get1PolicySystem);
   } catch (error) {
     throw new Error(error);
@@ -179,7 +186,12 @@ const getPolicySystem = asyncHandler(async (req, res) => {
 
 const getAllPolicySystem = asyncHandler(async (req, res) => {
   try {
-    const getAllPolicySystem = await PolicySystem.find({isDelete: false});
+    const getAllPolicySystem = await PolicySystem.find({isDelete: false})
+      .populate({
+        path: 'staffId',
+        model: 'User',
+        select: '-password -roleID -isVerifiedEmail -isVerifiedPhone -tokenId -createdAt -updatedAt -isDelete'
+      });
     res.json(getAllPolicySystem);
   } catch (error) {
     throw new Error(error);
