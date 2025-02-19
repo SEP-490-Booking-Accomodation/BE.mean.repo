@@ -3,6 +3,7 @@ const Conversation = require("../models/conversationModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
+const softDelete = require("../utils/softDelete");
 
 const createMessage = asyncHandler(async (req, res) => {
     const { conversationId, content } = req.body;

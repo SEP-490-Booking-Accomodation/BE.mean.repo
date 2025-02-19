@@ -93,5 +93,3 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
-
-//token admin test: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY3YTAzMDg0MjNjMDM4YjU0MWRjMjEzZSIsImlhdCI6MTczODU1MTQ0NCwiZXhwIjoxNzM4ODEwNjQ0fQ.Mao8vOijSwJFazeIGqYgAHFB1t179D79k3nsh6EW9M0

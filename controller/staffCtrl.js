@@ -3,6 +3,7 @@ const Role = require("../models/roleModel");
 const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
+const softDelete = require("../utils/softDelete");
 
 const createStaff = asyncHandler(async (req, res) => {
   try {

@@ -2,6 +2,7 @@ const PaymentInformation = require("../models/paymentInformationModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
+const softDelete = require("../utils/softDelete");
 
 const createPaymentInformation= asyncHandler(async(req, res) => {
     try{
