@@ -62,7 +62,7 @@ const getOwnerByUserId = asyncHandler(async (req, res) => {
       .populate({
         path: "userId",
         select:
-          "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+          "-password -tokenId -createdAt -updatedAt -isDelete -roleId, // Loại bỏ trường nhạy cảm
       })
       .populate({
         path: "paymentInformationId",
