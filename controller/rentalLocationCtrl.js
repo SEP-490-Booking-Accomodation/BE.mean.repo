@@ -3,6 +3,7 @@ const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const { isValidObjectId } = require('../utils/mongoose-helpers');
+const softDelete = require("../utils/softDelete");
 
 const createRentalLocation = asyncHandler(async (req, res) => {
   try {

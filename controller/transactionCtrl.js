@@ -2,6 +2,7 @@ const Transaction = require("../models/transactionModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
+const softDelete = require("../utils/softDelete");
 
 const createTransaction= asyncHandler(async(req, res) => {
     try{

@@ -12,6 +12,7 @@ const { generateToken } = require("../config/jwtToken");
 const { generateRefreshToken } = require("../config/refreshToken");
 const { sendEmail, sendOTPEmail} = require("./emailCrtl");
 const crypto = require("crypto");
+const softDelete = require("../utils/softDelete");
 
 // Định nghĩa các role ID
 const ROLE_IDS = {

@@ -1,6 +1,7 @@
 const Report = require("../models/reportModel")
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
+const softDelete = require("../utils/softDelete");
 
 const createReport = asyncHandler(async (req, res) => {
   try {

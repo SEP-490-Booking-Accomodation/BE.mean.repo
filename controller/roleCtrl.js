@@ -1,6 +1,7 @@
 const Role = require("../models/roleModel")
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
+const softDelete = require("../utils/softDelete");
 
 const createRole = asyncHandler(async (req, res) => {
     try {

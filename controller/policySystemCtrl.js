@@ -2,6 +2,7 @@ const PolicySystem = require("../models/policySystemModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
+const softDelete = require("../utils/softDelete");
 
 const createPolicySystem = asyncHandler(async (req, res) => {
   try {
@@ -183,6 +184,11 @@ const getPolicySystem = asyncHandler(async (req, res) => {
         path: "staffId",
         model: "Staff",
         select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select:
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+        },
       })
       .populate({
         path: "policySystemCategoryId",
@@ -209,6 +215,11 @@ const getAllPolicySystem = asyncHandler(async (req, res) => {
         path: "staffId",
         model: "Staff",
         select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select:
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+        },
       })
       .populate({
         path: "policySystemCategoryId",
