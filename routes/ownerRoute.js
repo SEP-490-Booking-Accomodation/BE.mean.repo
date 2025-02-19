@@ -7,6 +7,7 @@ const {
   deleteOwner,
   getAllOwner,
   getOwner,
+  getOwnerByUserId,
 } = require("../controller/ownerCtrl");
 /**
  * @swagger
@@ -104,6 +105,31 @@ router.put("/:id", authMiddleware, updateOwner);
  *         description: Owner not found
  */
 router.delete("/:id", authMiddleware, deleteOwner);
+
+/**
+ * @swagger
+ * /api/owner/detail-owner/{userId}:
+ *   get:
+ *     summary: Get Owner by userId
+ *     tags: [Owner]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The user ID associated with the owner
+ *     responses:
+ *       200:
+ *         description: Owner details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Owner'
+ *       404:
+ *         description: Owner not found for this userId
+ */
+router.get("/detail-owner/:userId", authMiddleware, getOwnerByUserId);
 
 /**
  * @swagger

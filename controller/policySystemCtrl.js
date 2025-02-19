@@ -23,20 +23,21 @@ const createPolicySystem = asyncHandler(async (req, res) => {
     // const vietnamTime1 = moment
     //   .tz(startDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
     //   .toDate();
-    const vietnamTime1 = moment(startDate, "DD-MM-YYYY HH:mm:ss")
-      .tz("Asia/Ho_Chi_Minh")
-      .toDate();
+    const vietnamTime1 = endDate
+      ? moment(startDate, "DD-MM-YYYY HH:mm:ss").tz("Asia/Ho_Chi_Minh").toDate()
+      : null;
 
     // const vietnamTime2 = moment
     //   .tz(endDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
     //   .toDate();
-    const vietnamTime2 = moment(endDate, "DD-MM-YYYY HH:mm:ss")
-      .tz("Asia/Ho_Chi_Minh")
-      .toDate();
+    const vietnamTime2 = startDate
+      ? moment(endDate, "DD-MM-YYYY HH:mm:ss").tz("Asia/Ho_Chi_Minh").toDate()
+      : null;
     // Kiểm tra điều kiện startDate phải sau ngày tạo hệ thống (createdAt)
     const currentDate = new Date();
-    const currentDateVN = moment(currentDate, "DD/MM/YYYY HH:mm:ss")
-      .tz("Asia/Ho_Chi_Minh");
+    const currentDateVN = moment(currentDate, "DD/MM/YYYY HH:mm:ss").tz(
+      "Asia/Ho_Chi_Minh"
+    );
 
     if (vietnamTime1 <= currentDateVN) {
       return res.status(400).json({
@@ -61,7 +62,7 @@ const createPolicySystem = asyncHandler(async (req, res) => {
       startDate: vietnamTime1,
       endDate: vietnamTime2,
       isActive: true,
-      staffId
+      staffId,
     });
 
     await newPolicySystem.save();
@@ -152,31 +153,46 @@ const updatePolicySystem = asyncHandler(async (req, res) => {
   }
 });
 
-
 const deletePolicySystem = asyncHandler(async (req, res) => {
-  const {id} = req.params;
-    try {
-        const deletedPolicySystem = await softDelete(PolicySystem, id);
+  const { id } = req.params;
+  try {
+    const deletedPolicySystem = await softDelete(PolicySystem, id);
 
-        if (!deletedPolicySystem) {
-            return res.status(404).json({message: "PolicySystem not found"});
-        }
-
-        res.json({message: "PolicySystem deleted successfully", data: deletedPolicySystem});
-    } catch (error) {
-        res.status(500).json({message: error.message});
+    if (!deletedPolicySystem) {
+      return res.status(404).json({ message: "PolicySystem not found" });
     }
+
+    res.json({
+      message: "PolicySystem deleted successfully",
+      data: deletedPolicySystem,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 const getPolicySystem = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const get1PolicySystem = await PolicySystem.findOne({_id: id, isDelete: false})
+    const get1PolicySystem = await PolicySystem.findOne({
+      _id: id,
+      isDelete: false,
+    })
       .populate({
-        path: 'staffId',
-        model: 'User',
-        select: '-password -roleID -isVerifiedEmail -isVerifiedPhone -tokenId -createdAt -updatedAt -isDelete'
+        path: "staffId",
+        model: "Staff",
+        select: "-createdAt -updatedAt -isDelete",
+      })
+      .populate({
+        path: "policySystemCategoryId",
+        model: "PolicySystemCategory",
+        select: "-createdAt -updatedAt -isDelete",
+      })
+      .populate({
+        path: "policySystemBookingId",
+        model: "PolicySystemBooking",
+        select: "-createdAt -updatedAt -isDelete",
       });
     res.json(get1PolicySystem);
   } catch (error) {
@@ -186,11 +202,23 @@ const getPolicySystem = asyncHandler(async (req, res) => {
 
 const getAllPolicySystem = asyncHandler(async (req, res) => {
   try {
-    const getAllPolicySystem = await PolicySystem.find({isDelete: false})
+    const getAllPolicySystem = await PolicySystem.find({
+      isDelete: false,
+    })
       .populate({
-        path: 'staffId',
-        model: 'User',
-        select: '-password -roleID -isVerifiedEmail -isVerifiedPhone -tokenId -createdAt -updatedAt -isDelete'
+        path: "staffId",
+        model: "Staff",
+        select: "-createdAt -updatedAt -isDelete",
+      })
+      .populate({
+        path: "policySystemCategoryId",
+        model: "PolicySystemCategory",
+        select: "-createdAt -updatedAt -isDelete",
+      })
+      .populate({
+        path: "policySystemBookingId",
+        model: "PolicySystemBooking",
+        select: "-createdAt -updatedAt -isDelete",
       });
     res.json(getAllPolicySystem);
   } catch (error) {

@@ -27,56 +27,71 @@ const updateOwner = asyncHandler(async (req, res) => {
 });
 
 const deleteOwner = asyncHandler(async (req, res) => {
-  const {id} = req.params;
-    try {
-        const deletedOwner = await softDelete(Owner, id);
+  const { id } = req.params;
+  try {
+    const deletedOwner = await softDelete(Owner, id);
 
-        if (!deletedOwner) {
-            return res.status(404).json({message: "Owner not found"});
-        }
-
-        res.json({message: "Owner deleted successfully", data: deletedOwner});
-    } catch (error) {
-        res.status(500).json({message: error.message});
+    if (!deletedOwner) {
+      return res.status(404).json({ message: "Owner not found" });
     }
+
+    res.json({ message: "Owner deleted successfully", data: deletedOwner });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 const getOwner = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const get1Owner = await Owner.findOne({_id: id, isDelete: false});
+    const get1Owner = await Owner.findOne({ _id: id, isDelete: false });
     res.json(get1Owner);
   } catch (error) {
     throw new Error(error);
   }
 });
 
+const getOwnerByUserId = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  validateMongoDbId(userId);
+
+  try {
+    const owner = await Owner.findOne({ userId: userId, isDelete: false })
+      .populate({
+        path: "userId",
+        select:
+          "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+      })
+      .populate({
+        path: "paymentInformationId",
+        model: "PaymentInformation",
+        select: "-createdAt -updatedAt -isDelete",
+      })
+      .populate({
+        path: "businessInformationId",
+        model: "BusinessInformation",
+        select: "-createdAt -updatedAt -isDelete",
+      });
+
+    if (!owner) {
+      return res
+        .status(404)
+        .json({ message: "Owner not found for this userId" });
+    }
+
+    res.json(owner);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 const getAllOwner = async (req, res) => {
   try {
-    const owners = await Owner.find({ isDelete: false })
-      .populate({
-        path: 'userId',
-        match: { 
-          roleID: "67927ff7a0a58ce4f7e8e83d",
-          isDelete: false,
-        },
-        select: '-password'
-      })
-      .populate('businessInformationId');
-    const validOwners = owners.filter(owner => owner.userId !== null);
-
-    res.status(200).json({
-      success: true,
-      data: validOwners
-    });
-    
+    const getAllOwner = await Owner.find({ isDelete: false });
+    res.json(getAllOwner);
   } catch (error) {
-    console.error('Error in getAllOwner:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: error.message || 'Internal server error'
-    });
+    throw new Error(error);
   }
 };
 module.exports = {
@@ -84,5 +99,6 @@ module.exports = {
   updateOwner,
   deleteOwner,
   getOwner,
+  getOwnerByUserId,
   getAllOwner,
 };

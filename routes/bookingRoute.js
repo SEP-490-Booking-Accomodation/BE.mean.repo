@@ -7,6 +7,8 @@ const {
   deleteBooking,
   getAllBooking,
   getBooking,
+  getBookingsByRentalLocation,
+  getBookingsByCustomerId,
 } = require("../controller/bookingCtrl");
 
 /**
@@ -133,7 +135,7 @@ const {
  *       201:
  *         description: Booking created successfully
  */
-router.post("/create-Booking", authMiddleware, isCustomer, createBooking);
+router.post("/create-Booking", authMiddleware, createBooking);
 
 /**
  * @swagger
@@ -160,6 +162,74 @@ router.post("/create-Booking", authMiddleware, isCustomer, createBooking);
  *         description: Booking updated successfully
  */
 router.put("/:id", authMiddleware, isCustomer, updateBooking);
+
+/**
+ * @swagger
+ * /api/booking/booking-history/{customerId}:
+ *   get:
+ *     summary: Get all bookings by customer ID
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: customerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: Customer ID
+ *     responses:
+ *       200:
+ *         description: List of bookings for the specified customer
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Booking'
+ *       404:
+ *         description: No bookings found for this customer
+ */
+
+router.get(
+  "/booking-history/:customerId",
+  authMiddleware,
+  getBookingsByCustomerId
+);
+
+/**
+ * @swagger
+ * /api/booking/all-booking-in-rental-location/{rentalLocationId}:
+ *   get:
+ *     summary: Get all bookings by customer ID
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: rentalLocationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: Rental Location ID
+ *     responses:
+ *       200:
+ *         description: List of all bookings that's rental location have
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Booking'
+ *       404:
+ *         description: No bookings found for this customer
+ */
+
+router.get(
+  "/all-booking-in-rental-location/:rentalLocationId",
+  authMiddleware,
+  getBookingsByRentalLocation
+);
 
 /**
  * @swagger
