@@ -64,7 +64,7 @@ const {
  *     summary: Create a new policy system
  *     description: Adds a new policy system to the database
  *     tags:
- *       - Policy System
+ *       - PolicySystem
  *     requestBody:
  *       required: true
  *       content:
@@ -90,7 +90,7 @@ router.post("/create-policy-system", authMiddleware, isAdmin, createPolicySystem
  *     summary: Update an existing policy system
  *     description: Updates a policy system in the database by its ID
  *     tags:
- *       - Policy System
+ *       - PolicySystem
  *     parameters:
  *       - in: path
  *         name: id
@@ -125,7 +125,7 @@ router.put("/:id", authMiddleware, isAdmin, updatePolicySystem);
  *     summary: Delete a policy system
  *     description: Deletes a policy system by its ID
  *     tags:
- *       - Policy System
+ *       - PolicySystem
  *     parameters:
  *       - in: path
  *         name: id
@@ -152,7 +152,7 @@ router.delete("/:id", authMiddleware, isAdmin, deletePolicySystem);
  *     summary: Get all policy systems
  *     description: Retrieves a list of all policy systems
  *     tags:
- *       - Policy System
+ *       - PolicySystem
  *     responses:
  *       200:
  *         description: A list of policy systems
@@ -176,7 +176,7 @@ router.get("/all-policy-systems", authMiddleware, isAdmin, getAllPolicySystem);
  *     summary: Get a specific policy system by ID
  *     description: Retrieves a single policy system by its ID
  *     tags:
- *       - Policy System
+ *       - PolicySystem
  *     parameters:
  *       - in: path
  *         name: id
