@@ -7,6 +7,7 @@ const {
   deleteCustomer,
   getAllCustomer,
   getCustomer,
+  getCustomerByUserId,
 } = require("../controller/customerCtrl");
 
 /**
@@ -74,6 +75,30 @@ router.put("/:id", authMiddleware, updateCustomer);
 //  *         description: Xóa khách hàng thành công
 //  */
 // router.delete("/:id", authMiddleware, isAdmin, deleteCustomer);
+
+/**
+ * @swagger
+ * /api/customer/detail-customer/{userId}:
+ *   get:
+ *     summary: Lấy thông tin khách hàng theo userId
+ *     tags: [Customer]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Thông tin chi tiết khách hàng
+ */
+router.get(
+  "/detail-customer/:userId",
+  authMiddleware,
+  getCustomerByUserId
+);
 
 /**
  * @swagger
