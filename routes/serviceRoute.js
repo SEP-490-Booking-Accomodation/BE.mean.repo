@@ -126,6 +126,13 @@ router.delete("/:id", authMiddleware, deleteService);
  *   get:
  *     summary: Get all services
  *     description: Retrieves a list of all services
+ *     parameters:
+ *       - in: query
+ *         name: rentalLocationId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: ID of the rental location
  *     tags:
  *       - Service
  *     security:
