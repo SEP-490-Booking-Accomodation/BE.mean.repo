@@ -1,5 +1,11 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
+const RENTALLOCATION_STATUS = {
+    PENDING : 1,
+    INACTIVE : 2,
+    ACTIVE : 3,
+    PAUSE : 4
+}
 var rentalLocationSchema = new mongoose.Schema(
     {
         ownerId: {
@@ -11,8 +17,9 @@ var rentalLocationSchema = new mongoose.Schema(
             required: true,
         },
         status: {
-            type: Boolean,
-            required: true,
+            type: Number,
+            enum: Object.values(RENTALLOCATION_STATUS),
+            default: RENTALLOCATION_STATUS.PENDING,
         },
         image: [
             {
