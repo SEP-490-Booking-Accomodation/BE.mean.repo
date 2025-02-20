@@ -7,6 +7,7 @@ const {
   deleteRentalLocation,
   getRentalLocation,
   getAllRentalLocation,
+  updateRentalLocationStatus,
 } = require("../controller/rentalLocationCtrl");
 
 /**
@@ -35,8 +36,14 @@ const {
  *           type: string
  *           description: The name of the rental location
  *         status:
- *           type: boolean
- *           description: The status of the rental location (active/inactive)
+ *           type: integer
+ *           enum: [1, 2, 3, 4]
+ *           description: |
+ *             Status code of the rental location:
+ *             1 - Pending
+ *             2 - Inactive
+ *             3 - Active
+ *             4 - Pause
  *         image:
  *           type: string
  *           description: A URL or path to the rental location's image
@@ -67,7 +74,7 @@ const {
  *       example:
  *         ownerId: "63b92f4e17d7b3c2a4e4f3d2"
  *         name: "Cozy Rental Space"
- *         status: true
+ *         status: 1
  *         image: "/uploads/images/rental1.jpg"
  *         description: "A cozy space ideal for short-term stays."
  *         landUsesRightsFile: "/uploads/files/landrights1.pdf"
@@ -133,6 +140,46 @@ router.post("/create-rental-location", authMiddleware, isCustomer, createRentalL
  *         description: Rental location not found
  */
 router.put("/:id", authMiddleware, updateRentalLocation);
+
+/**
+ * @swagger
+ * /api/rental-location/{id}/status:
+ *   put:
+ *     summary: Update rental location status
+ *     description: Updates only the status field of a rental location
+ *     tags:
+ *       - RentalLocation
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the rental location to update status
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: integer
+ *                 enum: [1, 2, 3, 4]
+ *                 description: Status code (1-Pending, 2-Inactive, 3-Active, 4-Pause)
+ *           example:
+ *             status: 3
+ *     responses:
+ *       200:
+ *         description: Status updated successfully
+ *       400:
+ *         description: Invalid status value
+ *       404:
+ *         description: Rental location not found
+ */
+router.put("/:id/status", authMiddleware, updateRentalLocationStatus);
 
 /**
  * @swagger
