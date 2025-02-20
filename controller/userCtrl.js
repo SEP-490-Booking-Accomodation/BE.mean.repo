@@ -10,7 +10,7 @@ const jwt = require("jsonwebtoken");
 const moment = require("moment-timezone");
 const { generateToken } = require("../config/jwtToken");
 const { generateRefreshToken } = require("../config/refreshToken");
-const { sendEmail, sendOTPEmail} = require("./emailCrtl");
+const { sendEmail, sendOTPEmail } = require("./emailCrtl");
 const crypto = require("crypto");
 const softDelete = require("../utils/softDelete");
 
@@ -65,11 +65,11 @@ const createUser = asyncHandler(async (req, res) => {
 
     // Kiểm tra roleID và lưu vào bảng tương ứng
     if (roleID === ROLE_IDS.staff) {
-      await Staff.create({ userId: newUser._id});
+      await Staff.create({ userId: newUser._id });
     } else if (roleID === ROLE_IDS.owner) {
-      await Owner.create({ userId: newUser._id});
+      await Owner.create({ userId: newUser._id });
     } else if (roleID === ROLE_IDS.customer) {
-      await Customer.create({ userId: newUser._id});
+      await Customer.create({ userId: newUser._id });
     }
 
     res.status(201).json({
@@ -150,7 +150,6 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
   }
 });
 
-
 //Logout functionality
 // const logout = asyncHandler(async (req, res) => {
 //   const cookie = req.cookies;
@@ -191,7 +190,6 @@ const logout = asyncHandler(async (req, res) => {
   });
   res.sendStatus(204); // No Content
 });
-
 
 // //handle refresh token
 // const handleRefreshToken = asyncHandler(async (req, res) => {
@@ -252,7 +250,6 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
     res.json({ accessToken: newAccessToken });
   });
 });
-
 
 const updatePassword = asyncHandler(async (req, res) => {
   const { _id } = req.user;
@@ -374,7 +371,6 @@ const verifyEmailOTP = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Email verified successfully" });
 });
 
-
 //Get all users
 const getAllUser = asyncHandler(async (req, res) => {
   try {
@@ -420,6 +416,9 @@ const updateUser = asyncHandler(async (req, res) => {
   try {
     const updateData = { ...req.body };
 
+    // Loại bỏ password và roleId khỏi dữ liệu update nếu có
+    delete updateData.password;
+    delete updateData.roleId;
     if (updateData.doB) {
       updateData.doB = moment(updateData.doB, "DD-MM-YYYY")
         .tz("Asia/Ho_Chi_Minh")
@@ -428,7 +427,7 @@ const updateUser = asyncHandler(async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(id, updateData, {
       new: true,
-    });
+    }).select("-password -roleId");
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
