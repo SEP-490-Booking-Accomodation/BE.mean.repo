@@ -61,8 +61,7 @@ const getOwnerByUserId = asyncHandler(async (req, res) => {
     const owner = await Owner.findOne({ userId: userId, isDelete: false })
       .populate({
         path: "userId",
-        select:
-          "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+        select: "-password -tokenId -createdAt -updatedAt -isDelete -roleId",
       })
       .populate({
         path: "paymentInformationId",
