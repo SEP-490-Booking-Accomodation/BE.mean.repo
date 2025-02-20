@@ -12,6 +12,7 @@ const { generateToken } = require("../config/jwtToken");
 const { generateRefreshToken } = require("../config/refreshToken");
 const { sendEmail, sendOTPEmail } = require("./emailCrtl");
 const crypto = require("crypto");
+const bcrypt = require("bcrypt");
 const softDelete = require("../utils/softDelete");
 
 // Định nghĩa các role ID
@@ -253,16 +254,36 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
 
 const updatePassword = asyncHandler(async (req, res) => {
   const { _id } = req.user;
-  const { password } = req.body;
+  const { currentPassword, newPassword } = req.body;
   validateMongoDbId(_id);
   const user = await User.findById(_id);
-  if (password) {
-    user.password = password;
-    const updatedPassword = await user.save();
-    res.json(updatedPassword);
-  } else {
-    res.json(user);
+  if (!user) {
+    return res.status(404).json({ message: "Người dùng không tồn tại" });
   }
+
+  // Kiểm tra mật khẩu cũ
+  const isMatch = await user.isPasswordMatched(currentPassword);
+  if (!isMatch) {
+    return res.status(400).json({ message: "Mật khẩu cũ không chính xác" });
+  }
+
+  // // Hash mật khẩu mới
+  // const salt = await bcrypt.genSalt(10);
+  // user.password = await bcrypt.hash(newPassword, salt);
+  // await user.save();
+
+  // Cập nhật mật khẩu mà không hash ở đây
+  user.password = newPassword;
+  await user.save();
+
+  res.status(200).json({
+    message: "Cập nhật mật khẩu thành công",
+    user: {
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+    },
+  });
 });
 
 //Forgot Password
