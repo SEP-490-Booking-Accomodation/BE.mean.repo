@@ -343,15 +343,30 @@ router.get("/:id", authMiddleware, getUser);
  *       content:
  *         application/x-www-form-urlencoded:
  *           schema:
- *             $ref: '#/components/schemas/User'
+ *             type: object
+ *             properties:
+ *               fullName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone:
+ *                 type: string
+ *               doB:
+ *                 type: string
+ *                 format: date
+ *                 example: "12-02-2001"
+ *               avatarUrl:
+ *                 type: array
+ *                 items:
+ *                   type: string
  *     responses:
  *       200:
  *         description: User updated successfully
- *       400:
- *         description: Invalid input
+ *       404:
+ *         description: User not found
  */
-
 router.put("/edit-user/:id", authMiddleware, updateUser);
+
 
 /**
  * @swagger
