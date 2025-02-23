@@ -10,8 +10,9 @@ const jwt = require("jsonwebtoken");
 const moment = require("moment-timezone");
 const { generateToken } = require("../config/jwtToken");
 const { generateRefreshToken } = require("../config/refreshToken");
-const { sendEmail, sendOTPEmail} = require("./emailCrtl");
+const { sendEmail, sendOTPEmail } = require("./emailCrtl");
 const crypto = require("crypto");
+const bcrypt = require("bcrypt");
 const softDelete = require("../utils/softDelete");
 
 // Định nghĩa các role ID
@@ -65,11 +66,11 @@ const createUser = asyncHandler(async (req, res) => {
 
     // Kiểm tra roleID và lưu vào bảng tương ứng
     if (roleID === ROLE_IDS.staff) {
-      await Staff.create({ userId: newUser._id});
+      await Staff.create({ userId: newUser._id });
     } else if (roleID === ROLE_IDS.owner) {
-      await Owner.create({ userId: newUser._id});
+      await Owner.create({ userId: newUser._id });
     } else if (roleID === ROLE_IDS.customer) {
-      await Customer.create({ userId: newUser._id});
+      await Customer.create({ userId: newUser._id });
     }
 
     res.status(201).json({
@@ -150,7 +151,6 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
   }
 });
 
-
 //Logout functionality
 // const logout = asyncHandler(async (req, res) => {
 //   const cookie = req.cookies;
@@ -191,7 +191,6 @@ const logout = asyncHandler(async (req, res) => {
   });
   res.sendStatus(204); // No Content
 });
-
 
 // //handle refresh token
 // const handleRefreshToken = asyncHandler(async (req, res) => {
@@ -253,19 +252,38 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
   });
 });
 
-
 const updatePassword = asyncHandler(async (req, res) => {
   const { _id } = req.user;
-  const { password } = req.body;
+  const { currentPassword, newPassword } = req.body;
   validateMongoDbId(_id);
   const user = await User.findById(_id);
-  if (password) {
-    user.password = password;
-    const updatedPassword = await user.save();
-    res.json(updatedPassword);
-  } else {
-    res.json(user);
+  if (!user) {
+    return res.status(404).json({ message: "Người dùng không tồn tại" });
   }
+
+  // Kiểm tra mật khẩu cũ
+  const isMatch = await user.isPasswordMatched(currentPassword);
+  if (!isMatch) {
+    return res.status(400).json({ message: "Mật khẩu cũ không chính xác" });
+  }
+
+  // // Hash mật khẩu mới
+  // const salt = await bcrypt.genSalt(10);
+  // user.password = await bcrypt.hash(newPassword, salt);
+  // await user.save();
+
+  // Cập nhật mật khẩu mà không hash ở đây
+  user.password = newPassword;
+  await user.save();
+
+  res.status(200).json({
+    message: "Cập nhật mật khẩu thành công",
+    user: {
+      _id: user._id,
+      fullName: user.fullName,
+      email: user.email,
+    },
+  });
 });
 
 //Forgot Password
@@ -374,7 +392,6 @@ const verifyEmailOTP = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Email verified successfully" });
 });
 
-
 //Get all users
 const getAllUser = asyncHandler(async (req, res) => {
   try {
@@ -420,6 +437,9 @@ const updateUser = asyncHandler(async (req, res) => {
   try {
     const updateData = { ...req.body };
 
+    // Loại bỏ password và roleId khỏi dữ liệu update nếu có
+    delete updateData.password;
+    delete updateData.roleId;
     if (updateData.doB) {
       updateData.doB = moment(updateData.doB, "DD-MM-YYYY")
         .tz("Asia/Ho_Chi_Minh")
@@ -428,7 +448,7 @@ const updateUser = asyncHandler(async (req, res) => {
 
     const updatedUser = await User.findByIdAndUpdate(id, updateData, {
       new: true,
-    });
+    }).select("-password -roleId");
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found" });
