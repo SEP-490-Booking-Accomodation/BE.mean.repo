@@ -24,7 +24,7 @@ const {
  *         - landUsesRightsFile
  *         - address
  *         - longtitude
- *         - attitude
+ *         - altitude
  *         - openHour
  *         - closeHour
  *         - isOverNight
@@ -59,7 +59,7 @@ const {
  *         longtitude:
  *           type: string
  *           description: The longitude coordinate of the rental location
- *         attitude:
+ *         altitude:
  *           type: string
  *           description: The latitude coordinate of the rental location
  *         openHour:
@@ -80,7 +80,7 @@ const {
  *         landUsesRightsFile: "/uploads/files/landrights1.pdf"
  *         address: "123 Rental Lane, Ho Chi Minh City, Vietnam"
  *         longtitude: "106.6899"
- *         attitude: "10.7629"
+ *         altitude: "10.7629"
  *         openHour: "08:00"
  *         closeHour: "22:00"
  *         isOverNight: true

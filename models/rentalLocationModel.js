@@ -37,7 +37,7 @@ var rentalLocationSchema = new mongoose.Schema(
         longitude: {
             type: String,
         },
-        attitude: {
+        altitude: {
             type: String,
         },
         openHour: {
