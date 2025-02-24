@@ -21,6 +21,12 @@ var landUsesRightSchema = new mongoose.Schema(
             default: false,
         },
         documentFile: [],
+        uploadDate: {
+            type: Date,
+        },
+        approvedDate: {
+            type: Date,
+        },
         refuseDate: {
             type: Date,
         },
@@ -43,13 +49,18 @@ var landUsesRightSchema = new mongoose.Schema(
                 ret.updatedAt = moment(ret.updatedAt)
                     .tz("Asia/Ho_Chi_Minh")
                     .format("DD/MM/YYYY HH:mm:ss");
-                if (ret.startDate) {
-                    ret.startDate = moment(ret.startDate)
+                if (ret.uploadDate) {
+                    ret.uploadDate = moment(ret.uploadDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
-                if (ret.endDate) {
-                    ret.endDate = moment(ret.endDate)
+                if (ret.approvedDate) {
+                    ret.approvedDate = moment(ret.approvedDate)
+                        .tz("Asia/Ho_Chi_Minh")
+                        .format("DD/MM/YYYY HH:mm:ss");
+                }
+                if (ret.refuseDate) {
+                    ret.refuseDate = moment(ret.refuseDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
@@ -65,13 +76,18 @@ var landUsesRightSchema = new mongoose.Schema(
                 ret.updatedAt = moment(ret.updatedAt)
                     .tz("Asia/Ho_Chi_Minh")
                     .format("DD/MM/YYYY HH:mm:ss");
-                if (ret.startDate) {
-                    ret.startDate = moment(ret.startDate)
+                if (ret.uploadDate) {
+                    ret.uploadDate = moment(ret.uploadDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
-                if (ret.endDate) {
-                    ret.endDate = moment(ret.endDate)
+                if (ret.approvedDate) {
+                    ret.approvedDate = moment(ret.approvedDate)
+                        .tz("Asia/Ho_Chi_Minh")
+                        .format("DD/MM/YYYY HH:mm:ss");
+                }
+                if (ret.refuseDate) {
+                    ret.refuseDate = moment(ret.refuseDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
@@ -80,21 +96,28 @@ var landUsesRightSchema = new mongoose.Schema(
         },
     }
 );
-policyOwnerSchema.pre("save", async function (next) {
-    if (this.startDate && typeof this.startDate === "string") {
+landUsesRightSchema.pre("save", async function (next) {
+    if (this.uploadDate && typeof this.uploadDate === "string") {
+            // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
+            this.uploadDate = moment
+                .tz(this.uploadDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+                .utc()
+                .toDate();
+        }
+    if (this.approvedDate && typeof this.approvedDate === "string") {
         // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-        this.startDate = moment
-            .tz(this.startDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
+        this.approvedDate = moment
+            .tz(this.approvedDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
             .utc()
             .toDate();
     }
-    if (this.endDate && typeof this.endDate === "string") {
+    if (this.refuseDate && typeof this.refuseDate === "string") {
         // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-        this.endDate = moment
-            .tz(this.endDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
+        this.refuseDate = moment
+            .tz(this.refuseDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
             .utc()
             .toDate();
     }
 });
 //Export the model
-module.exports = mongoose.model("PolicyOwner", policyOwnerSchema);
+module.exports = mongoose.model("LandUsesRight", landUsesRightSchema);

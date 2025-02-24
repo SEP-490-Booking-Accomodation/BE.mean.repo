@@ -21,10 +21,10 @@ const {
  *         - status
  *         - image
  *         - description
- *         - landUsesRightsFile
+ *         - landUsesRightId
  *         - address
  *         - longtitude
- *         - altitude
+ *         - latitude
  *         - openHour
  *         - closeHour
  *         - isOverNight
@@ -32,6 +32,9 @@ const {
  *         ownerId:
  *           type: string
  *           description: The ID of the owner associated with the rental location
+ *         landUsesRightsId:
+ *           type: string
+ *           description: The ID of the land use rights associated with the rental location
  *         name:
  *           type: string
  *           description: The name of the rental location
@@ -50,16 +53,13 @@ const {
  *         description:
  *           type: string
  *           description: A detailed description of the rental location
- *         landUsesRightsFile:
- *           type: string
- *           description: File path for the land usage rights document
  *         address:
  *           type: string
  *           description: The address of the rental location
  *         longtitude:
  *           type: string
  *           description: The longitude coordinate of the rental location
- *         altitude:
+ *         latitude:
  *           type: string
  *           description: The latitude coordinate of the rental location
  *         openHour:
@@ -73,6 +73,7 @@ const {
  *           description: Whether overnight stay is allowed
  *       example:
  *         ownerId: "63b92f4e17d7b3c2a4e4f3d2"
+ *         landUsesRightId: "63b92f4e1722b3c2a4e4f3f2"
  *         name: "Cozy Rental Space"
  *         status: 1
  *         image: "/uploads/images/rental1.jpg"
@@ -80,7 +81,7 @@ const {
  *         landUsesRightsFile: "/uploads/files/landrights1.pdf"
  *         address: "123 Rental Lane, Ho Chi Minh City, Vietnam"
  *         longtitude: "106.6899"
- *         altitude: "10.7629"
+ *         latitude: "10.7629"
  *         openHour: "08:00"
  *         closeHour: "22:00"
  *         isOverNight: true

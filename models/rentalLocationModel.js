@@ -12,6 +12,10 @@ var rentalLocationSchema = new mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: "Owner",
         },
+        landUsesRightId: {
+            type: mongoose.Schema.ObjectId,
+            ref: "LandUsesRight"
+        },
         name: {
             type: String,
             required: true,
@@ -37,7 +41,7 @@ var rentalLocationSchema = new mongoose.Schema(
         longitude: {
             type: String,
         },
-        altitude: {
+        latitude: {
             type: String,
         },
         openHour: {
