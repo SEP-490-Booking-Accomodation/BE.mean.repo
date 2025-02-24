@@ -18,6 +18,7 @@ const createPolicySystem = asyncHandler(async (req, res) => {
       endDate,
       isActive,
       staffId,
+      updateBy,
     } = req.body;
 
     // Chuyển đổi từ định dạng DD-MM-YYYY sang giờ Việt Nam trước khi lưu
@@ -64,6 +65,7 @@ const createPolicySystem = asyncHandler(async (req, res) => {
       endDate: vietnamTime2,
       isActive: true,
       staffId,
+      updateBy,
     });
 
     await newPolicySystem.save();
@@ -191,6 +193,16 @@ const getPolicySystem = asyncHandler(async (req, res) => {
         },
       })
       .populate({
+        path: "updateBy",
+        model: "Staff",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select:
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+        },
+      })
+      .populate({
         path: "policySystemCategoryId",
         model: "PolicySystemCategory",
         select: "-createdAt -updatedAt -isDelete",
@@ -213,6 +225,16 @@ const getAllPolicySystem = asyncHandler(async (req, res) => {
     })
       .populate({
         path: "staffId",
+        model: "Staff",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select:
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+        },
+      })
+      .populate({
+        path: "updateBy",
         model: "Staff",
         select: "-createdAt -updatedAt -isDelete",
         populate: {

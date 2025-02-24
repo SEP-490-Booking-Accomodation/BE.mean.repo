@@ -46,8 +46,8 @@ const getStaff = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    // const get1Staff = await Staff.findOne({userId: id});
-    const staffInfor = await User.findOne({_id: id, isDelete: false});
+    const staffInfor = await Staff.findOne({ userId: id, isDelete: false });
+    // const staffInfor = await User.findOne({ _id: id, isDelete: false });
     res.json(staffInfor);
   } catch (error) {
     throw new Error(error);
