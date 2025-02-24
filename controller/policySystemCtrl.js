@@ -193,6 +193,16 @@ const getPolicySystem = asyncHandler(async (req, res) => {
         },
       })
       .populate({
+        path: "updateBy",
+        model: "Staff",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select:
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+        },
+      })
+      .populate({
         path: "policySystemCategoryId",
         model: "PolicySystemCategory",
         select: "-createdAt -updatedAt -isDelete",
@@ -213,17 +223,26 @@ const getAllPolicySystem = asyncHandler(async (req, res) => {
     const getAllPolicySystem = await PolicySystem.find({
       isDelete: false,
     })
-      .populate("staffId")
-      // .populate({
-      //   path: "staffId",
-      //   model: "Staff",
-      //   select: "-isDelete",
-      //   populate: {
-      //     path: "userId",
-      //     select:
-      //       "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
-      //   },
-      // })
+      .populate({
+        path: "staffId",
+        model: "Staff",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select:
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+        },
+      })
+      .populate({
+        path: "updateBy",
+        model: "Staff",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select:
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+        },
+      })
       .populate({
         path: "policySystemCategoryId",
         model: "PolicySystemCategory",
