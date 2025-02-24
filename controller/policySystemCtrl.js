@@ -211,16 +211,17 @@ const getAllPolicySystem = asyncHandler(async (req, res) => {
     const getAllPolicySystem = await PolicySystem.find({
       isDelete: false,
     })
-      .populate({
-        path: "staffId",
-        model: "Staff",
-        select: "-createdAt -updatedAt -isDelete",
-        populate: {
-          path: "userId",
-          select:
-            "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
-        },
-      })
+      .populate("staffId")
+      // .populate({
+      //   path: "staffId",
+      //   model: "Staff",
+      //   select: "-isDelete",
+      //   populate: {
+      //     path: "userId",
+      //     select:
+      //       "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+      //   },
+      // })
       .populate({
         path: "policySystemCategoryId",
         model: "PolicySystemCategory",
