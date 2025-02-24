@@ -18,6 +18,7 @@ const createPolicySystem = asyncHandler(async (req, res) => {
       endDate,
       isActive,
       staffId,
+      updateBy,
     } = req.body;
 
     // Chuyển đổi từ định dạng DD-MM-YYYY sang giờ Việt Nam trước khi lưu
@@ -64,6 +65,7 @@ const createPolicySystem = asyncHandler(async (req, res) => {
       endDate: vietnamTime2,
       isActive: true,
       staffId,
+      updateBy,
     });
 
     await newPolicySystem.save();
