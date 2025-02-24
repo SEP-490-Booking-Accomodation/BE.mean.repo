@@ -55,6 +55,9 @@ const {
  *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
  *           description: End date of the policy system
  *           example: "04-02-2025 15:30:45 +07:00"
+ *         updateBy:
+ *           type: string
+ *           description: The user update to the policy system
  */
 
 /**
