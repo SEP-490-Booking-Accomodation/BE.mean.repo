@@ -18,10 +18,9 @@ const {
  *       required:
  *         - policyTitle
  *         - policyDescription
- *         - createdDate
- *         - updatedDate
  *         - startDate
  *         - endDate
+ *         - status
  *       properties:
  *         ownerId:
  *           type: string
@@ -48,12 +47,23 @@ const {
  *           type: string
  *           format: date-time
  *           description: The ending date of the policy
+ *         isDelete:
+ *           type: boolean
+ *           description: Flag indicating if the policy has been deleted
+ *           default: false
+ *         status:
+ *           type: integer
+ *           enum: [1, 2, 3]
+ *           description: Status of the policy (1=PENDING, 2=APPROVED, 3=DENIED)
+ *           default: 1
  *       example:
  *         ownerId: "63b92f4e17d7b3c2a4e4f3d2"
  *         policyTitle: "Cancellation Policy"
  *         policyDescription: "This policy covers cancellation terms for bookings."
  *         startDate: "2025-02-01T12:00:00Z"
  *         endDate: "2025-12-31T12:00:00Z"
+ *         isDelete: false
+ *         status: 1
  */
 
 /**
@@ -135,7 +145,7 @@ router.put("/:id", authMiddleware, updatePolicyOwner);
  *       404:
  *         description: Policy owner not found
  */
-router.put("/:id", authMiddleware, deletePolicyOwner);
+router.delete("/:id", authMiddleware, deletePolicyOwner);
 
 /**
  * @swagger

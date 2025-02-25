@@ -77,6 +77,20 @@ const getLandUsesRight= asyncHandler(async (req, res) => {
     }
 });
 
+const getLandUsesRightByRentalLocationId= asyncHandler(async (req, res) =>{
+  const { rentalLocationId } = req.params;
+    validateMongoDbId(rentalLocationId);
+    try {
+        const landUsesRight = await LandUsesRight.findOne({ rentalLocationId: rentalLocationId, isDelete: false });
+        if (!landUsesRight) {
+            return res.status(404).json({ message: "No land uses right found for this rentalLocationId" });
+        }
+        res.json(landUsesRight);
+    } catch (error) {
+        throw new Error(error);
+    }
+});
+
 const getAllLandUsesRight = asyncHandler(async (req, res) => {
   try {
     const landUsesRights = await LandUsesRight.find({isDelete: false});
@@ -99,4 +113,5 @@ module.exports = {
     deleteLandUsesRight,
     getAllLandUsesRight,
     getLandUsesRight,
+    getLandUsesRightByRentalLocationId
 };

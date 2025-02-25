@@ -7,6 +7,7 @@ const {
   deleteLandUsesRight,
   getAllLandUsesRight,
   getLandUsesRight,
+  getLandUsesRightByRentalLocationId
 } = require("../controller/landUsesRightCtrl");
 
 /**
@@ -214,5 +215,31 @@ router.get("/all-land-uses-right", getAllLandUsesRight);
  *       404:
  *         description: Land uses right document not found
  */
-router.get("/:id", getAllLandUsesRight);
+router.get("/:id", getLandUsesRight);
+
+/**
+ * @swagger
+ * /api/land-uses-right/rental/{rentalLocationId}:
+ *   get:
+ *     summary: Get a land uses right document by rentalLocationId
+ *     description: Retrieves a specific land uses right document associated with the provided rentalLocationId
+ *     tags:
+ *       - LandUsesRight
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: rentalLocationId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: RentalLocationId to find associated land uses right document
+ *     responses:
+ *       200:
+ *         description: Land uses right document retrieved successfully
+ *       404:
+ *         description: No land uses right document found for this RentalLocationId
+ */
+router.get("/rental/:rentalLocationId", getLandUsesRightByRentalLocationId);
+
 module.exports = router;

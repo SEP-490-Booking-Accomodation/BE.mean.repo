@@ -40,13 +40,15 @@ const {
  *           description: The name of the rental location
  *         status:
  *           type: integer
- *           enum: [1, 2, 3, 4]
+ *           enum: [1, 2, 3, 4, 5, 6]
  *           description: |
  *             Status code of the rental location:
  *             1 - Pending
  *             2 - Inactive
  *             3 - Active
  *             4 - Pause
+ *             5 - Deleted
+ *             6 - Needs_Update
  *         image:
  *           type: string
  *           description: A URL or path to the rental location's image
@@ -167,8 +169,8 @@ router.put("/:id", authMiddleware, updateRentalLocation);
  *             properties:
  *               status:
  *                 type: integer
- *                 enum: [1, 2, 3, 4]
- *                 description: Status code (1-Pending, 2-Inactive, 3-Active, 4-Pause)
+ *                 enum: [1, 2, 3, 4, 5, 6]
+ *                 description: Status code (1-Pending, 2-Inactive, 3-Active, 4-Pause, 5-Deleted, 6-Needs_Update)
  *           example:
  *             status: 3
  *     responses:
