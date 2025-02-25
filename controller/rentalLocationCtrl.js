@@ -139,7 +139,7 @@ const updateRentalLocationStatus = asyncHandler(async (req, res) => {
   if (![1, 2, 3, 4].includes(status)) {
     return res.status(400).json({ 
       success: false, 
-      message: "Invalid status value. Status must be 1 (Pending), 2 (Inactive), 3 (Active), or 4 (Pause)" 
+      message: "Invalid status value. Status must be 1 (Pending), 2 (Inactive), 3 (Active), 4 (Pause), 5 (Deleted), or 6 (Needs_Update)" 
     });
   }
 

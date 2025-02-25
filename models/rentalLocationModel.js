@@ -4,7 +4,9 @@ const RENTALLOCATION_STATUS = {
     PENDING : 1,
     INACTIVE : 2,
     ACTIVE : 3,
-    PAUSE : 4
+    PAUSE : 4,
+    DELETED : 5,
+    NEEDS_UPDATE : 6
 }
 var rentalLocationSchema = new mongoose.Schema(
     {
