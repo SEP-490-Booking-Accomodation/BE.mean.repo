@@ -4,13 +4,39 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
 
-const createLandUsesRight= asyncHandler(async(req, res) => {
-    try{
-        const newLandUsesRight = await LandUsesRight.create(req.body);
-        res.json(newLandUsesRight);
-    } catch (error){
-        throw new Error(error);
-    }
+const createLandUsesRight = asyncHandler(async(req, res) => {
+  try {
+      // Copy request body and remove timestamp fields
+      const data = {...req.body};
+      delete data.createdAt;
+      delete data.updatedAt;
+      
+      // Parse date fields
+      ['uploadDate', 'approvedDate', 'refuseDate'].forEach(field => {
+          if (data[field] && typeof data[field] === 'string') {
+              const parsedDate = moment.tz(
+                  data[field], 
+                  "DD/MM/YYYY HH:mm:ss", 
+                  "Asia/Ho_Chi_Minh"
+              );
+              
+              if (!parsedDate.isValid()) {
+                  throw new Error(`Invalid date format for ${field}: ${data[field]}`);
+              }
+              
+              data[field] = parsedDate.toDate();
+          }
+      });
+      
+      // Create and return document
+      const newLandUsesRight = await LandUsesRight.create(data);
+      res.json(newLandUsesRight);
+  } catch (error) {
+      res.status(400).json({
+          success: false,
+          message: error.message || 'Failed to create land uses right document'
+      });
+  }
 });
 const updateLandUsesRight = asyncHandler(async (req, res) => {
     const { id } = req.params;

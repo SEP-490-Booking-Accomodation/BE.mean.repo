@@ -97,26 +97,43 @@ var landUsesRightSchema = new mongoose.Schema(
     }
 );
 landUsesRightSchema.pre("save", async function (next) {
-    if (this.uploadDate && typeof this.uploadDate === "string") {
-            // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-            this.uploadDate = moment
-                .tz(this.uploadDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
-                .utc()
-                .toDate();
+    try {
+        
+        const parseDate = (dateStr, fieldName) => {
+            if (!dateStr) return undefined;
+            if (!(typeof dateStr === "string")) return dateStr; 
+
+            const parsedDate = moment.tz(dateStr, [
+                "DD/MM/YYYY HH:mm:ss", 
+                "DD-MM-YYYY HH:mm:ss",
+                "YYYY-MM-DD HH:mm:ss",
+                "DD/MM/YYYY",
+                "DD-MM-YYYY"
+            ], "Asia/Ho_Chi_Minh");
+            
+            if (!parsedDate.isValid()) {
+                throw new Error(`Invalid date format for ${fieldName}: ${dateStr}`);
+            }
+            
+            return parsedDate.utc().toDate();
+        };
+        
+        // Parse date fields
+        if (this.uploadDate) {
+            this.uploadDate = parseDate(this.uploadDate, 'uploadDate');
         }
-    if (this.approvedDate && typeof this.approvedDate === "string") {
-        // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-        this.approvedDate = moment
-            .tz(this.approvedDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
-            .utc()
-            .toDate();
-    }
-    if (this.refuseDate && typeof this.refuseDate === "string") {
-        // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-        this.refuseDate = moment
-            .tz(this.refuseDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
-            .utc()
-            .toDate();
+        
+        if (this.approvedDate) {
+            this.approvedDate = parseDate(this.approvedDate, 'approvedDate');
+        }
+        
+        if (this.refuseDate) {
+            this.refuseDate = parseDate(this.refuseDate, 'refuseDate');
+        }
+        
+        next();
+    } catch (error) {
+        next(error);
     }
 });
 //Export the model

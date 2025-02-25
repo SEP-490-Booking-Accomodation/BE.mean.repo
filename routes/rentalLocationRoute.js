@@ -78,7 +78,6 @@ const {
  *         status: 1
  *         image: "/uploads/images/rental1.jpg"
  *         description: "A cozy space ideal for short-term stays."
- *         landUsesRightsFile: "/uploads/files/landrights1.pdf"
  *         address: "123 Rental Lane, Ho Chi Minh City, Vietnam"
  *         longtitude: "106.6899"
  *         latitude: "10.7629"
