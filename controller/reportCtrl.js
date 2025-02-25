@@ -52,7 +52,7 @@ const getReport = asyncHandler(async (req, res) => {
       }
     ).populate({
       path: "replyBy",
-      model: "Owner",
+      model: "Staff",
       select: "-createdAt -updatedAt -isDelete",
       populate: {
         path: "userId",
