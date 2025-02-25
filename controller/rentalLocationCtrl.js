@@ -64,6 +64,10 @@ const getRentalLocation = asyncHandler(async (req, res) => {
           }
         ],
         select: 'isApproved note'
+      })
+      .populate({
+        path: 'landUsesRightId',
+        select: '' // Include the fields you want from LandUsesRight model
       });
 
     if (!rentalLocation) {
@@ -108,6 +112,10 @@ const getAllRentalLocation = asyncHandler(async (req, res) => {
             select: 'companyName companyAddress taxID'
           }
         ]
+      })
+      .populate({
+        path: 'landUsesRightId',
+        select: '' // Include the fields you want from LandUsesRight model
       });
 
     res.status(200).json({

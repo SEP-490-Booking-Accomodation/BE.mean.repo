@@ -21,6 +21,12 @@ var landUsesRightSchema = new mongoose.Schema(
             default: false,
         },
         documentFile: [],
+        uploadDate: {
+            type: Date,
+        },
+        approvedDate: {
+            type: Date,
+        },
         refuseDate: {
             type: Date,
         },
@@ -43,13 +49,18 @@ var landUsesRightSchema = new mongoose.Schema(
                 ret.updatedAt = moment(ret.updatedAt)
                     .tz("Asia/Ho_Chi_Minh")
                     .format("DD/MM/YYYY HH:mm:ss");
-                if (ret.startDate) {
-                    ret.startDate = moment(ret.startDate)
+                if (ret.uploadDate) {
+                    ret.uploadDate = moment(ret.uploadDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
-                if (ret.endDate) {
-                    ret.endDate = moment(ret.endDate)
+                if (ret.approvedDate) {
+                    ret.approvedDate = moment(ret.approvedDate)
+                        .tz("Asia/Ho_Chi_Minh")
+                        .format("DD/MM/YYYY HH:mm:ss");
+                }
+                if (ret.refuseDate) {
+                    ret.refuseDate = moment(ret.refuseDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
@@ -65,13 +76,18 @@ var landUsesRightSchema = new mongoose.Schema(
                 ret.updatedAt = moment(ret.updatedAt)
                     .tz("Asia/Ho_Chi_Minh")
                     .format("DD/MM/YYYY HH:mm:ss");
-                if (ret.startDate) {
-                    ret.startDate = moment(ret.startDate)
+                if (ret.uploadDate) {
+                    ret.uploadDate = moment(ret.uploadDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
-                if (ret.endDate) {
-                    ret.endDate = moment(ret.endDate)
+                if (ret.approvedDate) {
+                    ret.approvedDate = moment(ret.approvedDate)
+                        .tz("Asia/Ho_Chi_Minh")
+                        .format("DD/MM/YYYY HH:mm:ss");
+                }
+                if (ret.refuseDate) {
+                    ret.refuseDate = moment(ret.refuseDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
@@ -80,21 +96,45 @@ var landUsesRightSchema = new mongoose.Schema(
         },
     }
 );
-policyOwnerSchema.pre("save", async function (next) {
-    if (this.startDate && typeof this.startDate === "string") {
-        // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-        this.startDate = moment
-            .tz(this.startDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-            .utc()
-            .toDate();
-    }
-    if (this.endDate && typeof this.endDate === "string") {
-        // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-        this.endDate = moment
-            .tz(this.endDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-            .utc()
-            .toDate();
+landUsesRightSchema.pre("save", async function (next) {
+    try {
+        
+        const parseDate = (dateStr, fieldName) => {
+            if (!dateStr) return undefined;
+            if (!(typeof dateStr === "string")) return dateStr; 
+
+            const parsedDate = moment.tz(dateStr, [
+                "DD/MM/YYYY HH:mm:ss", 
+                "DD-MM-YYYY HH:mm:ss",
+                "YYYY-MM-DD HH:mm:ss",
+                "DD/MM/YYYY",
+                "DD-MM-YYYY"
+            ], "Asia/Ho_Chi_Minh");
+            
+            if (!parsedDate.isValid()) {
+                throw new Error(`Invalid date format for ${fieldName}: ${dateStr}`);
+            }
+            
+            return parsedDate.utc().toDate();
+        };
+        
+        // Parse date fields
+        if (this.uploadDate) {
+            this.uploadDate = parseDate(this.uploadDate, 'uploadDate');
+        }
+        
+        if (this.approvedDate) {
+            this.approvedDate = parseDate(this.approvedDate, 'approvedDate');
+        }
+        
+        if (this.refuseDate) {
+            this.refuseDate = parseDate(this.refuseDate, 'refuseDate');
+        }
+        
+        next();
+    } catch (error) {
+        next(error);
     }
 });
 //Export the model
-module.exports = mongoose.model("PolicyOwner", policyOwnerSchema);
+module.exports = mongoose.model("LandUsesRight", landUsesRightSchema);
