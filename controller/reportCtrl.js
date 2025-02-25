@@ -44,10 +44,13 @@ const getReport = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const get1Report = await Report.findOne({
-      _id: id,
-      isDelete: false,
-    }).populate({
+    const get1Report = await Report.findOneAndUpdate(
+      { _id: id, isDelete: false },
+      { isReviewed: true },
+      {
+        new: true,
+      }
+    ).populate({
       path: "replyBy",
       model: "Owner",
       select: "-createdAt -updatedAt -isDelete",
