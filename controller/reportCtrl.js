@@ -1,4 +1,4 @@
-const Report = require("../models/reportModel")
+const Report = require("../models/reportModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const softDelete = require("../utils/softDelete");
@@ -44,7 +44,22 @@ const getReport = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const get1Report = await Report.findOne({ _id: id, isDelete: false });
+    const get1Report = await Report.findOneAndUpdate(
+      { _id: id, isDelete: false },
+      { isReviewed: true },
+      {
+        new: true,
+      }
+    ).populate({
+      path: "replyBy",
+      model: "Staff",
+      select: "-createdAt -updatedAt -isDelete",
+      populate: {
+        path: "userId",
+        select:
+          "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+      },
+    });
     res.json(get1Report);
   } catch (error) {
     throw new Error(error);
@@ -53,7 +68,16 @@ const getReport = asyncHandler(async (req, res) => {
 
 const getAllReport = asyncHandler(async (req, res) => {
   try {
-    const getAllReport = await Report.find({ isDelete: false });
+    const getAllReport = await Report.find({ isDelete: false }).populate({
+      path: "replyBy",
+      model: "Owner",
+      select: "-createdAt -updatedAt -isDelete",
+      populate: {
+        path: "userId",
+        select:
+          "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+      },
+    });
     res.json(getAllReport);
   } catch (error) {
     throw new Error(error);
