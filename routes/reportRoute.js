@@ -27,6 +27,12 @@ const {
  *         bookingId:
  *           type: string
  *           description: The ID of the associated booking
+ *         replyBy:
+ *           type: string
+ *           description: The ID of the owner who responded
+ *         contentReply:
+ *           type: string
+ *           description: Content of owner reply to the report
  *         content:
  *           type: string
  *           description: The content of the report
