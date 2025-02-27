@@ -63,17 +63,30 @@ const createCoupon = asyncHandler(async (req, res) => {
 });
 
 const updateCoupon = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     validateMongoDbId(id);
+
     try {
-        const updateCoupon = await Coupon.findByIdAndUpdate(id, req.body, {
-            new: true,
+        // Parse date fields
+        ['startDate', 'endDate'].forEach(field => {
+            if (req.body[field]) {
+                const parsedDate = new Date(req.body[field]);
+                if (isNaN(parsedDate)) throw new Error(`Invalid date format for ${field}`);
+                req.body[field] = parsedDate;
+            }
         });
-        res.json(updateCoupon);
+
+        // Update and return coupon
+        const updatedCoupon = await Coupon.findByIdAndUpdate(id, req.body, { new: true });
+        if (!updatedCoupon) return res.status(404).json({ message: "Coupon not found" });
+
+        res.json(updatedCoupon);
     } catch (error) {
-        throw new Error(error);
+        res.status(400).json({ message: error.message || 'Failed to update coupon' });
     }
 });
+
+
 
 const deleteCoupon = asyncHandler(async (req, res) => {
     const {id} = req.params;

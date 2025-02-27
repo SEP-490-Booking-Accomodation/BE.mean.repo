@@ -29,7 +29,7 @@ const {
  *           description: Name of the coupon
  *         couponCode:
  *           type: string
- *           description: Unique coupon code (8 characters, A-Z, 0-9)
+ *           description: Unique coupon code (1 to 8 characters, A-Z, 0-9)
  *           example: "SUMR2024"
  *         startDate:
  *           type: string
