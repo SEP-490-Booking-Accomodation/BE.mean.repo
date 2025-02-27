@@ -67,12 +67,12 @@ const updateCoupon = asyncHandler(async (req, res) => {
     validateMongoDbId(id);
 
     try {
-        // Parse date fields
+        // Parse date fields using moment.js
         ['startDate', 'endDate'].forEach(field => {
             if (req.body[field]) {
-                const parsedDate = new Date(req.body[field]);
-                if (isNaN(parsedDate)) throw new Error(`Invalid date format for ${field}`);
-                req.body[field] = parsedDate;
+                const parsedDate = moment.tz(req.body[field], "DD-MM-YYYY HH:mm:ss Z", "Asia/Ho_Chi_Minh");
+                if (!parsedDate.isValid()) throw new Error(`Invalid date format for ${field}`);
+                req.body[field] = parsedDate.toDate();  // Convert to native JavaScript Date object
             }
         });
 
@@ -85,8 +85,6 @@ const updateCoupon = asyncHandler(async (req, res) => {
         res.status(400).json({ message: error.message || 'Failed to update coupon' });
     }
 });
-
-
 
 const deleteCoupon = asyncHandler(async (req, res) => {
     const {id} = req.params;
