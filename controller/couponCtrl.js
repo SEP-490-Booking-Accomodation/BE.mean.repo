@@ -8,6 +8,7 @@ const createCoupon = asyncHandler(async (req, res) => {
     try {
         const {
             name,
+            couponCode,
             startDate,
             endDate,
             discountBasedOn,
@@ -43,6 +44,7 @@ const createCoupon = asyncHandler(async (req, res) => {
 
         const newCoupon = new Coupon({
             name,
+            couponCode,
             startDate: vietnamTime1,
             endDate: vietnamTime2,
             discountBasedOn,
@@ -107,10 +109,34 @@ const getAllCoupon = asyncHandler(async (req, res) => {
     }
 });
 
+const deactivateCoupon = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  validateMongoDbId(id);
+  try {
+    const deactivatedCoupon = await Coupon.findByIdAndUpdate(
+      id,
+      { isActive: false },
+      { new: true }
+    );
+
+    if (!deactivatedCoupon) {
+      return res.status(404).json({ message: "Coupon not found" });
+    }
+
+    res.json({
+      message: "Coupon deactivated successfully",
+      data: deactivatedCoupon,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = {
-    createCoupon,
-    updateCoupon,
-    deleteCoupon,
-    getCoupon,
-    getAllCoupon,
+  createCoupon,
+  updateCoupon,
+  deleteCoupon,
+  getCoupon,
+  getAllCoupon,
+  deactivateCoupon,
 };

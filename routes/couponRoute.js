@@ -7,6 +7,7 @@ const {
   deleteCoupon,
   getAllCoupon,
   getCoupon,
+  deactivateCoupon,
 } = require("../controller/couponCtrl");
 
 /**
@@ -21,11 +22,15 @@ const {
  *         - endDate
  *         - discountBasedOn
  *         - amount
- *         - maxDiscount
+ *         - couponCode
  *       properties:
  *         name:
  *           type: string
  *           description: Name of the coupon
+ *         couponCode:
+ *           type: string
+ *           description: Unique coupon code (8 characters, A-Z, 0-9)
+ *           example: "SUMR2024"
  *         startDate:
  *           type: string
  *           format: date-time
@@ -148,5 +153,36 @@ router.get("/all-coupons", authMiddleware, getAllCoupon);
  *               $ref: '#/components/schemas/Coupon'
  */
 router.get("/:id", authMiddleware, getCoupon);
+
+/**
+ * @swagger
+ * /api/coupon/deactivate/{id}:
+ *   put:
+ *     summary: Deactivate a coupon
+ *     tags: [Coupon]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The coupon ID
+ *     responses:
+ *       200:
+ *         description: Coupon deactivated successfully
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               message:
+ *                 type: string
+ *                 example: "Coupon deactivated successfully"
+ *               data:
+ *                 $ref: '#/components/schemas/Coupon'
+ */
+router.put("/deactivate/:id", authMiddleware, deactivateCoupon);
 
 module.exports = router;

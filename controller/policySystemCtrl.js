@@ -25,30 +25,26 @@ const createPolicySystem = asyncHandler(async (req, res) => {
     // const vietnamTime1 = moment
     //   .tz(startDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
     //   .toDate();
-    const vietnamTime1 = endDate
-      ? moment(startDate, "DD-MM-YYYY HH:mm:ss").tz("Asia/Ho_Chi_Minh").toDate()
+    const vietnamTime1 = startDate
+      ? moment.tz(startDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+      : null;
+    const vietnamTime2 = endDate
+      ? moment.tz(endDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
       : null;
 
-    // const vietnamTime2 = moment
-    //   .tz(endDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-    //   .toDate();
-    const vietnamTime2 = startDate
-      ? moment(endDate, "DD-MM-YYYY HH:mm:ss").tz("Asia/Ho_Chi_Minh").toDate()
-      : null;
     // Kiểm tra điều kiện startDate phải sau ngày tạo hệ thống (createdAt)
     const currentDate = new Date();
     const currentDateVN = moment(currentDate, "DD/MM/YYYY HH:mm:ss").tz(
       "Asia/Ho_Chi_Minh"
     );
 
-    if (vietnamTime1 <= currentDateVN) {
+    if (!vietnamTime1 || !vietnamTime1.isAfter(currentDateVN)) {
       return res.status(400).json({
         message: "Start date must be after the current date.",
       });
     }
 
-    // Kiểm tra điều kiện endDate phải sau startDate
-    if (vietnamTime2 <= vietnamTime1) {
+    if (!vietnamTime2 || !vietnamTime2.isAfter(vietnamTime1)) {
       return res.status(400).json({
         message: "End date must be after the start date.",
       });
@@ -100,47 +96,43 @@ const updatePolicySystem = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
 
   try {
-    const updateData = { ...req.body };
+    const updateData = {};
+    const currentDateVN = moment().tz("Asia/Ho_Chi_Minh");
 
-    if (updateData.startDate) {
-      const vietnamTimeStart = moment(
-        updateData.startDate,
-        "DD-MM-YYYY HH:mm:ss"
-      )
-        .tz("Asia/Ho_Chi_Minh")
-        .toDate();
-
-      const currentDateVN = moment(new Date()).tz("Asia/Ho_Chi_Minh").toDate();
-
-      if (vietnamTimeStart <= currentDateVN) {
-        return res.status(400).json({
-          message: "Start date must be after the current date.",
-        });
+    if (req.body.startDate) {
+      const startDate = moment(req.body.startDate, "DD-MM-YYYY HH:mm:ss").tz(
+        "Asia/Ho_Chi_Minh"
+      );
+      if (!startDate.isAfter(currentDateVN)) {
+        return res
+          .status(400)
+          .json({ message: "Start date must be after the current date." });
       }
-
-      updateData.startDate = vietnamTimeStart;
+      updateData.startDate = startDate.toDate();
     }
 
-    if (updateData.endDate) {
-      const vietnamTimeEnd = moment(updateData.endDate, "DD-MM-YYYY HH:mm:ss")
-        .tz("Asia/Ho_Chi_Minh")
-        .toDate();
-
-      if (updateData.startDate && vietnamTimeEnd <= updateData.startDate) {
-        return res.status(400).json({
-          message: "End date must be after the start date.",
-        });
+    if (req.body.endDate) {
+      const endDate = moment(req.body.endDate, "DD-MM-YYYY HH:mm:ss").tz(
+        "Asia/Ho_Chi_Minh"
+      );
+      if (updateData.startDate && !endDate.isAfter(updateData.startDate)) {
+        return res
+          .status(400)
+          .json({ message: "End date must be after the start date." });
       }
-
-      updateData.endDate = vietnamTimeEnd;
+      updateData.endDate = endDate.toDate();
     }
+
+    Object.keys(req.body).forEach((key) => {
+      if (!["startDate", "endDate"].includes(key)) {
+        updateData[key] = req.body[key];
+      }
+    });
 
     const updatedPolicySystem = await PolicySystem.findByIdAndUpdate(
       id,
-      updateData,
-      {
-        new: true,
-      }
+      { $set: updateData },
+      { new: true }
     );
 
     if (!updatedPolicySystem) {

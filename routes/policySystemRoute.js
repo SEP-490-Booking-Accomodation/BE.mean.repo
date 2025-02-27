@@ -89,37 +89,64 @@ router.post("/create-policy-system", authMiddleware, isAdmin, createPolicySystem
 /**
  * @swagger
  * /api/policy-system/{id}:
- *   put:
- *     summary: Update an existing policy system
- *     description: Updates a policy system in the database by its ID
+ *   patch:
+ *     summary: Update a Policy System
+ *     description: Partially update a Policy System by ID.
  *     tags:
  *       - PolicySystem
  *     parameters:
  *       - in: path
  *         name: id
  *         required: true
- *         description: The ID of the policy system to update
  *         schema:
  *           type: string
+ *         description: Policy System ID
  *     requestBody:
  *       required: true
  *       content:
  *         application/x-www-form-urlencoded:
  *           schema:
- *             $ref: '#/components/schemas/PolicySystem'
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               policySystemCategoryId:
+ *                 type: string
+ *               policySystemBookingId:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               value:
+ *                 type: number
+ *               unit:
+ *                 type: string
+ *               startDate:
+ *                 type: string
+ *                 format: date-time
+ *                 pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
+ *                 description: Start date of the policy system
+ *                 example: "04-02-2025 15:30:45 +07:00"
+ *               endDate:
+ *                 type: string
+ *                 format: date-time
+ *                 pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
+ *                 description: End date of the policy system
+ *                 example: "04-02-2025 15:30:45 +07:00"
+ *               isActive:
+ *                 type: boolean
+ *               staffId:
+ *                 type: string
+ *               updateBy:
+ *                 type: string
  *     responses:
  *       200:
- *         description: Policy system updated successfully
+ *         description: Policy System updated successfully
  *       400:
- *         description: Invalid input data
+ *         description: Invalid input or date constraints not met
  *       404:
- *         description: Policy system not found
- *       401:
- *         description: Unauthorized access
- *       403:
- *         description: Forbidden, requires admin privileges
+ *         description: Policy System not found
  */
-router.put("/:id", authMiddleware, isAdmin, updatePolicySystem);
+router.patch("/:id", authMiddleware, isAdmin, updatePolicySystem);
 
 /**
  * @swagger
