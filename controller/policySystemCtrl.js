@@ -26,25 +26,23 @@ const createPolicySystem = asyncHandler(async (req, res) => {
     //   .tz(startDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
     //   .toDate();
     const vietnamTime1 = startDate
-      ? moment.tz(startDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
-      : null;
+        ? moment.tz(startDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+        : null;
     const vietnamTime2 = endDate
-      ? moment.tz(endDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
-      : null;
+        ? moment.tz(endDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+        : null;
 
     // Kiểm tra điều kiện startDate phải sau ngày tạo hệ thống (createdAt)
     const currentDate = new Date();
-    const currentDateVN = moment(currentDate, "DD/MM/YYYY HH:mm:ss").tz(
-      "Asia/Ho_Chi_Minh"
-    );
+    const currentDateVN = moment().tz("Asia/Ho_Chi_Minh");
 
-    if (!vietnamTime1 || !vietnamTime1.isAfter(currentDateVN)) {
+    if (!vietnamTime1 || !moment(vietnamTime1).isAfter(currentDateVN)) {
       return res.status(400).json({
         message: "Start date must be after the current date.",
       });
     }
 
-    if (!vietnamTime2 || !vietnamTime2.isAfter(vietnamTime1)) {
+    if (!vietnamTime2 || !moment(vietnamTime2).isAfter(vietnamTime1)) {
       return res.status(400).json({
         message: "End date must be after the start date.",
       });
@@ -57,8 +55,8 @@ const createPolicySystem = asyncHandler(async (req, res) => {
       description,
       value,
       unit,
-      startDate: vietnamTime1,
-      endDate: vietnamTime2,
+      startDate: vietnamTime1 ? vietnamTime1.toDate() : null,
+      endDate: vietnamTime2 ? vietnamTime2.toDate() : null,
       isActive: true,
       staffId,
       updateBy,
