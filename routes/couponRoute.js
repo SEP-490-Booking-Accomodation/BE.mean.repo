@@ -21,11 +21,15 @@ const {
  *         - endDate
  *         - discountBasedOn
  *         - amount
- *         - maxDiscount
+ *         - couponCode
  *       properties:
  *         name:
  *           type: string
  *           description: Name of the coupon
+ *         couponCode:
+ *           type: string
+ *           description: Unique coupon code (8 characters, A-Z, 0-9)
+ *           example: "SUMR2024"
  *         startDate:
  *           type: string
  *           format: date-time
