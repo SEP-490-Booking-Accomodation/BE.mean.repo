@@ -3,6 +3,7 @@ const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
+const parseDateFields = require('../utils/parseDateFields');
 
 const createCoupon = asyncHandler(async (req, res) => {
     try {
@@ -67,17 +68,16 @@ const updateCoupon = asyncHandler(async (req, res) => {
     validateMongoDbId(id);
 
     try {
-        // Parse date fields using moment.js
-        ['startDate', 'endDate'].forEach(field => {
-            if (req.body[field]) {
-                const parsedDate = moment.tz(req.body[field], "DD-MM-YYYY HH:mm:ss Z", "Asia/Ho_Chi_Minh");
-                if (!parsedDate.isValid()) throw new Error(`Invalid date format for ${field}`);
-                req.body[field] = parsedDate.toDate();  // Convert to native JavaScript Date object
-            }
-        });
+        // Copy the body and delete timestamps
+        const data = { ...req.body };
+        delete data.createdAt;
+        delete data.updatedAt;
+
+        // Parse date fields using the helper function
+        parseDateFields(data, ['startDate', 'endDate'], "DD-MM-YYYY HH:mm:ss Z", "Asia/Ho_Chi_Minh");
 
         // Update and return coupon
-        const updatedCoupon = await Coupon.findByIdAndUpdate(id, req.body, { new: true });
+        const updatedCoupon = await Coupon.findByIdAndUpdate(id, data, { new: true });
         if (!updatedCoupon) return res.status(404).json({ message: "Coupon not found" });
 
         res.json(updatedCoupon);
