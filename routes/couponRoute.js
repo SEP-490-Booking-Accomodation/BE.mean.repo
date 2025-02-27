@@ -53,7 +53,6 @@ const {
  *           type: string
  *           description: Maximum discount value
  *       example:
- *         id: "60d0fe4f5311236168a109ca"
  *         name: "SUMMER50"
  *         startDate: "04-02-2025 15:30:45 +07:00"
  *         endDate: "04-02-2025 15:30:45 +07:00"
