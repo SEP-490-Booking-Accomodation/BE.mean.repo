@@ -1,8 +1,10 @@
 const Service = require("../models/serviceModel");
+const AccommodationType= require("../models/accommodationTypeModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
+const { isValidObjectId } = require('../utils/mongoose-helpers');
 
 const createService= asyncHandler(async(req, res) => {
     try{
@@ -53,12 +55,43 @@ const getService= asyncHandler(async (req, res) => {
 
 const getAllService = asyncHandler(async (req, res) => {
   try {
-    const services = await Service.find({isDelete: false});
-    const formattedServices = services.map(doc => doc.toJSON());
+    const { rentalLocationId } = req.query; // Get rentalLocationId from query params
+    
+    let filter = { isDelete: false }; // Initialize filter with common condition
+
+    if (rentalLocationId) {
+      if (!isValidObjectId(rentalLocationId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid rentalLocationId format"
+        });
+      }
+
+      // Find accommodation types for the given rentalLocationId
+      const accommodationTypes = await AccommodationType.find({
+        rentalLocationId,
+        isDelete: false
+      });
+
+      if (!accommodationTypes.length) {
+        return res.status(404).json({
+          success: false,
+          message: "No accommodation types found for this rental location"
+        });
+      }
+
+      const accommodationTypeIds = accommodationTypes.map(type => type._id);
+      filter.accommodationTypeId = { $in: accommodationTypeIds };
+    }
+
+    // Fetch services based on the filter (either all services or filtered ones)
+    const services = await Service.find(filter);
+
     res.status(200).json({
       success: true,
-      data: formattedServices
+      data: services.map(doc => doc.toJSON())
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -66,6 +99,8 @@ const getAllService = asyncHandler(async (req, res) => {
     });
   }
 });
+
+
 
 module.exports = {
     createService,

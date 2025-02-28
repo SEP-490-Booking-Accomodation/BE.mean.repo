@@ -4,6 +4,7 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
 const Accommodation = require("../models/accommodationModel");
+const Service = require("../models/serviceModel");
 
 const createAccommodationType = asyncHandler(async (req, res) => {
     try {
@@ -55,8 +56,26 @@ const getAccommodationType = asyncHandler(async (req, res) => {
 
 const getAllAccommodationType = asyncHandler(async (req, res) => {
     try {
-        const accommodationTypes = await AccommodationType.find({isDelete: false});
-        const formattedAccommodationTypes = accommodationTypes.map(doc => doc.toJSON());
+        // First get all accommodation types
+        const accommodationTypes = await AccommodationType.find({isDelete: false})
+            .populate('rentalLocationId', '_id name');
+            
+        // Get formatted accommodation types with empty serviceIds array
+        const formattedAccommodationTypes = await Promise.all(accommodationTypes.map(async (doc) => {
+            const docObj = doc.toJSON();
+            
+            // Find all services that reference this accommodation type
+            const serviceIds = await Service.find({ 
+                accommodationTypeId: doc._id,
+                isDelete: false 
+            }).select('_id name description status');
+            
+            // Add services to the accommodation type object
+            docObj.serviceIds = serviceIds;
+            
+            return docObj;
+        }));
+        
         res.status(200).json({
             success: true,
             data: formattedAccommodationTypes

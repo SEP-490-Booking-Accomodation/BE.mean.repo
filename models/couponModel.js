@@ -19,8 +19,8 @@ var couponSchema = new mongoose.Schema(
     couponCode: {
       type: String,
       match: [
-        /^[A-Z0-9]{8}$/,
-        "Coupon code must be exactly 8 uppercase letters or numbers",
+        /^[A-Z0-9]{1,8}$/,
+        "Coupon code must be between 1 and 8 uppercase letters or numbers",
       ],
       required: true,
     },

@@ -29,7 +29,7 @@ const {
  *           description: Name of the coupon
  *         couponCode:
  *           type: string
- *           description: Unique coupon code (8 characters, A-Z, 0-9)
+ *           description: Unique coupon code (1 to 8 characters, A-Z, 0-9)
  *           example: "SUMR2024"
  *         startDate:
  *           type: string
@@ -53,7 +53,6 @@ const {
  *           type: string
  *           description: Maximum discount value
  *       example:
- *         id: "60d0fe4f5311236168a109ca"
  *         name: "SUMMER50"
  *         startDate: "04-02-2025 15:30:45 +07:00"
  *         endDate: "04-02-2025 15:30:45 +07:00"
