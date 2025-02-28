@@ -35,11 +35,11 @@ var policySystemSchema = new mongoose.Schema(
     },
     startDate: {
       type: Date,
-      require: true,
+      required: true,
     },
     endDate: {
       type: Date,
-      require: true,
+      required: true,
     },
     isActive: {
       type: Boolean,
