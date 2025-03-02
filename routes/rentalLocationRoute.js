@@ -23,7 +23,7 @@ const {
  *         - description
  *         - landUsesRightId
  *         - address
- *         - longtitude
+ *         - longitude
  *         - latitude
  *         - openHour
  *         - closeHour
