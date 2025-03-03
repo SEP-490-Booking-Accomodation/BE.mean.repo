@@ -14,6 +14,7 @@ const { sendEmail, sendOTPEmail } = require("./emailCrtl");
 const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const softDelete = require("../utils/softDelete");
+const admin = require("../config/firebaseConfig");
 
 // Định nghĩa các role ID
 const ROLE_IDS = {
@@ -392,6 +393,56 @@ const verifyEmailOTP = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Email verified successfully" });
 });
 
+const sendPhoneOTP = async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({ error: "Số điện thoại là bắt buộc" });
+    }
+
+    // Firebase không gửi OTP trực tiếp mà cần dùng Firebase Client (trên mobile/web)
+    return res.status(200).json({
+      message: "Vui lòng sử dụng Firebase SDK trên client để gửi OTP",
+    });
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+const verifyPhoneOTP = async (req, res) => {
+  try {
+    const { phone, idToken } = req.body; // Firebase gửi ID Token sau khi người dùng nhập OTP
+
+    // Tìm người dùng theo phone
+    const user = await User.findOne({ phone });
+    if (!user) {
+      res.status(404);
+      throw new Error("User not found");
+    }
+
+    if (!idToken) {
+      return res.status(400).json({ error: "Missing ID Token" });
+    }
+
+    // Xác thực token từ Firebase
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+    user.isVerifiedPhone = true;
+    await user.save();
+
+    return res.status(200).json({
+      message: "Xác minh số điện thoại thành công",
+      phone: decodedToken.phone_number,
+      uid: decodedToken.uid,
+    });
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ error: "Mã OTP không hợp lệ hoặc đã hết hạn" });
+  }
+};
+
 //Get all users
 const getAllUser = asyncHandler(async (req, res) => {
   try {
@@ -531,6 +582,8 @@ module.exports = {
   resetPassword,
   sendEmailOTP,
   verifyEmailOTP,
+  sendPhoneOTP,
+  verifyPhoneOTP,
   getAllUser,
   getUser,
   deleteUser,
