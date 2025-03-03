@@ -61,6 +61,15 @@ var rentalLocationSchema = new mongoose.Schema(
         isDelete:{
             type: Boolean,
             default: false,
+        },
+        ward:{
+            type: String, //Phường
+        },
+        district:{
+            type: String, //Quận
+        },
+        city:{
+            type: String,
         }
     },
     {

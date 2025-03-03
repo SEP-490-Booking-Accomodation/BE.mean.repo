@@ -35,14 +35,22 @@ const {
  *           type: string
  *           description: A URL or path to the accommodation's image
  *         status:
- *           type: boolean
- *           description: The status of the accommodation (active/inactive)
+ *           type: integer
+ *           enum: [1, 2, 3, 4, 5, 6]
+ *           description: |
+ *             Status code of the rental location:
+ *             1 - AVAILABLE
+ *             2 - BOOKED
+ *             3 - CLEANING
+ *             4 - PREPARING
+ *             5 - MAINTENANCE
+ *             6 - CLOSED
  *       example:
  *         rentalLocationId: "63b92f4e17d7b3c2a4e4f3d2"
  *         accommodationTypeId: "63b92f4e17d7b3c2a4e4f3e3"
  *         description: "A luxurious room with all modern amenities."
  *         image: "/uploads/images/accommodation1.jpg"
- *         status: true
+ *         status: 1
  */
 
 /**
