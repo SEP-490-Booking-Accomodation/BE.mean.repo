@@ -23,6 +23,10 @@ const {
  *         - description
  *         - landUsesRightId
  *         - address
+ *         - ward
+ *         - district
+ *         - city
+ *         - province
  *         - longitude
  *         - latitude
  *         - openHour
@@ -57,8 +61,20 @@ const {
  *           description: A detailed description of the rental location
  *         address:
  *           type: string
- *           description: The address of the rental location
- *         longtitude:
+ *           description: The full address of the rental location
+ *         ward:
+ *           type: string
+ *           description: The ward of the rental location
+ *         district:
+ *           type: string
+ *           description: The district of the rental location
+ *         city:
+ *           type: string
+ *           description: The city where the rental location is situated
+ *         province:
+ *           type: string
+ *           description: The province where the rental location is situated (if different from the city)
+ *         longitude:
  *           type: string
  *           description: The longitude coordinate of the rental location
  *         latitude:
@@ -80,13 +96,18 @@ const {
  *         status: 1
  *         image: "/uploads/images/rental1.jpg"
  *         description: "A cozy space ideal for short-term stays."
- *         address: "123 Rental Lane, Ho Chi Minh City, Vietnam"
- *         longtitude: "106.6899"
+ *         address: "123 Rental Lane"
+ *         ward: "Ward 5"
+ *         district: "District 3"
+ *         city: "Ho Chi Minh City"
+ *         province: "Ho Chi Minh"
+ *         longitude: "106.6899"
  *         latitude: "10.7629"
  *         openHour: "08:00"
  *         closeHour: "22:00"
  *         isOverNight: true
  */
+
 
 /**
  * @swagger

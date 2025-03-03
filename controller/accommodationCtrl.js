@@ -72,8 +72,14 @@ const getAccommodation = asyncHandler(async (req, res) => {
 
 const getAllAccommodation = asyncHandler(async (req, res) => {
     try {
-        const accommodations = await Accommodation.find({isDelete: false});
+        const accommodations = await Accommodation.find({ isDelete: false })
+            .populate({
+                path: 'accommodationTypeId',
+                select: '-__v' // Exclude the '__v' field, modify as needed
+            });
+        console.log(accommodations.map(a => a.accommodationTypeId));
         const formattedAccommodations = accommodations.map(doc => doc.toJSON());
+
         res.status(200).json({
             success: true,
             data: formattedAccommodations
