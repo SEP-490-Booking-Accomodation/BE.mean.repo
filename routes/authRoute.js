@@ -15,6 +15,8 @@ const {
   resetPassword,
   sendEmailOTP,
   verifyEmailOTP,
+  sendPhoneOTP,
+  verifyPhoneOTP,
 } = require("../controller/userCtrl");
 
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
@@ -243,6 +245,59 @@ router.post("/verify-email", verifyEmailOTP);
 
 /**
  * @swagger
+ * /api/user/send-phone-otp:
+ *   post:
+ *     summary: Send OTP to user's phone number
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phone:
+ *                 type: string
+ *                 description: User's phone number
+ *                 example: "+84901234567"
+ *     responses:
+ *       200:
+ *         description: OTP sent successfully
+ *       400:
+ *         description: Invalid phone number
+ */
+router.post("/send-phone-otp", sendPhoneOTP); // Không cần thiết vì Firebase gửi OTP từ client
+
+/**
+ * @swagger
+ * /api/user/verify-phone:
+ *   post:
+ *     summary: Verify user's phone number using OTP
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               phone:
+ *                 type: string
+ *                 description: User's phone number
+ *                 example: "+84901234567"
+ *               idToken:
+ *                 type: string
+ *                 description: idToken code received via Client
+ *     responses:
+ *       200:
+ *         description: Phone number verified successfully
+ *       400:
+ *         description: Invalid or expired OTP
+ */
+router.post("/verify-phone", verifyPhoneOTP);
+
+/**
+ * @swagger
  * /api/user/password:
  *   put:
  *     summary: Update user password
@@ -366,7 +421,6 @@ router.get("/:id", authMiddleware, getUser);
  *         description: User not found
  */
 router.put("/edit-user/:id", authMiddleware, updateUser);
-
 
 /**
  * @swagger
