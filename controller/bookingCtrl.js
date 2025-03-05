@@ -241,7 +241,6 @@ const getBookingsByRentalLocation = asyncHandler(async (req, res) => {
       total: bookings.length,
       bookings: formattedBookings,
     });
-
   } catch (error) {
     res
       .status(500)
@@ -251,7 +250,13 @@ const getBookingsByRentalLocation = asyncHandler(async (req, res) => {
 
 const getAllBooking = asyncHandler(async (req, res) => {
   try {
-    const getAllBooking = await Booking.find({ isDelete: false });
+    const getAllBooking = await Booking.find({ isDelete: false })
+      .populate("accommodationId")
+      .populate("policySystemBookingId")
+      .populate({
+        path: "customerId",
+        populate: { path: "userId", select: "fullName" },
+      });
     res.json(getAllBooking);
   } catch (error) {
     throw new Error(error);

@@ -32,6 +32,7 @@ const messageRoute = require("./routes/messageRoute");
 const notificationRoute = require("./routes/notificationRoute");
 const transactionRoute = require("./routes/transactionRoute");
 const landUsesRightRoute = require("./routes/landUsesRightRoute");
+const valueRoute = require("./routes/valueRoute");
 
 const bodyParser = require("body-parser");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
@@ -88,6 +89,7 @@ app.use("/api/message", messageRoute);
 app.use("/api/notification", notificationRoute);
 app.use("/api/transaction", transactionRoute);
 app.use("/api/land-uses-right", landUsesRightRoute);
+app.use("/api/value", valueRoute);
 
 app.use(notFound);
 app.use(errorHandler);

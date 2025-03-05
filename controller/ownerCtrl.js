@@ -88,12 +88,29 @@ const getOwnerByUserId = asyncHandler(async (req, res) => {
 
 const getAllOwner = async (req, res) => {
   try {
-    const getAllOwner = await Owner.find({ isDelete: false });
-    res.json(getAllOwner);
+    // Lấy tất cả khách hàng chưa bị xóa
+    const owners = await Owner.find({ isDelete: false });
+
+    // Duyệt qua từng Owner để kiểm tra sự tồn tại của userId trong bảng User
+    for (const owner of owners) {
+      const userExists = await User.findById(owner.userId);
+      if (!userExists) {
+        // Xóa mềm nếu không tìm thấy User tương ứng
+        await softDelete(Owner, owner._id);
+      }
+    }
+
+    // Lấy lại danh sách khách hàng sau khi đã xoá những Owner không có User
+    const updatedOwners = await Owner.find({ isDelete: false })
+      .populate("businessInformationId")
+      .populate("paymentInformationId");
+
+    res.json(updatedOwners);
   } catch (error) {
-    throw new Error(error);
+    res.status(500).json({ message: error.message });
   }
 };
+
 module.exports = {
   createOwner,
   updateOwner,
