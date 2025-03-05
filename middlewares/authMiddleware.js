@@ -42,7 +42,7 @@ const isOwner = asyncHandler(async (req, res, next) => {
 const isCustomer = asyncHandler(async (req, res, next) => {
   const { email } = req.user;
   const BAUser = await User.findOne({ email });
-  if (BAUser.roleID.equals("67927ffda0a58ce4f7e8e840")) {
+  if (!BAUser.roleID.equals("67927ffda0a58ce4f7e8e840")) {
     throw new Error("Bạn không phải là 1 người dùng!");
   } else {
     next();
