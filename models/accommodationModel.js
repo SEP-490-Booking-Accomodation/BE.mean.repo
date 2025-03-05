@@ -1,5 +1,13 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
+const ACCOMMODATION_STATUS = Object.freeze({
+    AVAILABLE: 1,
+    BOOKED: 2,
+    CLEANING: 3,
+    PREPARING: 4,
+    MAINTENANCE: 5,
+    CLOSED: 6
+});
 var accommodationSchema = new mongoose.Schema(
     {
         rentalLocationId: {
@@ -20,13 +28,13 @@ var accommodationSchema = new mongoose.Schema(
             },
         ],
         status: {
-            type: Boolean,
-            required: true,
+            type: Number,
+            enum: Object.values(ACCOMMODATION_STATUS),
         },
         isDelete: {
             type: Boolean,
             default: false,
-        }
+        },
     },
     {
         timestamps: true,

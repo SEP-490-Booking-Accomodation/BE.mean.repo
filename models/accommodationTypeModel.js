@@ -6,10 +6,10 @@ var accommodationTypeSchema = new mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: "RentalLocation",
         },
-        serviceId: {
+        serviceIds: [{ 
             type: mongoose.Schema.ObjectId,
             ref: "Service",
-        },
+        }],
         name: {
             type: String,
             required: true,

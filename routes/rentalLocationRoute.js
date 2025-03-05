@@ -7,6 +7,7 @@ const {
   deleteRentalLocation,
   getRentalLocation,
   getAllRentalLocation,
+  updateRentalLocationStatus,
 } = require("../controller/rentalLocationCtrl");
 
 /**
@@ -20,10 +21,14 @@ const {
  *         - status
  *         - image
  *         - description
- *         - landUsesRightsFile
+ *         - landUsesRightId
  *         - address
- *         - longtitude
- *         - attitude
+ *         - ward
+ *         - district
+ *         - city
+ *         - province
+ *         - longitude
+ *         - latitude
  *         - openHour
  *         - closeHour
  *         - isOverNight
@@ -31,28 +36,48 @@ const {
  *         ownerId:
  *           type: string
  *           description: The ID of the owner associated with the rental location
+ *         landUsesRightsId:
+ *           type: string
+ *           description: The ID of the land use rights associated with the rental location
  *         name:
  *           type: string
  *           description: The name of the rental location
  *         status:
- *           type: boolean
- *           description: The status of the rental location (active/inactive)
+ *           type: integer
+ *           enum: [1, 2, 3, 4, 5, 6]
+ *           description: |
+ *             Status code of the rental location:
+ *             1 - Pending
+ *             2 - Inactive
+ *             3 - Active
+ *             4 - Pause
+ *             5 - Deleted
+ *             6 - Needs_Update
  *         image:
  *           type: string
  *           description: A URL or path to the rental location's image
  *         description:
  *           type: string
  *           description: A detailed description of the rental location
- *         landUsesRightsFile:
- *           type: string
- *           description: File path for the land usage rights document
  *         address:
  *           type: string
- *           description: The address of the rental location
- *         longtitude:
+ *           description: The full address of the rental location
+ *         ward:
+ *           type: string
+ *           description: The ward of the rental location
+ *         district:
+ *           type: string
+ *           description: The district of the rental location
+ *         city:
+ *           type: string
+ *           description: The city where the rental location is situated
+ *         province:
+ *           type: string
+ *           description: The province where the rental location is situated (if different from the city)
+ *         longitude:
  *           type: string
  *           description: The longitude coordinate of the rental location
- *         attitude:
+ *         latitude:
  *           type: string
  *           description: The latitude coordinate of the rental location
  *         openHour:
@@ -66,18 +91,23 @@ const {
  *           description: Whether overnight stay is allowed
  *       example:
  *         ownerId: "63b92f4e17d7b3c2a4e4f3d2"
+ *         landUsesRightId: "63b92f4e1722b3c2a4e4f3f2"
  *         name: "Cozy Rental Space"
- *         status: true
+ *         status: 1
  *         image: "/uploads/images/rental1.jpg"
  *         description: "A cozy space ideal for short-term stays."
- *         landUsesRightsFile: "/uploads/files/landrights1.pdf"
- *         address: "123 Rental Lane, Ho Chi Minh City, Vietnam"
- *         longtitude: "106.6899"
- *         attitude: "10.7629"
+ *         address: "123 Rental Lane"
+ *         ward: "Ward 5"
+ *         district: "District 3"
+ *         city: "Ho Chi Minh City"
+ *         province: "Ho Chi Minh"
+ *         longitude: "106.6899"
+ *         latitude: "10.7629"
  *         openHour: "08:00"
  *         closeHour: "22:00"
  *         isOverNight: true
  */
+
 
 /**
  * @swagger
@@ -133,6 +163,46 @@ router.post("/create-rental-location", authMiddleware, isCustomer, createRentalL
  *         description: Rental location not found
  */
 router.put("/:id", authMiddleware, updateRentalLocation);
+
+/**
+ * @swagger
+ * /api/rental-location/{id}/status:
+ *   put:
+ *     summary: Update rental location status
+ *     description: Updates only the status field of a rental location
+ *     tags:
+ *       - RentalLocation
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the rental location to update status
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: integer
+ *                 enum: [1, 2, 3, 4, 5, 6]
+ *                 description: Status code (1-Pending, 2-Inactive, 3-Active, 4-Pause, 5-Deleted, 6-Needs_Update)
+ *           example:
+ *             status: 3
+ *     responses:
+ *       200:
+ *         description: Status updated successfully
+ *       400:
+ *         description: Invalid status value
+ *       404:
+ *         description: Rental location not found
+ */
+router.put("/:id/status", authMiddleware, updateRentalLocationStatus);
 
 /**
  * @swagger

@@ -17,7 +17,7 @@ const {
  *       type: object
  *       required:
  *         - rentalLocationId
- *         - serviceId
+ *         - serviceIds
  *         - name
  *         - description
  *         - maxPeopleNumber
@@ -27,9 +27,11 @@ const {
  *         rentalLocationId:
  *           type: string
  *           description: The ID of the rental location associated with this accommodation type
- *         serviceId:
- *           type: string
- *           description: The ID of the service associated with this accommodation type
+ *         serviceIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: The IDs of services associated with this accommodation type
  *         name:
  *           type: string
  *           description: The name of the accommodation type
@@ -47,7 +49,7 @@ const {
  *           description: The hourly price for overtime stay
  *       example:
  *         rentalLocationId: "63b92f4e17d7b3c2a4e4f3d2"
- *         serviceId: "63b92f4e17d7b3c2a4e4f3e3"
+ *         serviceIds: ["63b92f4e17d7b3c2a4e4f3e3", "63b92f4e17d7b3c2a4e4f3e4"]
  *         name: "Deluxe Room"
  *         description: "A spacious room with premium amenities."
  *         maxPeopleNumber: 4

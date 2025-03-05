@@ -64,6 +64,10 @@ const getRentalLocation = asyncHandler(async (req, res) => {
           }
         ],
         select: 'isApproved note'
+      })
+      .populate({
+        path: 'landUsesRightId',
+        select: '' // Include the fields you want from LandUsesRight model
       });
 
     if (!rentalLocation) {
@@ -108,6 +112,10 @@ const getAllRentalLocation = asyncHandler(async (req, res) => {
             select: 'companyName companyAddress taxID'
           }
         ]
+      })
+      .populate({
+        path: 'landUsesRightId',
+        select: '' // Include the fields you want from LandUsesRight model
       });
 
     res.status(200).json({
@@ -122,10 +130,46 @@ const getAllRentalLocation = asyncHandler(async (req, res) => {
   }
 });
 
+const updateRentalLocationStatus = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  validateMongoDbId(id);
+
+  if (![1, 2, 3, 4].includes(status)) {
+    return res.status(400).json({ 
+      success: false, 
+      message: "Invalid status value. Status must be 1 (Pending), 2 (Inactive), 3 (Active), 4 (Pause), 5 (Deleted), or 6 (Needs_Update)" 
+    });
+  }
+
+  try {
+    const updatedLocation = await RentalLocation.findByIdAndUpdate(
+      id,
+      { status: status },
+      { new: true }
+    );
+    
+    if (!updatedLocation) {
+      return res.status(404).json({
+        success: false,
+        message: "Rental location not found"
+      });
+    }
+    res.json({
+      success: true,
+      data: updatedLocation
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
 module.exports = {
   createRentalLocation,
   updateRentalLocation,
   deleteRentalLocation,
   getRentalLocation,
   getAllRentalLocation,
+  updateRentalLocationStatus
 };

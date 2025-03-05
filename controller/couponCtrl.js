@@ -3,6 +3,7 @@ const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
+const parseDateFields = require('../utils/parseDateFields');
 
 const createCoupon = asyncHandler(async (req, res) => {
     try {
@@ -63,15 +64,25 @@ const createCoupon = asyncHandler(async (req, res) => {
 });
 
 const updateCoupon = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     validateMongoDbId(id);
+
     try {
-        const updateCoupon = await Coupon.findByIdAndUpdate(id, req.body, {
-            new: true,
-        });
-        res.json(updateCoupon);
+        // Copy the body and delete timestamps
+        const data = { ...req.body };
+        delete data.createdAt;
+        delete data.updatedAt;
+
+        // Parse date fields using the helper function
+        parseDateFields(data, ['startDate', 'endDate'], "DD-MM-YYYY HH:mm:ss Z", "Asia/Ho_Chi_Minh");
+
+        // Update and return coupon
+        const updatedCoupon = await Coupon.findByIdAndUpdate(id, data, { new: true });
+        if (!updatedCoupon) return res.status(404).json({ message: "Coupon not found" });
+
+        res.json(updatedCoupon);
     } catch (error) {
-        throw new Error(error);
+        res.status(400).json({ message: error.message || 'Failed to update coupon' });
     }
 });
 

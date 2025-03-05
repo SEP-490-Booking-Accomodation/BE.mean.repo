@@ -1,18 +1,31 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
+const RENTALLOCATION_STATUS = {
+    PENDING : 1,
+    INACTIVE : 2,
+    ACTIVE : 3,
+    PAUSE : 4,
+    DELETED : 5,
+    NEEDS_UPDATE : 6
+}
 var rentalLocationSchema = new mongoose.Schema(
     {
         ownerId: {
             type: mongoose.Schema.ObjectId,
             ref: "Owner",
         },
+        landUsesRightId: {
+            type: mongoose.Schema.ObjectId,
+            ref: "LandUsesRight"
+        },
         name: {
             type: String,
             required: true,
         },
         status: {
-            type: Boolean,
-            required: true,
+            type: Number,
+            enum: Object.values(RENTALLOCATION_STATUS),
+            default: RENTALLOCATION_STATUS.PENDING,
         },
         image: [
             {
@@ -30,7 +43,7 @@ var rentalLocationSchema = new mongoose.Schema(
         longitude: {
             type: String,
         },
-        attitude: {
+        latitude: {
             type: String,
         },
         openHour: {
@@ -48,6 +61,15 @@ var rentalLocationSchema = new mongoose.Schema(
         isDelete:{
             type: Boolean,
             default: false,
+        },
+        ward:{
+            type: String, //Phường
+        },
+        district:{
+            type: String, //Quận
+        },
+        city:{
+            type: String,
         }
     },
     {

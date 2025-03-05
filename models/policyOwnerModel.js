@@ -1,5 +1,10 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
+const POLICYOWNER_STATUS = {
+    PENDING : 1,
+    APPROVED : 2,
+    DENIED : 3
+}
 var policyOwnerSchema = new mongoose.Schema(
     {
         ownerId: {
@@ -25,6 +30,11 @@ var policyOwnerSchema = new mongoose.Schema(
         isDelete: {
             type: Boolean,
             default: false,
+        },
+        status: {
+            type: Number,
+            enum: Object.values(POLICYOWNER_STATUS),
+            default: POLICYOWNER_STATUS.PENDING,
         },
     },
     {
