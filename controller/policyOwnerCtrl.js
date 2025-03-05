@@ -2,6 +2,7 @@ const PolicyOwner = require("../models/policyOwnerModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
+const Value = require("../models/valueModel");
 const softDelete = require("../utils/softDelete");
 
 const createPolicyOwner= asyncHandler(async(req, res) => {
@@ -53,8 +54,27 @@ const getPolicyOwner = asyncHandler(async (req, res) => {
 
 const getAllPolicyOwner = asyncHandler(async (req, res) => {
   try {
-    const policyOwners = await PolicyOwner.find({isDelete: false});
-    const formattedPolicyOwners = policyOwners.map(doc => doc.toJSON());
+    const policyOwners = await PolicyOwner.find({ isDelete: false }).populate(
+      {
+        path: "ownerId",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {path: "userId", select:"fullName"}
+      });
+    const formattedPolicyOwners = await Promise.all(policyOwners.map(
+      async (doc) => {
+        const docObj = doc.toJSON();
+
+        const values = await Value.find({
+          policyOwnerId: docObj._id,
+          isDelete: false,
+        }).select();
+
+        docObj.values = values;
+
+        return docObj;
+      }
+    ));
+
     res.status(200).json({
       success: true,
       data: formattedPolicyOwners

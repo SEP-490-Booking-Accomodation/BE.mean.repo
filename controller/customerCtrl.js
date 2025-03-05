@@ -104,12 +104,27 @@ const getCustomerByUserId = asyncHandler(async (req, res) => {
 
 const getAllCustomer = async (req, res) => {
   try {
-    const getAllCustomer = await Customer.find({ isDelete: false });
-    res.json(getAllCustomer);
+    // Lấy tất cả khách hàng chưa bị xóa
+    const customers = await Customer.find({ isDelete: false });
+
+    // Duyệt qua từng Customer để kiểm tra sự tồn tại của userId trong bảng User
+    for (const customer of customers) {
+      const userExists = await User.findById(customer.userId);
+      if (!userExists) {
+        // Xóa mềm nếu không tìm thấy User tương ứng
+        await softDelete(Customer, customer._id);
+      }
+    }
+
+    // Lấy lại danh sách khách hàng sau khi đã xoá những Customer không có User
+    const updatedCustomers = await Customer.find({ isDelete: false });
+
+    res.json(updatedCustomers);
   } catch (error) {
-    throw new Error(error);
+    res.status(500).json({ message: error.message });
   }
 };
+
 
 module.exports = {
   createCustomer,

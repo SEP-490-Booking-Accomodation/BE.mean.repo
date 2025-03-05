@@ -68,16 +68,31 @@ const getReport = asyncHandler(async (req, res) => {
 
 const getAllReport = asyncHandler(async (req, res) => {
   try {
-    const getAllReport = await Report.find({ isDelete: false }).populate({
-      path: "replyBy",
-      model: "Owner",
-      select: "-createdAt -updatedAt -isDelete",
-      populate: {
-        path: "userId",
-        select:
-          "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
-      },
-    });
+    const getAllReport = await Report.find({ isDelete: false })
+      .populate({
+        path: "bookingId",
+        model: "Booking",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "customerId",
+          select: "-createdAt -updatedAt -isDelete",
+          populate: {
+            path: "userId",
+            select:
+              "fullName", // Loại bỏ trường nhạy cảm
+          },
+        },
+      })
+      .populate({
+        path: "replyBy",
+        model: "Owner",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select:
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+        },
+      });
     res.json(getAllReport);
   } catch (error) {
     throw new Error(error);

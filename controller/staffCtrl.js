@@ -76,10 +76,24 @@ const getStaff = asyncHandler(async (req, res) => {
 
 const getAllStaff = async (req, res) => {
   try {
-    const getAllStaff = await Staff.find({ isDelete: false });
-    res.json(getAllStaff);
+    // Lấy tất cả khách hàng chưa bị xóa
+    const staffs = await Staff.find({ isDelete: false });
+
+    // Duyệt qua từng Staff để kiểm tra sự tồn tại của userId trong bảng User
+    for (const staff of staffs) {
+      const userExists = await User.findById(staff.userId);
+      if (!userExists) {
+        // Xóa mềm nếu không tìm thấy User tương ứng
+        await softDelete(Staff, staff._id);
+      }
+    }
+
+    // Lấy lại danh sách khách hàng sau khi đã xoá những Staff không có User
+    const updatedStaffs = await Staff.find({ isDelete: false });
+
+    res.json(updatedStaffs);
   } catch (error) {
-    throw new Error(error);
+    res.status(500).json({ message: error.message });
   }
 };
 
