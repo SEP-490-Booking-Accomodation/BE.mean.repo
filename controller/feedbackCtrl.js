@@ -3,6 +3,8 @@ const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const softDelete = require("../utils/softDelete");
 const Coupon = require("../models/couponModel");
+const Booking = require("../models/bookingModel");
+const Accommodation = require("../models/accommodationModel");
 
 const createFeedback = asyncHandler(async (req, res) => {
   try {
@@ -69,16 +71,107 @@ const getAllFeedback = asyncHandler(async (req, res) => {
   try {
     const getAllFeedback = await Feedback.find({ isDelete: false })
       .populate({
-      path: "replyBy",
-      model: "Owner",
-      select: "-createdAt -updatedAt -isDelete",
-      populate: {
-        path: "userId",
-        select:
-          "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
-      },
-    });
+        path: "replyBy",
+        model: "Owner",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select:
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+        },
+      })
+      .populate("bookingId");
     res.json(getAllFeedback);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const getAllFeedbackByRentalId = asyncHandler(async (req, res) => {
+  const { rentalId } = req.params;
+  validateMongoDbId(rentalId);
+
+  try {
+    // Tìm tất cả accommodation có rentalId này
+    const accommodations = await Accommodation.find({
+      rentalLocationId: rentalId,
+    }).select("_id");
+    const accommodationIds = accommodations.map((acc) => acc._id);
+
+    console.log(accommodationIds);
+
+    // Tìm tất cả bookingId liên quan đến accommodation đó
+    const bookings = await Booking.find({
+      accommodationId: { $in: accommodationIds },
+    }).select("_id");
+    const bookingIds = bookings.map((book) => book._id);
+
+    // Lấy feedback theo bookingId
+    const feedbacks = await Feedback.find({
+      bookingId: { $in: bookingIds },
+      isDelete: false,
+    })
+      .populate({
+        path: "replyBy",
+        model: "Owner",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select: "fullName email avatarUrl phone",
+        },
+      })
+      .populate({
+        path: "bookingId",
+        model: "Booking",
+        select: "checkInHour durationBookingHour",
+        populate: {
+          path: "customerId",
+          populate: {
+            path: "userId",
+            select:
+              "-password -tokenId -createdAt -updatedAt -isDelete -roleID -isActive -isVerifiedPhone -isVerifiedEmail",
+          },
+        },
+      });
+
+    res.json(feedbacks);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+const getAllFeedbackByOwnerId = asyncHandler(async (req, res) => {
+  const { ownerId } = req.params;
+  validateMongoDbId(ownerId);
+
+  try {
+    const feedback = await Feedback.find({
+      replyBy: ownerId,
+      isDelete: false,
+    })
+      .populate({
+        path: "replyBy",
+        model: "Owner",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select: "fullName email avatarUrl phone", // Loại bỏ trường nhạy cảm
+        },
+      })
+      .populate({
+        path: "bookingId",
+        model: "Booking",
+        select: "checkInHour durationBookingHour",
+        populate: {
+          path: "customerId",
+          populate: {
+            path: "userId",
+            select:
+              "-password -tokenId -createdAt -updatedAt -isDelete -roleID -isActive -isVerifiedPhone -isVerifiedEmail",
+          },
+        },
+      });
+    res.json(feedback);
   } catch (error) {
     throw new Error(error);
   }
@@ -90,4 +183,6 @@ module.exports = {
   deleteFeedback,
   getFeedback,
   getAllFeedback,
+  getAllFeedbackByRentalId,
+  getAllFeedbackByOwnerId,
 };

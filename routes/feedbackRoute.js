@@ -11,6 +11,8 @@ const {
   deleteFeedback,
   getAllFeedback,
   getFeedback,
+  getAllFeedbackByRentalId,
+  getAllFeedbackByOwnerId,
 } = require("../controller/feedbackCtrl");
 
 /**
@@ -134,6 +136,48 @@ router.put("/:id", authMiddleware, updateFeedback);
  *         description: Forbidden, requires admin privileges
  */
 router.get("/all-feedbacks", authMiddleware, getAllFeedback);
+
+/**
+ * @swagger
+ * /api/feedback/rental/{rentalId}:
+ *   get:
+ *     summary: Get all feedback for a rental
+ *     description: Retrieve all feedback entries associated with a specific rental
+ *     tags:
+ *       - Feedback
+ *     parameters:
+ *       - in: path
+ *         name: rentalId
+ *         required: true
+ *         description: The ID of the rental
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of feedback related to the rental
+ */
+router.get("/rental/:rentalId", authMiddleware, getAllFeedbackByRentalId);
+
+/**
+ * @swagger
+ * /api/feedback/owner/{ownerId}:
+ *   get:
+ *     summary: Get all feedback by owner
+ *     description: Retrieve all feedback entries associated with a specific owner
+ *     tags:
+ *       - Feedback
+ *     parameters:
+ *       - in: path
+ *         name: ownerId
+ *         required: true
+ *         description: The ID of the owner
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of feedback related to the owner
+ */
+router.get("/owner/:ownerId", authMiddleware, getAllFeedbackByOwnerId);
 
 /**
  * @swagger
