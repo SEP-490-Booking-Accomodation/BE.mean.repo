@@ -23,6 +23,7 @@ var couponSchema = new mongoose.Schema(
         "Coupon code must be between 1 and 8 uppercase letters or numbers",
       ],
       required: true,
+      unique: true,
     },
     discountBasedOn: {
       type: String,

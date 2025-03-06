@@ -179,7 +179,7 @@ const getAllPolicySystem = asyncHandler(async (req, res) => {
         populate: {
           path: "userId",
           select:
-            "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleID -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
         },
       })
       .populate({
@@ -189,7 +189,7 @@ const getAllPolicySystem = asyncHandler(async (req, res) => {
         populate: {
           path: "userId",
           select:
-            "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleID -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
         },
       })
       .populate({

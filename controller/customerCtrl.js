@@ -87,7 +87,7 @@ const getCustomerByUserId = asyncHandler(async (req, res) => {
     }).populate({
       path: "userId",
       select:
-        "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+        "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isVerifiedPhone", // Loại bỏ trường nhạy cảm
     });
 
     if (!customer) {
