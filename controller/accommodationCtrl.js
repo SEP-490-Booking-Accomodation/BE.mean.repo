@@ -75,7 +75,12 @@ const getAllAccommodation = asyncHandler(async (req, res) => {
         const accommodations = await Accommodation.find({ isDelete: false })
             .populate({
                 path: 'accommodationTypeId',
-                select: '-__v' // Exclude the '__v' field, modify as needed
+                select: '-__v',
+                populate: {
+                    path: "serviceIds",
+                    select: "-createdAt -updatedAt -isDelete -id -status -accomodationTypeId",
+                }
+                // Exclude the '__v' field, modify as needed
             });
         console.log(accommodations.map(a => a.accommodationTypeId));
         const formattedAccommodations = accommodations.map(doc => doc.toJSON());
