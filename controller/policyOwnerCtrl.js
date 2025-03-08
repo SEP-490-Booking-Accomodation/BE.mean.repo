@@ -42,15 +42,42 @@ const deletePolicyOwner = asyncHandler(async (req, res) => {
 });
   
 const getPolicyOwner = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    validateMongoDbId(id);
-    try {
-      const getPolicyOwner = await PolicyOwner.findOne({_id: id, isDelete: false});
-      res.json(getPolicyOwner);
-    } catch (error) {
-      throw new Error(error);
+  const { id } = req.params;
+  validateMongoDbId(id);
+  try {
+    const policyOwner = await PolicyOwner.findOne({
+      _id: id,
+      isDelete: false,
+    }).populate({
+      path: "ownerId",
+      select: "-createdAt -updatedAt -isDelete",
+      populate: { path: "userId", select: "fullName" },
+    });
+
+    if (!policyOwner) {
+      return res
+        .status(404)
+        .json({ success: false, message: "PolicyOwner not found" });
     }
+
+    const docObj = policyOwner.toJSON();
+
+    const values = await Value.find({
+      policyOwnerId: docObj._id,
+      isDelete: false,
+    }).select();
+
+    docObj.values = values;
+
+    res.status(200).json({
+      success: true,
+      data: docObj,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
+
 
 const getAllPolicyOwner = asyncHandler(async (req, res) => {
   try {
