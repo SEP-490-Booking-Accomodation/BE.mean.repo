@@ -42,32 +42,46 @@ const deleteAccommodation = asyncHandler(async (req, res) => {
 
 const getAccommodation = asyncHandler(async (req, res) => {
     try {
-        const { rentalLocationId  } = req.query; 
-    
+        const { rentalLocationId } = req.query;
+
         const filter = { isDelete: false };
         if (rentalLocationId) {
-          if (!isValidObjectId(rentalLocationId)) {
-            return res.status(400).json({
-              success: false,
-              message: "Invalid rentalLocationId format"
-            });
-          }
-          filter.rentalLocationId = rentalLocationId;
+            if (!isValidObjectId(rentalLocationId)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Invalid rentalLocationId format"
+                });
+            }
+            filter.rentalLocationId = rentalLocationId;
         }
-    
-        const accommodations = await Accommodation.find(filter);
+
+        const accommodations = await Accommodation.find(filter)
+            .populate({
+                path: 'rentalLocationId',
+                select: '-__v'
+            })
+            .populate({
+                path: 'accommodationTypeId',
+                select: '-__v',
+                populate: {
+                    path: "serviceIds",
+                    select: "-createdAt -updatedAt -isDelete -id -status -accomodationTypeId",
+                }
+                // Exclude the '__v' field, modify as needed
+            });
+
         const formattedAccommodations = accommodations.map(doc => doc.toJSON());
-    
+
         res.status(200).json({
-          success: true,
-          data: formattedAccommodations
+            success: true,
+            data: formattedAccommodations
         });
-      } catch (error) {
+    } catch (error) {
         res.status(500).json({
-          success: false,
-          message: error.message || "Internal Server Error",
+            success: false,
+            message: error.message || "Internal Server Error",
         });
-      }
+    }
 });
 
 const getAllAccommodation = asyncHandler(async (req, res) => {
@@ -81,6 +95,10 @@ const getAllAccommodation = asyncHandler(async (req, res) => {
                     select: "-createdAt -updatedAt -isDelete -id -status -accomodationTypeId",
                 }
                 // Exclude the '__v' field, modify as needed
+            })
+            .populate({
+                path: 'rentalLocationId',
+                select: '-__v' // Exclude the '__v' field, modify as needed
             });
         console.log(accommodations.map(a => a.accommodationTypeId));
         const formattedAccommodations = accommodations.map(doc => doc.toJSON());
