@@ -62,7 +62,12 @@ const getAccommodation = asyncHandler(async (req, res) => {
             })
             .populate({
                 path: 'accommodationTypeId',
-                select: '-__v'
+                select: '-__v',
+                populate: {
+                    path: "serviceIds",
+                    select: "-createdAt -updatedAt -isDelete -id -status -accomodationTypeId",
+                }
+                // Exclude the '__v' field, modify as needed
             });
 
         const formattedAccommodations = accommodations.map(doc => doc.toJSON());
@@ -84,7 +89,12 @@ const getAllAccommodation = asyncHandler(async (req, res) => {
         const accommodations = await Accommodation.find({ isDelete: false })
             .populate({
                 path: 'accommodationTypeId',
-                select: '-__v' // Exclude the '__v' field, modify as needed
+                select: '-__v',
+                populate: {
+                    path: "serviceIds",
+                    select: "-createdAt -updatedAt -isDelete -id -status -accomodationTypeId",
+                }
+                // Exclude the '__v' field, modify as needed
             })
             .populate({
                 path: 'rentalLocationId',
