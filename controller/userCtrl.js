@@ -352,7 +352,7 @@ const sendEmailOTP = asyncHandler(async (req, res) => {
     .createHash("sha256")
     .update(otp)
     .digest("hex");
-  user.emailVerificationExpires = Date.now() + 10 * 60 * 1000; // Hết hạn sau 10 phút
+  user.emailVerificationExpires = Date.now() + 2 * 60 * 1000; // Hết hạn sau 10 phút
 
   await user.save();
 
