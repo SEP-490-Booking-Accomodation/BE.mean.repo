@@ -4,25 +4,132 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const Value = require("../models/valueModel");
 const softDelete = require("../utils/softDelete");
+const {startSession} = require("mongoose");
 
-const createPolicyOwner= asyncHandler(async(req, res) => {
-    try{
-        const newPolicyOwner= await PolicyOwner.create(req.body);
-        res.json(newPolicyOwner);
-    } catch (error){
-        throw new Error(error);
+const createPolicyOwner = asyncHandler(async (req, res) => {
+    try {
+        const { values, ...policyOwnerData } = req.body;
+
+        const session = await startSession();
+        session.startTransaction();
+
+        try {
+            const newPolicyOwner = await PolicyOwner.create([policyOwnerData], { session });
+
+            if (Array.isArray(values) && values.length > 0) {
+                const valueList = values.map(value => ({
+                    ...value,
+                    policyOwnerId: newPolicyOwner[0]._id
+                }));
+
+                await Value.insertMany(valueList, { session });
+            }
+
+            await session.commitTransaction();
+            session.endSession();
+
+            const completePolicyOwner = await PolicyOwner.findById(newPolicyOwner[0]._id);
+
+            res.status(201).json(completePolicyOwner);
+        } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+            throw error;
+        }
+    } catch (error) {
+        res.status(400);
+        throw new Error(error.message);
     }
 });
 const updatePolicyOwner = asyncHandler(async (req, res) => {
     const { id } = req.params;
     validateMongoDbId(id);
+
     try {
-      const updatePolicyOwner = await PolicyOwner.findByIdAndUpdate(id, req.body, {
-        new: true,
-      });
-      res.json(updatePolicyOwner);
+        const { values, ...policyOwnerData } = req.body;
+        const session = await startSession();
+        session.startTransaction();
+
+        try {
+            const updatedPolicyOwner = await PolicyOwner.findByIdAndUpdate(
+                id,
+                policyOwnerData,
+                { new: true, session }
+            );
+
+            if (Array.isArray(values)) {
+                const existingValues = await Value.find({ policyOwnerId: id });
+
+                const valuesToUpdate = [];
+                const valuesToCreate = [];
+                const existingValueIds = new Set();
+
+
+                values.forEach(value => {
+                    if (value._id) {
+                        // If value has ID, it's an update
+                        valuesToUpdate.push(value);
+                        existingValueIds.add(value._id.toString());
+                    } else {
+                        // If no ID, it's a new value
+                        valuesToCreate.push({
+                            ...value,
+                            policyOwnerId: id
+                        });
+                    }
+                });
+
+                // Find values to delete (existing values not in the request)
+                const valuesToDelete = existingValues.filter(
+                    value => !existingValueIds.has(value._id.toString())
+                );
+
+                if (valuesToCreate.length > 0) {
+                    await Value.create(valuesToCreate, { session, ordered: true });
+                }
+
+                for (const value of valuesToUpdate) {
+                    await Value.findByIdAndUpdate(value._id, value, { session });
+                }
+
+                // Soft delete instead of hard delete
+                for (const value of valuesToDelete) {
+                    await Value.findByIdAndUpdate(
+                        value._id,
+                        { isDelete: true, updateBy: req.user?._id || policyOwnerData.updateBy },
+                        { session }
+                    );
+                }
+            }
+
+            await session.commitTransaction();
+            session.endSession();
+
+            if (policyOwnerData.isDelete === true) {
+                await softDelete(PolicyOwner, id);
+            }
+
+
+            const completeUpdatedPolicyOwner = await PolicyOwner.findById(id);
+            const associatedValues = await Value.find({
+                policyOwnerId: id,
+                isDelete: { $ne: true }
+            });
+
+            res.json({
+                ...completeUpdatedPolicyOwner.toObject(),
+                values: associatedValues
+            });
+
+        } catch (error) {
+            // If anything fails, abort the transaction
+            await session.abortTransaction();
+            session.endSession();
+            throw error;
+        }
     } catch (error) {
-      throw new Error(error);
+        res.status(400);
+        throw new Error(error.message);
     }
 });
   

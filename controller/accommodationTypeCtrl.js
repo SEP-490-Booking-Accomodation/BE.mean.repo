@@ -44,13 +44,38 @@ const deleteAccommodationType = asyncHandler(async (req, res) => {
 });
 
 const getAccommodationType = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     validateMongoDbId(id);
     try {
-        const getAccommodationType = await AccommodationType.findOne({_id: id, isDelete: false});
-        res.json(getAccommodationType);
+        const accommodationType = await AccommodationType.findOne({
+            _id: id,
+            isDelete: false
+        }).populate('rentalLocationId', '_id name');
+
+        if (!accommodationType) {
+            return res.status(404).json({
+                success: false,
+                message: "Accommodation type not found"
+            });
+        }
+        const formattedAccommodationType = accommodationType.toJSON();
+
+        const serviceIds = await Service.find({
+            accommodationTypeId: id,
+            isDelete: false
+        }).select('_id name description status');
+
+        formattedAccommodationType.serviceIds = serviceIds;
+
+        res.status(200).json({
+            success: true,
+            data: formattedAccommodationType
+        });
     } catch (error) {
-        throw new Error(error);
+        res.status(500).json({
+            success: false,
+            message: error.message || "Internal Server Error"
+        });
     }
 });
 
