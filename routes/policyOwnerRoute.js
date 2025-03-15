@@ -68,6 +68,17 @@ const {
  *         isDelete: false
  *         status: 1
  *         updateBy: "67b7b63be768c5abd6cf5e67"
+ *         values: [
+ *           {
+ *             val1: "Value 1",
+ *             val2: "Value 2",
+ *             description: "Description 1",
+ *             unit: "Unit 1",
+ *             valueType: "Type 1",
+ *             hashTag: "#tag1",
+ *             note: "Note 1"
+ *           }
+ *         ]
  */
 
 /**
@@ -92,7 +103,7 @@ const {
  *       400:
  *         description: Bad request
  */
-router.post("/create-policy-owner", authMiddleware, isCustomer, createPolicyOwner);
+router.post("/create-policy-owner", authMiddleware, createPolicyOwner);
 
 /**
  * @swagger
@@ -117,6 +128,27 @@ router.post("/create-policy-owner", authMiddleware, isCustomer, createPolicyOwne
  *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/PolicyOwner'
+ *           example:
+ *             ownerId: "63b92f4e17d7b3c2a4e4f3d2"
+ *             policyTitle: "Cancellation Policy"
+ *             policyDescription: "This policy covers cancellation terms for bookings."
+ *             startDate: "2025-02-01T12:00:00Z"
+ *             endDate: "2025-12-31T12:00:00Z"
+ *             isDelete: false
+ *             status: 1
+ *             updateBy: "67b7b63be768c5abd6cf5e67"
+ *             values: [
+ *               {
+ *                 _id: "63b92f4t56t6b3c2a4e4f3d2",
+ *                 val1: "Value 1",
+ *                 val2: "Value 2",
+ *                 description: "Description 1",
+ *                 unit: "Unit 1",
+ *                 valueType: "Type 1",
+ *                 hashTag: "#tag1",
+ *                 note: "Note 1"
+ *               }
+ *             ]
  *     responses:
  *       200:
  *         description: Policy owner updated successfully
