@@ -1,5 +1,22 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
+const BOOKING_STATUS = Object.freeze({
+    CONFIRMED: 1,
+    NEEDCHECKIN: 2,
+    CHECKEDIN:3,
+    NEEDCHECKOUT: 4,
+    CHECKEDOUT: 5,
+    CANCELLED: 6,
+    COMPLETED: 7,
+})
+
+const PAYMENT_STATUS = Object.freeze({
+  BOOKING: 1,
+  PENDING: 2,
+  PAID: 3,
+  REFUND: 4,
+  FAILED: 5,
+});
 
 // Declare the Schema of the Mongo model
 var bookingSchema = new mongoose.Schema(
@@ -39,8 +56,8 @@ var bookingSchema = new mongoose.Schema(
             required: true,
         },
         paymentStatus: {
-            type: String,
-            default: "Chờ thanh toán",
+            type: Number,
+            enum: Object.values(PAYMENT_STATUS),
         },
         downPrice: {
             type: Number,
@@ -91,8 +108,8 @@ var bookingSchema = new mongoose.Schema(
             type: String,
         },
         isDelete: {
-            type: Boolean,
-            default: false,
+            type: Number,
+            enum: Object.values(BOOKING_STATUS),
         },
     },
     {
