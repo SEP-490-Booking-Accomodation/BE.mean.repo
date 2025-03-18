@@ -1,9 +1,12 @@
 const Booking = require("../models/bookingModel");
+const Transaction = require("../models/transactionModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const softDelete = require("../utils/softDelete");
 const Accommodation = require("../models/accommodationModel");
 const moment = require("moment-timezone");
+const crypto = require("crypto");
+const axios = require("axios");
 
 const createBooking = asyncHandler(async (req, res) => {
   try {
@@ -177,6 +180,122 @@ const deleteBooking = asyncHandler(async (req, res) => {
   }
 });
 
+const processMoMoPayment = async (req, res) => {
+  try {
+    const { bookingId, amount, description } = req.body;
+    if (!bookingId || !amount) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    const partnerCode = process.env.MOMO_PARTNER_CODE;
+    const accessKey = process.env.MOMO_ACCESS_KEY;
+    const secretKey = process.env.MOMO_SECRET_KEY;
+    const requestId = partnerCode + new Date().getTime();
+    const orderId = requestId;
+    const orderInfo = description || "Payment for booking";
+    const returnUrl = process.env.MOMO_RETURN_URL;
+    const notifyUrl = process.env.MOMO_NOTIFY_URL;
+    const extraData = "";
+    const requestType = "captureWallet";
+
+    const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&ipnUrl=${notifyUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${returnUrl}&requestId=${requestId}&requestType=${requestType}`;
+    const signature = crypto
+      .createHmac("sha256", secretKey)
+      .update(rawSignature)
+      .digest("hex");
+
+    const momoRequest = {
+      partnerCode,
+      accessKey,
+      requestId,
+      amount,
+      orderId,
+      orderInfo,
+      redirectUrl: returnUrl,
+      ipnUrl: notifyUrl,
+      requestType,
+      extraData,
+      lang: "en",
+      signature,
+    };
+
+    const momoResponse = await axios.post(
+      "https://test-payment.momo.vn/v2/gateway/api/create",
+      momoRequest
+    );
+
+    if (momoResponse.data && momoResponse.data.payUrl) {
+      const transaction = new Transaction({
+        bookingId,
+        paymentCode: orderId,
+        amount,
+        description,
+        typeTransaction: 1, // 1: MoMo payment
+        transactionStatus: 1, // Pending
+      });
+      await transaction.save();
+
+      return res.json({ payUrl: momoResponse.data.payUrl });
+    } else {
+      return res.status(500).json({ message: "Failed to initiate payment" });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+const processMomoCallback = async (req, res) => {
+  console.log("Callback:");
+  console.log(req.body);
+
+  return res.status(200).json(req.body);
+};
+
+const processMoMoNotify = async (req, res) => {
+  try {
+    const {
+      orderId,
+      requestId,
+      resultCode,
+      message,
+      transId,
+      amount,
+      responseTime,
+      extraData,
+    } = req.body;
+
+    console.log("MoMo Notify Received:", req.body);
+
+    // Tìm giao dịch dựa trên orderId
+    const transaction = await Transaction.findOne({ paymentCode: orderId });
+
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    // Kiểm tra trạng thái thanh toán từ MoMo
+    if (resultCode === 0) {
+      transaction.transactionStatus = 2; // Đánh dấu đã thanh toán
+      transaction.transactionEndDate = new Date(responseTime);
+    } else {
+      transaction.transactionStatus = 3; // Thanh toán thất bại
+    }
+
+    await transaction.save();
+
+    return res.json({ message: "Notification processed successfully" });
+  } catch (error) {
+    console.error("MoMo Notify Error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
 const getBooking = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
@@ -271,4 +390,7 @@ module.exports = {
   getBookingsByCustomerId,
   getBookingsByRentalLocation,
   getAllBooking,
+  processMoMoPayment,
+  processMoMoNotify,
+  processMomoCallback,
 };
