@@ -9,6 +9,9 @@ const {
   getBooking,
   getBookingsByRentalLocation,
   getBookingsByCustomerId,
+  processMoMoPayment,
+  processMoMoNotify,
+  processMomoCallback,
 } = require("../controller/bookingCtrl");
 
 /**
@@ -165,6 +168,98 @@ router.put("/:id", authMiddleware, isCustomer, updateBooking);
 
 /**
  * @swagger
+ * /api/booking/momo/payment:
+ *   post:
+ *     summary: Process MoMo payment
+ *     description: Initiates a MoMo payment and returns a payment URL.
+ *     tags: [MoMo Payment]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *               - amount
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *                 description: ID of the booking
+ *               amount:
+ *                 type: number
+ *                 description: Payment amount
+ *               description:
+ *                 type: string
+ *                 description: Payment description (optional)
+ *     responses:
+ *       200:
+ *         description: Returns payment URL for MoMo.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 payUrl:
+ *                   type: string
+ *                   description: MoMo payment URL
+ *       400:
+ *         description: Missing required fields.
+ *       404:
+ *         description: Booking not found.
+ *       500:
+ *         description: Server error.
+ */
+router.post("/momo/payment", processMoMoPayment);
+
+/**
+ * @swagger
+ * /api/booking/momo/notify:
+ *   post:
+ *     summary: Receive MoMo payment notification
+ *     description: Handles MoMo payment status updates.
+ *     tags: [MoMo Payment]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - requestId
+ *               - orderId
+ *               - amount
+ *               - resultCode
+ *               - message
+ *             properties:
+ *               requestId:
+ *                 type: string
+ *                 description: MoMo request ID
+ *               orderId:
+ *                 type: string
+ *                 description: MoMo order ID
+ *               amount:
+ *                 type: number
+ *                 description: Payment amount
+ *               resultCode:
+ *                 type: number
+ *                 description: Transaction result code (0 = success)
+ *               message:
+ *                 type: string
+ *                 description: MoMo response message
+ *     responses:
+ *       200:
+ *         description: Notification received successfully.
+ *       400:
+ *         description: Invalid notification request.
+ *       500:
+ *         description: Server error.
+ */
+
+router.post("/momo/notify", processMoMoNotify); // API nhận notify từ MoMo
+
+/**
+ * @swagger
  * /api/booking/booking-history/{customerId}:
  *   get:
  *     summary: Get all bookings by customer ID
@@ -190,6 +285,8 @@ router.put("/:id", authMiddleware, isCustomer, updateBooking);
  *       404:
  *         description: No bookings found for this customer
  */
+
+router.post("/momo/call-back",processMomoCallback);
 
 router.get(
   "/booking-history/:customerId",

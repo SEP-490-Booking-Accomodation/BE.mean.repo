@@ -20,165 +20,166 @@ const PAYMENT_STATUS = Object.freeze({
 
 // Declare the Schema of the Mongo model
 var bookingSchema = new mongoose.Schema(
-    {
-        policySystemBookingId: {
-            type: mongoose.Schema.ObjectId,
-            ref: "PolicySystemBooking",
-        },
-        customerId: {
-            type: mongoose.Schema.ObjectId,
-            ref: "Customer",
-        },
-        accommodationId: {
-            type: mongoose.Schema.ObjectId,
-            ref: "Accommodation",
-        },
-        couponId: {
-            type: mongoose.Schema.ObjectId,
-            ref: "Coupon",
-        },
-        feedbackId: {
-            type: mongoose.Schema.ObjectId,
-            ref: "Feedback",
-        },
-        checkInHour: {
-            type: Date,
-            required: true,
-        },
-        checkOutHour: {
-            type: Date,
-        },
-        confirmDate: {
-            type: Date,
-        },
-        paymentMethod: {
-            type: String,
-            required: true,
-        },
-        paymentStatus: {
-            type: Number,
-            enum: Object.values(PAYMENT_STATUS),
-        },
-        downPrice: {
-            type: Number,
-        },
-        roomPrice: {
-            type: Number,
-            required: true,
-        },
-        adultNumber: {
-            type: Number,
-            required: true,
-        },
-        childNumber: {
-            type: Number,
-            required: true,
-        },
-        durationBookingHour: {
-            type: Number,
-            required: true,
-        },
-        totalPrice: {
-            type: Number,
-            required: true,
-        },
-        isFullPay: {
-            type: Boolean,
-            default: false,
-        },
-        isPayOnlyDeposit: {
-            type: Boolean,
-            default: false,
-        },
-        isCancel: {
-            type: Boolean,
-            default: false,
-        },
-        completedDate: {
-            type: Date,
-        },
-        haveEKey: {
-            type: Boolean,
-            default: false,
-        },
-        eKeyNo: {
-            type: String,
-        },
-        status: {
-            type: String,
-        },
-        isDelete: {
-            type: Number,
-            enum: Object.values(BOOKING_STATUS),
-        },
+  {
+    policySystemBookingId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "PolicySystemBooking",
     },
-    {
-        timestamps: true,
-        toJSON: {
-            virtuals: true,
-            transform: (doc, ret) => {
-                ret.createdAt = moment(ret.createdAt)
-                    .tz("Asia/Ho_Chi_Minh")
-                    .format("DD/MM/YYYY HH:mm:ss");
-                ret.updatedAt = moment(ret.updatedAt)
-                    .tz("Asia/Ho_Chi_Minh")
-                    .format("DD/MM/YYYY HH:mm:ss");
-                if (ret.checkInHour) {
-                    ret.checkInHour = moment(ret.checkInHour)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                if (ret.checkOutHour) {
-                    ret.checkOutHour = moment(ret.checkOutHour)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                if (ret.confirmDate) {
-                    ret.confirmDate = moment(ret.confirmDate)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                if (ret.completedDate) {
-                    ret.completedDate = moment(ret.completedDate)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                return ret;
-            },
-        },
-        toObject: {
-            virtuals: true,
-            transform: (doc, ret) => {
-                ret.createdAt = moment(ret.createdAt)
-                    .tz("Asia/Ho_Chi_Minh")
-                    .format("DD/MM/YYYY HH:mm:ss");
-                ret.updatedAt = moment(ret.updatedAt)
-                    .tz("Asia/Ho_Chi_Minh")
-                    .format("DD/MM/YYYY HH:mm:ss");
-                if (ret.checkInHour) {
-                    ret.checkInHour = moment(ret.checkInHour)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                if (ret.checkOutHour) {
-                    ret.checkOutHour = moment(ret.checkOutHour)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                if (ret.confirmDate) {
-                    ret.confirmDate = moment(ret.confirmDate)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                if (ret.completedDate) {
-                    ret.completedDate = moment(ret.completedDate)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                return ret;
-            },
-        },
-    }
+    customerId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Customer",
+    },
+    accommodationId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Accommodation",
+    },
+    couponId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Coupon",
+    },
+    feedbackId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Feedback",
+    },
+    checkInHour: {
+      type: Date,
+      required: true,
+    },
+    checkOutHour: {
+      type: Date,
+    },
+    confirmDate: {
+      type: Date,
+    },
+    paymentMethod: {
+      type: String,
+      required: true,
+    },
+    paymentStatus: {
+      type: Number,
+      enum: Object.values(PAYMENT_STATUS),
+    },
+    downPrice: {
+      type: Number,
+    },
+    roomPrice: {
+      type: Number,
+      required: true,
+    },
+    adultNumber: {
+      type: Number,
+      required: true,
+    },
+    childNumber: {
+      type: Number,
+      required: true,
+    },
+    durationBookingHour: {
+      type: Number,
+      required: true,
+    },
+    totalPrice: {
+      type: Number,
+      required: true,
+    },
+    isFullPay: {
+      type: Boolean,
+      default: false,
+    },
+    isPayOnlyDeposit: {
+      type: Boolean,
+      default: false,
+    },
+    isCancel: {
+      type: Boolean,
+      default: false,
+    },
+    completedDate: {
+      type: Date,
+    },
+    haveEKey: {
+      type: Boolean,
+      default: false,
+    },
+    eKeyNo: {
+      type: String,
+    },
+    status: {
+      type: Number,
+      enum: Object.values(BOOKING_STATUS),
+    },
+    isDelete: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: (doc, ret) => {
+        ret.createdAt = moment(ret.createdAt)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("DD/MM/YYYY HH:mm:ss");
+        ret.updatedAt = moment(ret.updatedAt)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("DD/MM/YYYY HH:mm:ss");
+        if (ret.checkInHour) {
+          ret.checkInHour = moment(ret.checkInHour)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        if (ret.checkOutHour) {
+          ret.checkOutHour = moment(ret.checkOutHour)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        if (ret.confirmDate) {
+          ret.confirmDate = moment(ret.confirmDate)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        if (ret.completedDate) {
+          ret.completedDate = moment(ret.completedDate)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        return ret;
+      },
+    },
+    toObject: {
+      virtuals: true,
+      transform: (doc, ret) => {
+        ret.createdAt = moment(ret.createdAt)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("DD/MM/YYYY HH:mm:ss");
+        ret.updatedAt = moment(ret.updatedAt)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("DD/MM/YYYY HH:mm:ss");
+        if (ret.checkInHour) {
+          ret.checkInHour = moment(ret.checkInHour)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        if (ret.checkOutHour) {
+          ret.checkOutHour = moment(ret.checkOutHour)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        if (ret.confirmDate) {
+          ret.confirmDate = moment(ret.confirmDate)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        if (ret.completedDate) {
+          ret.completedDate = moment(ret.completedDate)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        return ret;
+      },
+    },
+  }
 );
 bookingSchema.pre("save", async function (next) {
     if (this.checkInHour && typeof this.checkInHour === "string") {
