@@ -18,6 +18,9 @@ var accommodationSchema = new mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: "AccommodationType",
         },
+        roomNo:{
+            type: String,
+        },
         description: {
             type: String,
             required: true,
