@@ -23,14 +23,12 @@ const {
  *       required:
  *         - policySystemBookingId
  *         - customerId
- *         - accommodationId
+ *         - accommodationTypeId
  *         - checkInHour
  *         - paymentMethod
- *         - roomPrice
  *         - adultNumber
  *         - childNumber
  *         - durationBookingHour
- *         - totalPrice
  *       properties:
  *         policySystemBookingId:
  *           type: string
@@ -38,15 +36,21 @@ const {
  *         customerId:
  *           type: string
  *           description: Reference to Customer
- *         accommodationId:
+ *         accommodationTypeId:
  *           type: string
- *           description: Reference to Accommodation
+ *           description: Reference to AccommodationType
  *         couponId:
  *           type: string
  *           description: Reference to Coupon
  *         feedbackId:
  *           type: string
  *           description: Reference to Feedback
+ *         basePrice:
+ *           type: number
+ *           description: Base Price of Accommodation Type
+ *         overtimeHourlyPrice:
+ *           type: number
+ *           description: Overtime Hourly Price of Accommodation Type
  *         checkInHour:
  *           type: string
  *           format: date-time
@@ -66,18 +70,13 @@ const {
  *           example: "04-02-2025 15:30:45 +07:00"
  *           description: Confirmation date
  *         paymentMethod:
+ *           default: 1
  *           type: string
  *           description: Payment method
  *         paymentStatus:
- *           type: string
- *           description: Payment status
- *           default: "Chờ thanh toán"
- *         downPrice:
- *           type: number
- *           description: Down payment amount
- *         roomPrice:
- *           type: number
- *           description: Room price
+ *           type: integer
+ *           enum: [1, 2, 3]
+ *           description: Payment method (1=BOOKING, 2=PENDING, 3=PAID, 4=REFUND, 5=FAILED)
  *         adultNumber:
  *           type: number
  *           description: Number of adults
@@ -87,34 +86,15 @@ const {
  *         durationBookingHour:
  *           type: number
  *           description: Booking duration in hours
- *         totalPrice:
- *           type: number
- *           description: Total price
- *         isFullPay:
- *           type: boolean
- *           description: Full payment status
- *           default: false
- *         isPayOnlyDeposit:
- *           type: boolean
- *           description: Deposit-only payment status
- *           default: false
- *         isCancel:
- *           type: boolean
- *           description: Cancellation status
- *           default: false
  *         completedDate:
  *           type: string
  *           format: date-time
  *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
  *           example: "04-02-2025 15:30:45 +07:00"
  *           description: Completion date
- *         haveEKey:
- *           type: boolean
- *           description: Whether an electronic key is issued
- *           default: false
- *         eKeyNo:
+ *         passwordRoom:
  *           type: string
- *           description: Electronic key number
+ *           description: Password room for open
  *         status:
  *           type: string
  *           description: Booking status

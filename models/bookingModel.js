@@ -59,14 +59,15 @@ var bookingSchema = new mongoose.Schema(
       type: Number,
       enum: Object.values(PAYMENT_STATUS),
     },
-    downPrice: {
-      type: Number,
-    },
-    roomPrice: {
+    adultNumber: {
       type: Number,
       required: true,
     },
-    adultNumber: {
+    basePrice: {
+      type: Number,
+      required: true,
+    },
+    overtimeHourlyPrice: {
       type: Number,
       required: true,
     },
@@ -78,30 +79,7 @@ var bookingSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    totalPrice: {
-      type: Number,
-      required: true,
-    },
-    isFullPay: {
-      type: Boolean,
-      default: false,
-    },
-    isPayOnlyDeposit: {
-      type: Boolean,
-      default: false,
-    },
-    isCancel: {
-      type: Boolean,
-      default: false,
-    },
-    completedDate: {
-      type: Date,
-    },
-    haveEKey: {
-      type: Boolean,
-      default: false,
-    },
-    eKeyNo: {
+    passwordRoom: {
       type: String,
     },
     status: {
@@ -185,30 +163,30 @@ bookingSchema.pre("save", async function (next) {
     if (this.checkInHour && typeof this.checkInHour === "string") {
         // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
         this.checkInHour = moment
-            .tz(this.checkInHour, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-            .utc()
-            .toDate();
+          .tz(this.checkInHour, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+          .utc()
+          .toDate();
     }
     if (this.checkOutHour && typeof this.checkOutHour === "string") {
         // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
         this.checkOutHour = moment
-            .tz(this.checkOutHour, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-            .utc()
-            .toDate();
+          .tz(this.checkOutHour, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+          .utc()
+          .toDate();
     }
     if (this.confirmDate && typeof this.confirmDate === "string") {
         // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
         this.confirmDate = moment
-            .tz(this.confirmDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-            .utc()
-            .toDate();
+          .tz(this.confirmDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+          .utc()
+          .toDate();
     }
     if (this.completedDate && typeof this.completedDate === "string") {
         // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
         this.completedDate = moment
-            .tz(this.completedDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-            .utc()
-            .toDate();
+          .tz(this.completedDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+          .utc()
+          .toDate();
     }
 });
 //Export the model

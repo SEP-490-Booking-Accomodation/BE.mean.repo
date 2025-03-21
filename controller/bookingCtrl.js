@@ -4,6 +4,7 @@ const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const softDelete = require("../utils/softDelete");
 const Accommodation = require("../models/accommodationModel");
+const AccommodationType = require("../models/accommodationTypeModel");
 const moment = require("moment-timezone");
 const crypto = require("crypto");
 const axios = require("axios");
@@ -13,7 +14,7 @@ const createBooking = asyncHandler(async (req, res) => {
     const {
       policySystemBookingId,
       customerId,
-      accommodationId,
+      accommodationTypeId,
       couponId,
       feedbackId,
       checkInHour,
@@ -21,18 +22,13 @@ const createBooking = asyncHandler(async (req, res) => {
       confirmDate,
       paymentMethod,
       paymentStatus,
-      downPrice,
-      roomPrice,
+      basePrice,
+      overtimeHourlyPrice,
       adultNumber,
       childNumber,
       durationBookingHour,
-      totalPrice,
-      isFullPay,
-      isPayOnlyDeposit,
-      isCancel,
       completedDate,
-      haveEKey,
-      eKeyNo,
+      passwordRoom,
       status,
     } = req.body;
 
@@ -57,10 +53,35 @@ const createBooking = asyncHandler(async (req, res) => {
           .toDate()
       : null;
 
+    // Tìm các phòng có accommodationTypeId và còn trống trong khoảng thời gian này
+    const availableRoom = await Accommodation.findOne({
+      accommodationTypeId,
+      status: "1",
+      _id: {
+        $nin: await Booking.distinct("accommodationId", {
+          accommodationTypeId,
+          $or: [
+            {
+              checkInHour: { $lt: vietnamTime1 },
+              checkOutHour: { $gt: vietnamTime2 },
+            },
+          ],
+        }),
+      },
+    });
+
+    console.log(availableRoom);
+
+    if (!availableRoom) {
+      return res
+        .status(400)
+        .json({ message: "No available rooms for this time slot." });
+    }
+
     const newBooking = new Booking({
       policySystemBookingId,
       customerId,
-      accommodationId,
+      accommodationId: availableRoom._id,
       couponId,
       feedbackId,
       checkInHour: vietnamTime1,
@@ -68,23 +89,20 @@ const createBooking = asyncHandler(async (req, res) => {
       confirmDate: vietnamTime3,
       paymentMethod,
       paymentStatus,
-      downPrice,
-      roomPrice,
+      basePrice,
+      overtimeHourlyPrice,
       adultNumber,
       childNumber,
       durationBookingHour,
-      totalPrice,
-      isFullPay,
-      isPayOnlyDeposit,
-      isCancel,
       completedDate: vietnamTime4,
-      haveEKey,
-      eKeyNo,
+      passwordRoom,
       status,
     });
+
     await newBooking.save();
+
     res.status(201).json({
-      message: "Policy System created successfully",
+      message: "Booking created successfully",
       booking: newBooking,
     });
   } catch (error) {
