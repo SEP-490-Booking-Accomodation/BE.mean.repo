@@ -18,6 +18,7 @@ const {
  *       required:
  *         - rentalLocationId
  *         - accommodationTypeId
+ *         - roomNo
  *         - description
  *         - image
  *         - status
@@ -28,6 +29,9 @@ const {
  *         accommodationTypeId:
  *           type: string
  *           description: The ID of the accommodation type
+ *         roomNo:
+ *           type: string
+ *           description: Room numbrt of Accommodation
  *         description:
  *           type: string
  *           description: A detailed description of the accommodation
@@ -48,6 +52,7 @@ const {
  *       example:
  *         rentalLocationId: "63b92f4e17d7b3c2a4e4f3d2"
  *         accommodationTypeId: "63b92f4e17d7b3c2a4e4f3e3"
+ *         roomNo: "001"
  *         description: "A luxurious room with all modern amenities."
  *         image: "/uploads/images/accommodation1.jpg"
  *         status: 1
@@ -168,7 +173,7 @@ router.get("/all-accommodations", getAllAccommodation);
  * /api/accommodation/{id}:
  *   get:
  *     summary: Get an accommodation
- *     description: Retrieves a specific accommodation by ID
+ *     description: Retrieves specific accommodation by ID
  *     tags:
  *       - Accommodation
  *     security:

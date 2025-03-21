@@ -1,5 +1,6 @@
 const Booking = require("../models/bookingModel");
 const Transaction = require("../models/transactionModel");
+const RentalLocation = require("../models/rentalLocationModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const softDelete = require("../utils/softDelete");
@@ -400,12 +401,64 @@ const getAllBooking = asyncHandler(async (req, res) => {
   }
 });
 
+const getBookingsByOwner = asyncHandler(async (req, res) => {
+  const { ownerId } = req.params;
+
+  try {
+    // 1. Find all rental locations owned by this owner
+    const rentalLocations = await RentalLocation.find({ ownerId }).select("_id");
+    const rentalLocationIds = rentalLocations.map(loc => loc._id);
+
+    if (rentalLocationIds.length === 0) {
+      return res
+          .status(404)
+          .json({ message: "No rental locations found for this owner." });
+    }
+
+    // 2. Find all accommodations belonging to these rental locations
+    const accommodations = await Accommodation.find({
+      rentalLocationId: { $in: rentalLocationIds }
+    }).select("_id");
+    const accommodationIds = accommodations.map(a => a._id);
+
+    if (accommodationIds.length === 0) {
+      return res
+          .status(404)
+          .json({ message: "No accommodations found for this owner's rental locations." });
+    }
+
+    // 3. Get all bookings related to these accommodations
+    const bookings = await Booking.find({
+      accommodationId: { $in: accommodationIds }
+    })
+        .populate("accommodationId")
+        .populate({
+          path: "customerId",
+          populate: { path: "userId", select: "fullName" }
+        });
+
+    const formattedBookings = bookings.map((booking, index) => ({
+      [`booking_${index + 1}`]: booking
+    }));
+
+    res.status(200).json({
+      total: bookings.length,
+      bookings: formattedBookings
+    });
+  } catch (error) {
+    res
+        .status(500)
+        .json({ message: "Failed to get bookings", error: error.message });
+  }
+});
+
 module.exports = {
   createBooking,
   updateBooking,
   deleteBooking,
   getBooking,
   getBookingsByCustomerId,
+  getBookingsByOwner,
   getBookingsByRentalLocation,
   getAllBooking,
   processMoMoPayment,
