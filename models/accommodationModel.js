@@ -6,7 +6,8 @@ const ACCOMMODATION_STATUS = Object.freeze({
     CLEANING: 3,
     PREPARING: 4,
     MAINTENANCE: 5,
-    CLOSED: 6
+    CLOSED: 6,
+    INUSE: 7
 });
 var accommodationSchema = new mongoose.Schema(
     {
