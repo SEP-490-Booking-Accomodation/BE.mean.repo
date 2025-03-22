@@ -40,7 +40,7 @@ const {
  *           description: A URL or path to the accommodation's image
  *         status:
  *           type: integer
- *           enum: [1, 2, 3, 4, 5, 6]
+ *           enum: [1, 2, 3, 4, 5, 6, 7]
  *           description: |
  *             Status code of the rental location:
  *             1 - AVAILABLE
@@ -49,6 +49,7 @@ const {
  *             4 - PREPARING
  *             5 - MAINTENANCE
  *             6 - CLOSED
+ *             7 - INUSE
  *       example:
  *         rentalLocationId: "63b92f4e17d7b3c2a4e4f3d2"
  *         accommodationTypeId: "63b92f4e17d7b3c2a4e4f3e3"

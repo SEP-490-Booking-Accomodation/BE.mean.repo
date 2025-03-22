@@ -41,21 +41,11 @@ const deleteAccommodation = asyncHandler(async (req, res) => {
 });
 
 const getAccommodation = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    validateMongoDbId(id);
     try {
-        const { rentalLocationId } = req.query;
-
-        const filter = { isDelete: false };
-        if (rentalLocationId) {
-            if (!isValidObjectId(rentalLocationId)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid rentalLocationId format"
-                });
-            }
-            filter.rentalLocationId = rentalLocationId;
-        }
-
-        const accommodations = await Accommodation.find(filter)
+        // Find accommodation by ID and make sure it's not deleted
+        const accommodation = await Accommodation.findOne({ _id: id, isDelete: false })
             .populate({
                 path: 'rentalLocationId',
                 select: '-__v'
@@ -67,14 +57,22 @@ const getAccommodation = asyncHandler(async (req, res) => {
                     path: "serviceIds",
                     select: "-createdAt -updatedAt -isDelete -id -status -accomodationTypeId",
                 }
-                // Exclude the '__v' field, modify as needed
             });
 
-        const formattedAccommodations = accommodations.map(doc => doc.toJSON());
+        // If accommodation not found
+        if (!accommodation) {
+            return res.status(404).json({
+                success: false,
+                message: "Accommodation not found"
+            });
+        }
+
+        // Format the accommodation
+        const formattedAccommodation = accommodation.toJSON();
 
         res.status(200).json({
             success: true,
-            data: formattedAccommodations
+            data: formattedAccommodation
         });
     } catch (error) {
         res.status(500).json({
