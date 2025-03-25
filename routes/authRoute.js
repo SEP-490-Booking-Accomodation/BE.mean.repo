@@ -17,6 +17,7 @@ const {
   verifyEmailOTP,
   sendPhoneOTP,
   verifyPhoneOTP,
+  refreshTokenWithParam,
 } = require("../controller/userCtrl");
 
 const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
@@ -334,6 +335,34 @@ router.put("/password", authMiddleware, updatePassword);
  *         description: Token refreshed successfully
  */
 router.get("/refresh", handleRefreshToken);
+
+/**
+ * @swagger
+ * /api/user/refresh-token-with-param:
+ *   post:
+ *     summary: Refresh access token using refreshToken parameter
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: The refresh token issued during login
+ *     responses:
+ *       200:
+ *         description: Access token refreshed successfully
+ *       400:
+ *         description: Refresh token is required
+ *       403:
+ *         description: Invalid or expired refresh token
+ *       404:
+ *         description: User not found
+ */
+router.post("/refresh-token-with-param", refreshTokenWithParam);
 
 /**
  * @swagger

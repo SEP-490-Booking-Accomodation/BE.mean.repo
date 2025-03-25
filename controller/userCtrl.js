@@ -254,6 +254,48 @@ const handleRefreshToken = asyncHandler(async (req, res) => {
   });
 });
 
+const refreshTokenWithParam = asyncHandler(async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    throw new Error("Refresh Token is required");
+  }
+
+  // Tìm refreshToken trong bảng Token
+  const tokenDoc = await Token.findOne({ refreshToken });
+
+  if (!tokenDoc) {
+    throw new Error("Invalid or expired Refresh Token");
+  }
+
+  // Xác thực refresh token
+  jwt.verify(refreshToken, process.env.JWT_SECRET, async (err, decoded) => {
+    if (err) {
+      await Token.deleteOne({ refreshToken }); // Xóa token nếu không hợp lệ
+      throw new Error("Invalid Refresh Token");
+    }
+
+    // Tìm user dựa trên userId trong token
+    const user = await User.findById(tokenDoc.userId);
+    if (!user) {
+      await Token.deleteOne({ refreshToken });
+      throw new Error("User not found");
+    }
+
+    // Tạo access token mới
+    const newAccessToken = generateToken(user._id);
+
+    // Cập nhật accessToken mới vào bảng Token
+    tokenDoc.value = newAccessToken;
+    await tokenDoc.save();
+
+    res.json({
+      accessToken: newAccessToken,
+    });
+  });
+});
+
+
 const updatePassword = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { currentPassword, newPassword } = req.body;
@@ -592,5 +634,6 @@ module.exports = {
   blockUser,
   unblockUser,
   handleRefreshToken,
+  refreshTokenWithParam,
   logout,
 };
