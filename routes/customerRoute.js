@@ -50,6 +50,13 @@ const {
  *         required: true
  *         schema:
  *           type: string
+ *         description: ID của customer cần cập nhật.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Customer'
  *     responses:
  *       200:
  *         description: Cập nhật khách hàng thành công
