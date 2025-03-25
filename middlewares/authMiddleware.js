@@ -48,10 +48,20 @@ const isCustomer = asyncHandler(async (req, res, next) => {
     next();
   }
 });
+const isNotGuest = asyncHandler(async (req, res, next) => {
+  const { email } = req.user;
+  const user = await User.findOne({ email });
+  if (user.roleID.equals("67928007a0a58ce4f7e8e843")) {
+    throw new Error("Bạn không có quyền truy cập!");
+  } else {
+    next();
+  }
+});
 
 module.exports = {
   authMiddleware,
   isAdmin,
   isOwner,
   isCustomer,
+  isNotGuest,
 };
