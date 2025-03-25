@@ -146,6 +146,7 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
       email: findUser.email,
       phone: findUser.phone,
       accessToken: accessToken,
+      refreshToken: refreshToken,
     });
   } else {
     throw new Error("Thông tin không hợp lệ");
