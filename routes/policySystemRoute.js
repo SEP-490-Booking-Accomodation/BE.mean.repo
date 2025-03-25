@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isAdmin } = require("../middlewares/authMiddleware");
+const { authMiddleware, isAdmin, isNotGuest } = require("../middlewares/authMiddleware");
 const {
   createPolicySystem,
   updatePolicySystem,
@@ -197,7 +197,7 @@ router.delete("/:id", authMiddleware, isAdmin, deletePolicySystem);
  *       403:
  *         description: Forbidden, requires admin privileges
  */
-router.get("/all-policy-systems", authMiddleware, isAdmin, getAllPolicySystem);
+router.get("/all-policy-systems", authMiddleware, isNotGuest, getAllPolicySystem);
 
 /**
  * @swagger
