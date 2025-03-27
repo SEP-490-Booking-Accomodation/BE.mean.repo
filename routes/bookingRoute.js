@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isCustomer } = require("../middlewares/authMiddleware");
+const { authMiddleware, isOwner } = require("../middlewares/authMiddleware");
 const {
   createBooking,
   updateBooking,
@@ -97,8 +97,9 @@ const {
  *           type: string
  *           description: Password room for open
  *         status:
- *           enum: [1, 2, 3, 4, 5, 6, 7]
- *           description: Booking method (CONFIRMED=1, NEEDCHECKIN=2, CHECKEDIN=3, NEEDCHECKOUT=4, CHECKEDOUT=5, CANCELLED=6, COMPLETED=7)
+ *           type: integer
+ *           enum: [1, 2, 3, 4, 5, 6, 7, 8]
+ *           description: Booking method (1=CONFIRMED, 2=NEEDCHECKIN, 3=CHECKEDIN, 4=NEEDCHECKOUT, 5=CHECKEDOUT 6=CANCELLED, 7=COMPLETED, 8=PENDING)
  */
 
 /**
@@ -145,7 +146,7 @@ router.post("/create-Booking", authMiddleware, createBooking);
  *       200:
  *         description: Booking updated successfully
  */
-router.put("/:id", authMiddleware, isCustomer, updateBooking);
+router.put("/:id", authMiddleware, isOwner, updateBooking);
 
 /**
  * @swagger
