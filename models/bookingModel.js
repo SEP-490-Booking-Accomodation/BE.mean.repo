@@ -1,14 +1,15 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
 const BOOKING_STATUS = Object.freeze({
-    CONFIRMED: 1,
-    NEEDCHECKIN: 2,
-    CHECKEDIN:3,
-    NEEDCHECKOUT: 4,
-    CHECKEDOUT: 5,
-    CANCELLED: 6,
-    COMPLETED: 7,
-})
+  CONFIRMED: 1,
+  NEEDCHECKIN: 2,
+  CHECKEDIN: 3,
+  NEEDCHECKOUT: 4,
+  CHECKEDOUT: 5,
+  CANCELLED: 6,
+  COMPLETED: 7,
+  PENDING: 8,
+});
 
 const PAYMENT_STATUS = Object.freeze({
   BOOKING: 1,
@@ -160,34 +161,34 @@ var bookingSchema = new mongoose.Schema(
   }
 );
 bookingSchema.pre("save", async function (next) {
-    if (this.checkInHour && typeof this.checkInHour === "string") {
-        // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-        this.checkInHour = moment
-          .tz(this.checkInHour, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
-          .utc()
-          .toDate();
-    }
-    if (this.checkOutHour && typeof this.checkOutHour === "string") {
-        // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-        this.checkOutHour = moment
-          .tz(this.checkOutHour, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
-          .utc()
-          .toDate();
-    }
-    if (this.confirmDate && typeof this.confirmDate === "string") {
-        // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-        this.confirmDate = moment
-          .tz(this.confirmDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
-          .utc()
-          .toDate();
-    }
-    if (this.completedDate && typeof this.completedDate === "string") {
-        // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
-        this.completedDate = moment
-          .tz(this.completedDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
-          .utc()
-          .toDate();
-    }
+  if (this.checkInHour && typeof this.checkInHour === "string") {
+    // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
+    this.checkInHour = moment
+      .tz(this.checkInHour, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+      .utc()
+      .toDate();
+  }
+  if (this.checkOutHour && typeof this.checkOutHour === "string") {
+    // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
+    this.checkOutHour = moment
+      .tz(this.checkOutHour, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+      .utc()
+      .toDate();
+  }
+  if (this.confirmDate && typeof this.confirmDate === "string") {
+    // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
+    this.confirmDate = moment
+      .tz(this.confirmDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+      .utc()
+      .toDate();
+  }
+  if (this.completedDate && typeof this.completedDate === "string") {
+    // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
+    this.completedDate = moment
+      .tz(this.completedDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+      .utc()
+      .toDate();
+  }
 });
 //Export the model
 module.exports = mongoose.model("Booking", bookingSchema);

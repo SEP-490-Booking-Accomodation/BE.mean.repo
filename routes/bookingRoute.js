@@ -75,7 +75,7 @@ const {
  *           description: Payment method
  *         paymentStatus:
  *           type: integer
- *           enum: [1, 2, 3]
+ *           enum: [1, 2, 3, 4, 5]
  *           description: Payment method (1=BOOKING, 2=PENDING, 3=PAID, 4=REFUND, 5=FAILED)
  *         adultNumber:
  *           type: number
@@ -96,8 +96,8 @@ const {
  *           type: string
  *           description: Password room for open
  *         status:
- *           type: string
- *           description: Booking status
+ *           enum: [1, 2, 3, 4, 5, 6, 7]
+ *           description: Booking method (CONFIRMED=1, NEEDCHECKIN=2, CHECKEDIN=3, NEEDCHECKOUT=4, CHECKEDOUT=5, CANCELLED=6, COMPLETED=7)
  */
 
 /**
