@@ -318,7 +318,13 @@ const getBooking = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const get1Booking = await Booking.findOne({ _id: id, isDelete: false });
+    const get1Booking = await Booking.findOne({ _id: id, isDelete: false })
+      .populate("accommodationId")
+      .populate("policySystemBookingId")
+      .populate({
+        path: "customerId",
+        populate: { path: "userId", select: "fullName" },
+      });
     res.json(get1Booking);
   } catch (error) {
     throw new Error(error);
