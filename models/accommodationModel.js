@@ -6,7 +6,8 @@ const ACCOMMODATION_STATUS = Object.freeze({
     CLEANING: 3,
     PREPARING: 4,
     MAINTENANCE: 5,
-    CLOSED: 6
+    CLOSED: 6,
+    INUSE: 7
 });
 var accommodationSchema = new mongoose.Schema(
     {
@@ -17,6 +18,9 @@ var accommodationSchema = new mongoose.Schema(
         accommodationTypeId: {
             type: mongoose.Schema.ObjectId,
             ref: "AccommodationType",
+        },
+        roomNo:{
+            type: String,
         },
         description: {
             type: String,

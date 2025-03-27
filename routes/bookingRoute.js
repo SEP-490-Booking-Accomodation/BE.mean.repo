@@ -9,6 +9,7 @@ const {
   getBooking,
   getBookingsByRentalLocation,
   getBookingsByCustomerId,
+  getBookingsByOwner,
   processMoMoPayment,
   processMoMoNotify,
   processMomoCallback,
@@ -272,6 +273,51 @@ router.get(
   "/booking-history/:customerId",
   authMiddleware,
   getBookingsByCustomerId
+);
+
+/**
+ * @swagger
+ * /api/booking/all-booking-by-owner/{ownerId}:
+ *   get:
+ *     summary: Get all bookings from rental locations owned by a specific owner
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: ownerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: Owner ID
+ *     responses:
+ *       200:
+ *         description: List of all bookings from rental locations owned by this owner
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                   description: Total number of bookings
+ *                 bookings:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       booking_n:
+ *                         $ref: '#/components/schemas/Booking'
+ *       404:
+ *         description: No rental locations or accommodations found for this owner
+ *       500:
+ *         description: Failed to get bookings
+ */
+
+router.get(
+    "/all-booking-by-owner/:ownerId",
+    authMiddleware,
+    getBookingsByOwner
 );
 
 /**

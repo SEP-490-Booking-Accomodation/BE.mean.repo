@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isCustomer } = require("../middlewares/authMiddleware");
+const { authMiddleware, isOwner } = require("../middlewares/authMiddleware");
 const {
   createRentalLocation,
   updateRentalLocation,
@@ -131,7 +131,7 @@ const {
  *       400:
  *         description: Bad request
  */
-router.post("/create-rental-location", authMiddleware, isCustomer, createRentalLocation);
+router.post("/create-rental-location", authMiddleware, isOwner, createRentalLocation);
 
 /**
  * @swagger
@@ -162,7 +162,7 @@ router.post("/create-rental-location", authMiddleware, isCustomer, createRentalL
  *       404:
  *         description: Rental location not found
  */
-router.put("/:id", authMiddleware, updateRentalLocation);
+router.put("/:id", authMiddleware, isOwner, updateRentalLocation);
 
 /**
  * @swagger
@@ -202,7 +202,7 @@ router.put("/:id", authMiddleware, updateRentalLocation);
  *       404:
  *         description: Rental location not found
  */
-router.put("/:id/status", authMiddleware, updateRentalLocationStatus);
+router.put("/:id/status", authMiddleware, isOwner, updateRentalLocationStatus);
 
 /**
  * @swagger
@@ -227,7 +227,7 @@ router.put("/:id/status", authMiddleware, updateRentalLocationStatus);
  *       404:
  *         description: Rental location not found
  */
-router.delete("/:id", authMiddleware, deleteRentalLocation);
+router.delete("/:id", authMiddleware, isOwner, deleteRentalLocation);
 
 /**
  * @swagger
