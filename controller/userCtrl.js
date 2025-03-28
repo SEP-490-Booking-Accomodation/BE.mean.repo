@@ -55,7 +55,7 @@ const createUser = asyncHandler(async (req, res) => {
       email,
       password,
       phone,
-      doB: vietnamTime, // Lưu đúng giờ Việt Nam
+      doB,
       avatarUrl,
       roleID,
       isActive,
