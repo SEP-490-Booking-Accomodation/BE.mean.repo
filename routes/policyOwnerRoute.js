@@ -7,6 +7,7 @@ const {
   deletePolicyOwner,
   getPolicyOwner,
   getAllPolicyOwner,
+  getPolicyOwnerByOwnerId,
 } = require("../controller/policyOwnerCtrl");
 
 /**
@@ -207,6 +208,33 @@ router.get("/all-policy-owner", authMiddleware, getAllPolicyOwner);
  */
 router.get("/:id", authMiddleware, getPolicyOwner);
 
-
+/**
+ * @swagger
+ * /api/policy-owner/get-policy-owner-by-owner/{ownerId}:
+ *   get:
+ *     summary: Get  policy owner by owner ID
+ *     description: Retrieves a specific policy owner by ID
+ *     tags:
+ *       - PolicyOwner
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: ownerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the owner have policy owner to retrieve
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved policy owner
+ *       404:
+ *         description: Policy owner not found
+ */
+router.get(
+  "/get-policy-owner-by-owner/:ownerId",
+  authMiddleware,
+  getPolicyOwnerByOwnerId
+);
 
 module.exports = router;

@@ -5,42 +5,49 @@ const moment = require("moment-timezone");
 const Value = require("../models/valueModel");
 const softDelete = require("../utils/softDelete");
 
-const createPolicyOwner= asyncHandler(async(req, res) => {
-    try{
-        const newPolicyOwner= await PolicyOwner.create(req.body);
-        res.json(newPolicyOwner);
-    } catch (error){
-        throw new Error(error);
-    }
-});
-const updatePolicyOwner = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    validateMongoDbId(id);
-    try {
-      const updatePolicyOwner = await PolicyOwner.findByIdAndUpdate(id, req.body, {
-        new: true,
-      });
-      res.json(updatePolicyOwner);
-    } catch (error) {
-      throw new Error(error);
-    }
-});
-  
-const deletePolicyOwner = asyncHandler(async (req, res) => {
-  const {id} = req.params;
+const createPolicyOwner = asyncHandler(async (req, res) => {
   try {
-      const deletedPolicyOwner = await softDelete(PolicyOwner, id);
-
-      if (!deletedPolicyOwner) {
-          return res.status(404).json({message: "PolicyOwner not found"});
-      }
-
-      res.json({message: "PolicyOwner deleted successfully", data: deletedPolicyOwner});
+    const newPolicyOwner = await PolicyOwner.create(req.body);
+    res.json(newPolicyOwner);
   } catch (error) {
-      res.status(500).json({message: error.message});
+    throw new Error(error);
   }
 });
-  
+const updatePolicyOwner = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  validateMongoDbId(id);
+  try {
+    const updatePolicyOwner = await PolicyOwner.findByIdAndUpdate(
+      id,
+      req.body,
+      {
+        new: true,
+      }
+    );
+    res.json(updatePolicyOwner);
+  } catch (error) {
+    throw new Error(error);
+  }
+});
+
+const deletePolicyOwner = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deletedPolicyOwner = await softDelete(PolicyOwner, id);
+
+    if (!deletedPolicyOwner) {
+      return res.status(404).json({ message: "PolicyOwner not found" });
+    }
+
+    res.json({
+      message: "PolicyOwner deleted successfully",
+      data: deletedPolicyOwner,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 const getPolicyOwner = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
@@ -78,17 +85,40 @@ const getPolicyOwner = asyncHandler(async (req, res) => {
   }
 });
 
+const getPolicyOwnerByOwnerId = asyncHandler(async (req, res) => {
+  const { ownerId } = req.params;
+  validateMongoDbId(ownerId);
+  try {
+    const owners = await PolicyOwner.find({
+      ownerId,
+      isDelete: false,
+    }).populate({
+      path: "ownerId",
+      populate: { path: "userId", select: "fullName" },
+    });
+    if (owners.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No policy owners found for this owner ID" });
+    }
+    res.json({
+      message: "Owners retrieved successfully",
+      owners,
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
+});
 
 const getAllPolicyOwner = asyncHandler(async (req, res) => {
   try {
-    const policyOwners = await PolicyOwner.find({ isDelete: false }).populate(
-      {
-        path: "ownerId",
-        select: "-createdAt -updatedAt -isDelete",
-        populate: {path: "userId", select:"fullName"}
-      });
-    const formattedPolicyOwners = await Promise.all(policyOwners.map(
-      async (doc) => {
+    const policyOwners = await PolicyOwner.find({ isDelete: false }).populate({
+      path: "ownerId",
+      select: "-createdAt -updatedAt -isDelete",
+      populate: { path: "userId", select: "fullName" },
+    });
+    const formattedPolicyOwners = await Promise.all(
+      policyOwners.map(async (doc) => {
         const docObj = doc.toJSON();
 
         const values = await Value.find({
@@ -99,12 +129,12 @@ const getAllPolicyOwner = asyncHandler(async (req, res) => {
         docObj.values = values;
 
         return docObj;
-      }
-    ));
+      })
+    );
 
     res.status(200).json({
       success: true,
-      data: formattedPolicyOwners
+      data: formattedPolicyOwners,
     });
   } catch (error) {
     res.status(500).json({
@@ -115,9 +145,10 @@ const getAllPolicyOwner = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-    createPolicyOwner,
-    updatePolicyOwner,
-    deletePolicyOwner,
-    getPolicyOwner,
-    getAllPolicyOwner,
+  createPolicyOwner,
+  updatePolicyOwner,
+  deletePolicyOwner,
+  getPolicyOwner,
+  getPolicyOwnerByOwnerId,
+  getAllPolicyOwner,
 };

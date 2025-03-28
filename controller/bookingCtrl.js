@@ -335,7 +335,13 @@ const getBookingsByCustomerId = asyncHandler(async (req, res) => {
   const { customerId } = req.params;
   validateMongoDbId(customerId);
   try {
-    const bookings = await Booking.find({ customerId, isDelete: false });
+    const bookings = await Booking.find({
+      customerId,
+      isDelete: false,
+    }).populate({
+      path: "customerId",
+      populate: { path: "userId", select: "fullName" },
+    });
     if (bookings.length === 0) {
       return res
         .status(404)
