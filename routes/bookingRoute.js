@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isCustomer } = require("../middlewares/authMiddleware");
+const { authMiddleware, isOwner } = require("../middlewares/authMiddleware");
 const {
   createBooking,
   updateBooking,
@@ -9,6 +9,7 @@ const {
   getBooking,
   getBookingsByRentalLocation,
   getBookingsByCustomerId,
+  getBookingsByOwner,
   processMoMoPayment,
   processMoMoNotify,
   processMomoCallback,
@@ -96,8 +97,9 @@ const {
  *           type: string
  *           description: Password room for open
  *         status:
- *           enum: [1, 2, 3, 4, 5, 6, 7]
- *           description: Booking method (CONFIRMED=1, NEEDCHECKIN=2, CHECKEDIN=3, NEEDCHECKOUT=4, CHECKEDOUT=5, CANCELLED=6, COMPLETED=7)
+ *           type: integer
+ *           enum: [1, 2, 3, 4, 5, 6, 7, 8]
+ *           description: Booking method (1=CONFIRMED, 2=NEEDCHECKIN, 3=CHECKEDIN, 4=NEEDCHECKOUT, 5=CHECKEDOUT 6=CANCELLED, 7=COMPLETED, 8=PENDING)
  */
 
 /**
@@ -144,7 +146,7 @@ router.post("/create-Booking", authMiddleware, createBooking);
  *       200:
  *         description: Booking updated successfully
  */
-router.put("/:id", authMiddleware, isCustomer, updateBooking);
+router.put("/:id", authMiddleware, isOwner, updateBooking);
 
 /**
  * @swagger
@@ -272,6 +274,51 @@ router.get(
   "/booking-history/:customerId",
   authMiddleware,
   getBookingsByCustomerId
+);
+
+/**
+ * @swagger
+ * /api/booking/all-booking-by-owner/{ownerId}:
+ *   get:
+ *     summary: Get all bookings from rental locations owned by a specific owner
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: ownerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: Owner ID
+ *     responses:
+ *       200:
+ *         description: List of all bookings from rental locations owned by this owner
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 total:
+ *                   type: integer
+ *                   description: Total number of bookings
+ *                 bookings:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       booking_n:
+ *                         $ref: '#/components/schemas/Booking'
+ *       404:
+ *         description: No rental locations or accommodations found for this owner
+ *       500:
+ *         description: Failed to get bookings
+ */
+
+router.get(
+    "/all-booking-by-owner/:ownerId",
+    authMiddleware,
+    getBookingsByOwner
 );
 
 /**

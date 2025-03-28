@@ -1,4 +1,5 @@
 const express = require("express");
+const twilio = require('twilio');
 const dbConnect = require("./config/dbConnect");
 const { swaggerUi, swaggerSpec } = require("./config/swaggerConfig");
 const cors = require("cors");
@@ -33,6 +34,7 @@ const notificationRoute = require("./routes/notificationRoute");
 const transactionRoute = require("./routes/transactionRoute");
 const landUsesRightRoute = require("./routes/landUsesRightRoute");
 const valueRoute = require("./routes/valueRoute");
+const verifyRoute = require("./routes/verifyRoute");
 
 const bodyParser = require("body-parser");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
@@ -90,6 +92,9 @@ app.use("/api/notification", notificationRoute);
 app.use("/api/transaction", transactionRoute);
 app.use("/api/land-uses-right", landUsesRightRoute);
 app.use("/api/value", valueRoute);
+app.use("/api", verifyRoute);
+
+
 
 app.use(notFound);
 app.use(errorHandler);
