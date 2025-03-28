@@ -333,15 +333,21 @@ const getBooking = asyncHandler(async (req, res) => {
 });
 
 const getBookingsByCustomerId = asyncHandler(async (req, res) => {
-    const {customerId} = req.params;
-    validateMongoDbId(customerId);
-    try {
-        const bookings = await Booking.find({customerId, isDelete: false});
-        if (bookings.length === 0) {
-            return res
-                .status(404)
-                .json({message: "No bookings found for this customer"});
-        }
+  const { customerId } = req.params;
+  validateMongoDbId(customerId);
+  try {
+    const bookings = await Booking.find({
+      customerId,
+      isDelete: false,
+    }).populate({
+      path: "customerId",
+      populate: { path: "userId", select: "fullName" },
+    });
+    if (bookings.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No bookings found for this customer" });
+    }
         res.json({
             message: "Bookings retrieved successfully",
             bookings,
