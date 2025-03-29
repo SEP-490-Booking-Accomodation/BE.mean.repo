@@ -1,4 +1,5 @@
 const RentalLocation = require("../models/rentalLocationModel");
+const AccommodationType = require("../models/accommodationTypeModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
@@ -80,6 +81,52 @@ const getRentalLocation = asyncHandler(async (req, res) => {
     throw new Error(error);
   }
 });
+
+const getAllAccommodationTypeOfRentalLocation = asyncHandler(
+  async (req, res) => {
+    const { id } = req.params;
+    validateMongoDbId(id);
+    try {
+      const rentalLocation = await RentalLocation.findOne({
+        _id: id,
+        isDelete: false,
+      }).populate({
+        path: "ownerId",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: { path: "userId", select: "fullName" },
+      });
+
+      const formattedRentalLocations = rentalLocation.toJSON();
+
+      console.log(id);
+      const accommodationTypeIds = await AccommodationType.find({
+        rentalLocationId: id,
+        isDelete: false,
+      });
+
+      // Đếm số lượng accommodationTypeIds trước
+      const accommodationTypeCount = await AccommodationType.countDocuments({
+        rentalLocationId: id,
+        isDelete: false,
+      });
+
+      formattedRentalLocations.accommodationTypeIds = {
+        count: accommodationTypeCount,
+        data: accommodationTypeIds,
+      };
+
+      res.status(200).json({
+        success: true,
+        data: formattedRentalLocations,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
+    }
+  }
+);
 
 const getAllRentalLocation = asyncHandler(async (req, res) => {
   try {
@@ -171,5 +218,6 @@ module.exports = {
   deleteRentalLocation,
   getRentalLocation,
   getAllRentalLocation,
-  updateRentalLocationStatus
+  updateRentalLocationStatus,
+  getAllAccommodationTypeOfRentalLocation,
 };
