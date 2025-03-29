@@ -8,6 +8,7 @@ const {
   getRentalLocation,
   getAllRentalLocation,
   updateRentalLocationStatus,
+  getAllAccommodationTypeOfRentalLocation,
 } = require("../controller/rentalLocationCtrl");
 
 /**
@@ -254,6 +255,31 @@ router.delete("/:id", authMiddleware, isOwner, deleteRentalLocation);
  */
 
 router.get("/all-rental-location", getAllRentalLocation);
+
+/**
+ * @swagger
+ * /api/rental-location/all-accommodation-type-of-rental-location/{id}:
+ *   get:
+ *     summary: Get all accommodation Type of rental location
+ *     description: Get all accommodation Type of rental location record by its ID
+ *     tags:
+ *       - RentalLocation
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the rental location to find
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all accommodation Type of rental location
+ *       404:
+ *         description: Rental location not found
+ */
+router.get("/all-accommodation-type-of-rental-location/:id", getAllAccommodationTypeOfRentalLocation);
 
 /**
  * @swagger
