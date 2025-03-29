@@ -222,7 +222,7 @@ const processMoMoPayment = async (req, res) => {
     const extraData = "";
     const requestType = "captureWallet";
     const requestTime = new Date().getTime();
-    const expireTime = requestTime + 15 * 60 * 1000; // Thời gian hết hạn là 30 phút
+    const expire = requestTime + 10 * 60 * 1000; // Thời gian hết hạn là 30 phút
 
     const rawSignature = `accessKey=${accessKey}&amount=${amount}&extraData=${extraData}&ipnUrl=${notifyUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${partnerCode}&redirectUrl=${returnUrl}&requestId=${requestId}&requestType=${requestType}`;
     const signature = crypto
@@ -243,14 +243,18 @@ const processMoMoPayment = async (req, res) => {
       extraData,
       lang: "en",
       signature,
-      requestTime, // Thêm thời gian gửi request
-      expireTime, // Thêm thời gian hết hạn
+      requestTime,
+      expire,
     };
+
+    console.log("MoMo Request:", momoRequest);
 
     const momoResponse = await axios.post(
       "https://test-payment.momo.vn/v2/gateway/api/create",
       momoRequest
     );
+
+    console.log("MoMo Response:", momoResponse.data);
 
     if (momoResponse.data && momoResponse.data.payUrl) {
       const transaction = new Transaction({
@@ -263,7 +267,11 @@ const processMoMoPayment = async (req, res) => {
       });
       await transaction.save();
 
-      return res.json({ payUrl: momoResponse.data.payUrl });
+      return res.json({
+        payUrl: momoResponse.data.payUrl,
+        deeplink: momoResponse.data.deeplink,
+        qrCodeUrl: momoResponse.data.qrCodeUrl,
+      });
     } else {
       return res.status(500).json({ message: "Failed to initiate payment" });
     }
@@ -440,11 +448,9 @@ const getBookingsByOwner = asyncHandler(async (req, res) => {
     const accommodationIds = accommodations.map((a) => a._id);
 
     if (accommodationIds.length === 0) {
-      return res
-        .status(404)
-        .json({
-          message: "No accommodations found for this owner's rental locations.",
-        });
+      return res.status(404).json({
+        message: "No accommodations found for this owner's rental locations.",
+      });
     }
 
     // 3. Get all bookings related to these accommodations
