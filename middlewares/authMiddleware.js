@@ -57,6 +57,30 @@ const isNotGuest = asyncHandler(async (req, res, next) => {
     next();
   }
 });
+const isCusAndOwner = asyncHandler(async (req, res, next) => {
+  const { email } = req.user;
+  const user = await User.findOne({ email });
+  if (
+    !user.roleID.equals("67927ffda0a58ce4f7e8e840") &&
+    !user.roleID.equals("67927ff7a0a58ce4f7e8e83d")
+  ) {
+    throw new Error("Bạn không phải là 1 người dùng hoặc đại diện!");
+  } else {
+    next();
+  }
+});
+const isAdminAndOwner = asyncHandler(async (req, res, next) => {
+  const { email } = req.user;
+  const user = await User.findOne({ email });
+  if (
+   !user.roleID.equals("67927feaa0a58ce4f7e8e83a") &&
+   !user.roleID.equals("67927ff7a0a58ce4f7e8e83d")
+  ) {
+    throw new Error("Bạn không phải là 1 quản trị viên hoặc đại diện!");
+  } else {
+    next();
+  }
+});
 
 module.exports = {
   authMiddleware,
@@ -64,4 +88,6 @@ module.exports = {
   isOwner,
   isCustomer,
   isNotGuest,
+  isCusAndOwner,
+  isAdminAndOwner,
 };

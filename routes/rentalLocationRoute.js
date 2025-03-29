@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isOwner } = require("../middlewares/authMiddleware");
+const { authMiddleware, isOwner, isAdminAndOwner } = require("../middlewares/authMiddleware");
 const {
   createRentalLocation,
   updateRentalLocation,
@@ -163,7 +163,7 @@ router.post("/create-rental-location", authMiddleware, isOwner, createRentalLoca
  *       404:
  *         description: Rental location not found
  */
-router.put("/:id", authMiddleware, isOwner, updateRentalLocation);
+router.put("/:id", authMiddleware, isAdminAndOwner, updateRentalLocation);
 
 /**
  * @swagger
@@ -203,7 +203,12 @@ router.put("/:id", authMiddleware, isOwner, updateRentalLocation);
  *       404:
  *         description: Rental location not found
  */
-router.put("/:id/status", authMiddleware, isOwner, updateRentalLocationStatus);
+router.put(
+  "/:id/status",
+  authMiddleware,
+  isAdminAndOwner,
+  updateRentalLocationStatus
+);
 
 /**
  * @swagger
