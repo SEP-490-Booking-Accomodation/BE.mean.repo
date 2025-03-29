@@ -140,6 +140,56 @@ const getAllFeedbackByRentalId = asyncHandler(async (req, res) => {
   }
 });
 
+const getAverageRatingByRentalId = asyncHandler(async (req, res) => {
+  const { rentalId } = req.params;
+  validateMongoDbId(rentalId);
+
+  try {
+    // Lấy tất cả accommodations thuộc rentalLocationId
+    const accommodations = await Accommodation.find({
+      rentalLocationId: rentalId,
+    }).select("_id");
+    const accommodationIds = accommodations.map((acc) => acc._id);
+
+    // Lấy tất cả bookingId liên quan đến accommodations đó
+    const bookings = await Booking.find({
+      accommodationId: { $in: accommodationIds },
+    }).select("_id");
+    const bookingIds = bookings.map((book) => book._id);
+
+    // Lấy tất cả feedback có rating theo bookingId
+    const feedbacks = await Feedback.find({
+      bookingId: { $in: bookingIds },
+      isDelete: false,
+      rating: { $exists: true },
+    }).select("rating");
+
+    if (feedbacks.length === 0) {
+      return res.json({
+        rentalId,
+        averageRating: 0,
+        totalFeedbacks: 0,
+      });
+    }
+
+    // Tính trung bình rating
+    const totalRating = feedbacks.reduce(
+      (sum, feedback) => sum + feedback.rating,
+      0
+    );
+    const averageRating = totalRating / feedbacks.length;
+
+    res.json({
+      rentalId,
+      averageRating: parseFloat(averageRating.toFixed(2)), // Làm tròn đến 2 số thập phân
+      totalFeedbacks: feedbacks.length,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 const getAllFeedbackByOwnerId = asyncHandler(async (req, res) => {
   const { ownerId } = req.params;
   validateMongoDbId(ownerId);
@@ -185,4 +235,5 @@ module.exports = {
   getAllFeedback,
   getAllFeedbackByRentalId,
   getAllFeedbackByOwnerId,
+  getAverageRatingByRentalId,
 };

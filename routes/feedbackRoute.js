@@ -13,6 +13,7 @@ const {
   getFeedback,
   getAllFeedbackByRentalId,
   getAllFeedbackByOwnerId,
+  getAverageRatingByRentalId,
 } = require("../controller/feedbackCtrl");
 
 /**
@@ -157,6 +158,27 @@ router.get("/all-feedbacks", authMiddleware, getAllFeedback);
  *         description: List of feedback related to the rental
  */
 router.get("/rental/:rentalId", authMiddleware, getAllFeedbackByRentalId);
+
+/**
+ * @swagger
+ * /api/feedback/rental/{rentalId}/average-rating:
+ *   get:
+ *     summary: Get Average Rating feedback for a rental
+ *     description: Retrieve Average Rating feedback entries associated with a specific rental
+ *     tags:
+ *       - Feedback
+ *     parameters:
+ *       - in: path
+ *         name: rentalId
+ *         required: true
+ *         description: The ID of the rental
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of Average Rating feedback related to the rental
+ */
+router.get("/rental/:rentalId/average-rating", getAverageRatingByRentalId);
 
 /**
  * @swagger
