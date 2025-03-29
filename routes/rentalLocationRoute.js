@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isOwner, isAdminAndOwner } = require("../middlewares/authMiddleware");
+const {
+  authMiddleware,
+  isOwner,
+  isAdminAndOwner,
+} = require("../middlewares/authMiddleware");
 const {
   createRentalLocation,
   updateRentalLocation,
@@ -9,6 +13,7 @@ const {
   getAllRentalLocation,
   updateRentalLocationStatus,
   getAllAccommodationTypeOfRentalLocation,
+  getAllRentalLocationHaveRating,
 } = require("../controller/rentalLocationCtrl");
 
 /**
@@ -109,7 +114,6 @@ const {
  *         isOverNight: true
  */
 
-
 /**
  * @swagger
  * /api/rental-location/create-rental-location:
@@ -132,7 +136,12 @@ const {
  *       400:
  *         description: Bad request
  */
-router.post("/create-rental-location", authMiddleware, isOwner, createRentalLocation);
+router.post(
+  "/create-rental-location",
+  authMiddleware,
+  isOwner,
+  createRentalLocation
+);
 
 /**
  * @swagger
@@ -263,6 +272,32 @@ router.get("/all-rental-location", getAllRentalLocation);
 
 /**
  * @swagger
+ * /api/rental-location/all-rental-location-with-rating:
+ *   get:
+ *     summary: Get all rental locations
+ *     description: Retrieves a list of all rental locations
+ *     parameters:
+ *       - in: query
+ *         name: ownerId
+ *         schema:
+ *           type: string
+ *         required: false
+ *         description: The ID of the owner to filter rental locations
+ *     tags:
+ *       - RentalLocation
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all rental locations
+ *       404:
+ *         description: No rental locations found
+ */
+
+router.get("/all-rental-location-with-rating", getAllRentalLocationHaveRating);
+
+/**
+ * @swagger
  * /api/rental-location/all-accommodation-type-of-rental-location/{id}:
  *   get:
  *     summary: Get all accommodation Type of rental location
@@ -284,7 +319,10 @@ router.get("/all-rental-location", getAllRentalLocation);
  *       404:
  *         description: Rental location not found
  */
-router.get("/all-accommodation-type-of-rental-location/:id", getAllAccommodationTypeOfRentalLocation);
+router.get(
+  "/all-accommodation-type-of-rental-location/:id",
+  getAllAccommodationTypeOfRentalLocation
+);
 
 /**
  * @swagger
