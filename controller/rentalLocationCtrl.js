@@ -102,6 +102,9 @@ const getAllAccommodationTypeOfRentalLocation = asyncHandler(
       const accommodationTypeIds = await AccommodationType.find({
         rentalLocationId: id,
         isDelete: false,
+      }).populate({
+        path: "serviceIds",
+        select: "name",
       });
 
       // Đếm số lượng accommodationTypeIds trước
