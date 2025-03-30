@@ -57,6 +57,7 @@ const {
  *         serviceIds: ["63b92f4e17d7b3c2a4e4f3e3", "63b92f4e17d7b3c2a4e4f3e4"]
  *         name: "Deluxe Room"
  *         description: "A spacious room with premium amenities."
+ *         image: ""
  *         maxPeopleNumber: 4
  *         basePrice: 200
  *         overtimeHourlyPrice: 20
