@@ -332,7 +332,13 @@ const getBooking = asyncHandler(async (req, res) => {
   validateMongoDbId(id);
   try {
     const get1Booking = await Booking.findOne({ _id: id, isDelete: false })
-      .populate("accommodationId")
+      .populate({
+        path: "accommodationId",
+        populate: [
+          { path: "accommodationTypeId"},
+          { path: "rentalLocationId"},
+        ],
+      })
       .populate("policySystemBookingId")
       .populate({
         path: "customerId",
@@ -343,6 +349,70 @@ const getBooking = asyncHandler(async (req, res) => {
     throw new Error(error);
   }
 });
+
+// Hàm tạo mật khẩu ngẫu nhiên gồm 6 chữ số
+const generatePassword = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// API để tạo passwordRoom bất cứ khi nào cần
+const generateRoomPassword = async (req, res) => {
+  try {
+    const { bookingId } = req.params;
+    const booking = await Booking.findById(bookingId);
+
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // Lấy thời gian hiện tại theo múi giờ Asia/Ho_Chi_Minh
+    const now = moment().tz("Asia/Ho_Chi_Minh");
+
+    // Chuyển đổi checkInHour và checkOutHour sang Asia/Ho_Chi_Minh
+    const checkIn = moment.utc(booking.checkInHour).tz("Asia/Ho_Chi_Minh");
+    const checkOut = moment.utc(booking.checkOutHour).tz("Asia/Ho_Chi_Minh");
+
+    // Ghi nhật ký để kiểm tra giá trị thực tế
+    console.log("Now:", now.format());
+    console.log("Check-in:", checkIn.format());
+    console.log("Check-out:", checkOut.format());
+
+    // Kiểm tra tính hợp lệ của checkIn và checkOut
+    if (!checkIn.isValid() || !checkOut.isValid()) {
+      return res
+        .status(400)
+        .json({ message: "Invalid check-in or check-out date" });
+    }
+
+    if (checkIn.isBefore(now) || checkOut.isSameOrBefore(checkIn)) {
+      return res
+        .status(400)
+        .json({
+          message:
+            "Invalid booking dates: check-in must be in the future and check-out must be after check-in",
+        });
+    }
+
+    // Tạo mật khẩu mới
+    const passwordRoom = generatePassword();
+    booking.passwordRoom = passwordRoom;
+    await booking.save();
+
+    // Xóa passwordRoom sau khi hết thời gian checkOut
+    const timeUntilCheckOut = checkOut.diff(now);
+    if (timeUntilCheckOut > 0) {
+      setTimeout(async () => {
+        await Booking.findByIdAndUpdate(bookingId, {
+          $unset: { passwordRoom: "" },
+        });
+      }, timeUntilCheckOut);
+    }
+
+    res.json({ message: "Password generated successfully", passwordRoom });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 const getBookingsByCustomerId = asyncHandler(async (req, res) => {
   const { customerId } = req.params;
@@ -502,4 +572,5 @@ module.exports = {
   processMoMoPayment,
   processMoMoNotify,
   processMomoCallback,
+  generateRoomPassword,
 };
