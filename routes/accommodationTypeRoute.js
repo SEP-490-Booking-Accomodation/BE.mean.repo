@@ -47,6 +47,11 @@ const {
  *         overtimeHourlyPrice:
  *           type: number
  *           description: The hourly price for overtime stay
+ *         image:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Array of image URLs for the accommodation type
  *       example:
  *         rentalLocationId: "63b92f4e17d7b3c2a4e4f3d2"
  *         serviceIds: ["63b92f4e17d7b3c2a4e4f3e3", "63b92f4e17d7b3c2a4e4f3e4"]
@@ -55,6 +60,7 @@ const {
  *         maxPeopleNumber: 4
  *         basePrice: 200
  *         overtimeHourlyPrice: 20
+ *         image: ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
  */
 
 /**

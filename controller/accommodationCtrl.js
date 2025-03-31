@@ -84,7 +84,17 @@ const getAccommodation = asyncHandler(async (req, res) => {
 
 const getAllAccommodation = asyncHandler(async (req, res) => {
     try {
-        const accommodations = await Accommodation.find({ isDelete: false })
+        const { rentalLocationId } = req.query;
+
+        // Create a filter object - start with isDelete: false
+        const filter = { isDelete: false };
+
+        // Add rentalLocationId to filter if it exists in the query
+        if (rentalLocationId) {
+            filter.rentalLocationId = rentalLocationId;
+        }
+
+        const accommodations = await Accommodation.find(filter)
             .populate({
                 path: 'accommodationTypeId',
                 select: '-__v',
@@ -92,13 +102,49 @@ const getAllAccommodation = asyncHandler(async (req, res) => {
                     path: "serviceIds",
                     select: "-createdAt -updatedAt -isDelete -id -status -accomodationTypeId",
                 }
-                // Exclude the '__v' field, modify as needed
             })
             .populate({
                 path: 'rentalLocationId',
-                select: '-__v' // Exclude the '__v' field, modify as needed
+                select: '-__v'
             });
+
         console.log(accommodations.map(a => a.accommodationTypeId));
+        const formattedAccommodations = accommodations.map(doc => doc.toJSON());
+
+        res.status(200).json({
+            success: true,
+            data: formattedAccommodations
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message || "Internal Server Error",
+        });
+    }
+});
+
+const getAccommodationsByLocationId = asyncHandler(async (req, res) => {
+    try {
+        const { rentalLocationId } = req.params; // Get the locationId from the request parameters
+
+        // Find accommodations that match the locationId and aren't deleted
+        const accommodations = await Accommodation.find({
+            rentalLocationId: rentalLocationId,
+            isDelete: false
+        })
+            .populate({
+                path: 'accommodationTypeId',
+                select: '-__v',
+                populate: {
+                    path: "serviceIds",
+                    select: "-createdAt -updatedAt -isDelete -id -status -accomodationTypeId",
+                }
+            })
+            .populate({
+                path: 'rentalLocationId',
+                select: '-__v'
+            });
+
         const formattedAccommodations = accommodations.map(doc => doc.toJSON());
 
         res.status(200).json({
@@ -118,5 +164,7 @@ module.exports = {
     updateAccommodation,
     deleteAccommodation,
     getAccommodation,
+    getAccommodationsByLocationId,
     getAllAccommodation,
+
 };

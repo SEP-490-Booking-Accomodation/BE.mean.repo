@@ -6,6 +6,7 @@ const {
   updateAccommodation,
   deleteAccommodation,
   getAccommodation,
+  getAccommodationsByLocationId,
   getAllAccommodation,
 } = require("../controller/accommodationCtrl");
 
@@ -193,4 +194,31 @@ router.get("/all-accommodations", getAllAccommodation);
  *         description: Accommodation not found
  */
 router.get("/:id", getAccommodation);
+
+/**
+ * @swagger
+ * /api/accommodation/rental-location/{rentalLocationId}:
+ *   get:
+ *     summary: Get accommodations by rental location ID
+ *     description: Retrieves a list of all accommodations for a specific rental location
+ *     parameters:
+ *       - in: path
+ *         name: rentalLocationId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the rental location to filter accommodations
+ *     tags:
+ *       - Accommodation
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved accommodations for the specified rental location
+ *       404:
+ *         description: No accommodations found for this rental location
+ *       500:
+ *         description: Internal server error
+ */
+router.get("/rental-location/:rentalLocationId", getAccommodationsByLocationId);
 module.exports = router;
