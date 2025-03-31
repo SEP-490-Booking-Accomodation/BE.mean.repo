@@ -18,6 +18,7 @@ var accommodationTypeSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        image: [],
         maxPeopleNumber: {
             type: Number,
             required: true,

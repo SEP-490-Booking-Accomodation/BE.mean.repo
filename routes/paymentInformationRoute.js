@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isCustomer } = require("../middlewares/authMiddleware");
+const { authMiddleware, isCustomer, isCusAndOwner } = require("../middlewares/authMiddleware");
 const {
   createPaymentInformation,
   updatePaymentInformation,
@@ -56,7 +56,7 @@ const {
  *       400:
  *         description: Bad request
  */
-router.post("/create-payment-information", authMiddleware, isCustomer, createPaymentInformation);
+router.post("/create-payment-information", authMiddleware, isCusAndOwner, createPaymentInformation);
 
 /**
  * @swagger

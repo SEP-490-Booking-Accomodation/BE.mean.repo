@@ -13,6 +13,7 @@ const {
   processMoMoPayment,
   processMoMoNotify,
   processMomoCallback,
+  generateRoomPassword,
 } = require("../controller/bookingCtrl");
 
 /**
@@ -22,7 +23,7 @@ const {
  *     Booking:
  *       type: object
  *       required:
- *         - policySystemBookingId
+ *         - policySystemId
  *         - customerId
  *         - accommodationTypeId
  *         - checkInHour
@@ -31,7 +32,7 @@ const {
  *         - childNumber
  *         - durationBookingHour
  *       properties:
- *         policySystemBookingId:
+ *         policySystemId:
  *           type: string
  *           description: Reference to PolicySystemBooking
  *         customerId:
@@ -139,7 +140,7 @@ router.post("/create-Booking", authMiddleware, createBooking);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         application/x-www-form-urlencoded:
  *           schema:
  *             $ref: '#/components/schemas/Booking'
  *     responses:
@@ -368,6 +369,44 @@ router.get(
  *         description: List of bookings
  */
 router.get("/all-Bookings", authMiddleware, getAllBooking);
+
+/**
+ * @swagger
+ * /api/booking/{bookingId}/generate-password:
+ *   put:
+ *     summary: Generate or update passwordRoom for a booking
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: bookingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: Booking ID
+ *     responses:
+ *       200:
+ *         description: Password room updated successfully
+ *         content:
+ *           application/x-www-form-urlencoded:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 passwordRoom:
+ *                   type: string
+ *                   description: Generated password for the room
+ *       404:
+ *         description: Booking not found
+ *       500:
+ *         description: Server error
+ */
+router.put(
+  "/:bookingId/generate-password",
+  authMiddleware,
+  isOwner,
+  generateRoomPassword
+);
 
 /**
  * @swagger

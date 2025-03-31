@@ -38,6 +38,11 @@ const {
  *         description:
  *           type: string
  *           description: A detailed description of the accommodation type
+ *         image:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: The image associated with this
  *         maxPeopleNumber:
  *           type: number
  *           description: The maximum number of people allowed for this accommodation type
@@ -57,6 +62,7 @@ const {
  *         serviceIds: ["63b92f4e17d7b3c2a4e4f3e3", "63b92f4e17d7b3c2a4e4f3e4"]
  *         name: "Deluxe Room"
  *         description: "A spacious room with premium amenities."
+ *         image: ""
  *         maxPeopleNumber: 4
  *         basePrice: 200
  *         overtimeHourlyPrice: 20
@@ -85,7 +91,12 @@ const {
  *       400:
  *         description: Bad request
  */
-router.post("/create-accommodation-type", authMiddleware, isCustomer, createAccommodationType);
+router.post(
+  "/create-accommodation-type",
+  authMiddleware,
+  isCustomer,
+  createAccommodationType
+);
 
 /**
  * @swagger
@@ -160,7 +171,7 @@ router.delete("/:id", authMiddleware, deleteAccommodationType);
  *         description: No accommodation types found
  */
 
-router.get("/all-accommodation-types", authMiddleware, getAllAccommodationType);
+router.get("/all-accommodation-types", getAllAccommodationType);
 
 /**
  * @swagger
@@ -185,6 +196,6 @@ router.get("/all-accommodation-types", authMiddleware, getAllAccommodationType);
  *       404:
  *         description: Accommodation type not found
  */
-router.get("/:id", authMiddleware, getAccommodationType);
+router.get("/:id", getAccommodationType);
 
 module.exports = router;

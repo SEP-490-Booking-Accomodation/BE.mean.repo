@@ -45,9 +45,9 @@ const createUser = asyncHandler(async (req, res) => {
     } = req.body;
 
     // Chuyển đổi doB từ định dạng DD-MM-YYYY sang giờ Việt Nam trước khi lưu
-    const vietnamTime = moment
-      .tz(doB, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
-      .toDate();
+    const vietnamTime = doB
+      ? moment(doB, "DD-MM-YYYY").tz("Asia/Ho_Chi_Minh").toDate()
+      : null;
 
     // Tiến hành tạo người dùng với doB đã được chuyển đổi
     const newUser = new User({
@@ -55,7 +55,7 @@ const createUser = asyncHandler(async (req, res) => {
       email,
       password,
       phone,
-      doB: vietnamTime, // Lưu đúng giờ Việt Nam
+      doB,
       avatarUrl,
       roleID,
       isActive,
@@ -294,7 +294,6 @@ const refreshTokenWithParam = asyncHandler(async (req, res) => {
     });
   });
 });
-
 
 const updatePassword = asyncHandler(async (req, res) => {
   const { _id } = req.user;

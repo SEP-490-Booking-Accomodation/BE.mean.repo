@@ -38,7 +38,9 @@ const {
  *           type: string
  *           description: Description of the policy system
  *         value:
- *           type: string
+ *           type: array
+ *           items:
+ *             type: string
  *           description: The value of the policy
  *         unit:
  *           type: string
