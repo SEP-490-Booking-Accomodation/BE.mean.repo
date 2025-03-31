@@ -13,7 +13,7 @@ const axios = require("axios");
 const createBooking = asyncHandler(async (req, res) => {
   try {
     const {
-      policySystemBookingId,
+      policySystemId,
       customerId,
       accommodationTypeId,
       couponId,
@@ -80,7 +80,7 @@ const createBooking = asyncHandler(async (req, res) => {
     }
 
     const newBooking = new Booking({
-      policySystemBookingId,
+      policySystemId,
       customerId,
       accommodationId: availableRoom._id,
       couponId,
@@ -339,7 +339,7 @@ const getBooking = asyncHandler(async (req, res) => {
           { path: "rentalLocationId"},
         ],
       })
-      .populate("policySystemBookingId")
+      .populate("policySystemId")
       .populate({
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
@@ -484,7 +484,7 @@ const getAllBooking = asyncHandler(async (req, res) => {
   try {
     const getAllBooking = await Booking.find({ isDelete: false })
       .populate("accommodationId")
-      .populate("policySystemBookingId")
+      .populate("policySystemId")
       .populate({
         path: "customerId",
         populate: { path: "userId", select: "fullName" },

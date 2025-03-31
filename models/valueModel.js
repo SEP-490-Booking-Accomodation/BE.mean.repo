@@ -8,6 +8,10 @@ var valueSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: "PolicyOwner",
     },
+    policyBookingId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "PolicySystem",
+    },
     val1: {
       type: String,
     },
