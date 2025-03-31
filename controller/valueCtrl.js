@@ -61,10 +61,15 @@ const getValueById = asyncHandler(async (req, res) => {
     const Value = await Value.findOne({
       valueId: valueId,
       isDelete: false,
-    }).populate({
-      path: "PolicyOwner",
-      select: "-createdAt -updatedAt -isDelete",
-    });
+    })
+      .populate({
+        path: "PolicyOwnerId",
+        select: "-createdAt -updatedAt -isDelete",
+      })
+      .populate({
+        path: "PolicySystemId",
+        select: "-createdAt -updatedAt -isDelete",
+      });
 
     if (!Value) {
       return res
@@ -80,11 +85,16 @@ const getValueById = asyncHandler(async (req, res) => {
 
 const getAllValue = async (req, res) => {
   try {
-    const getAllValue = await Value.find({ isDelete: false }).populate({
-      path: "policyOwnerId",
-      select: "-createdAt -updatedAt -isDelete",
-    //   populate: { path: "userId", select: "fullName" },
-    });
+    const getAllValue = await Value.find({ isDelete: false })
+      .populate({
+        path: "policyOwnerId",
+        select: "-createdAt -updatedAt -isDelete",
+        //   populate: { path: "userId", select: "fullName" },
+      })
+      .populate({
+        path: "PolicySystemId",
+        select: "-createdAt -updatedAt -isDelete",
+      });
     res.json(getAllValue);
   } catch (error) {
     throw new Error(error);

@@ -16,10 +16,6 @@ var policySystemSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: "PolicySystemCategory",
     },
-    policySystemBookingId: {
-      type: mongoose.Schema.ObjectId,
-      ref: "PolicySystemBooking",
-    },
     name: {
       type: String,
       required: true,
@@ -27,12 +23,12 @@ var policySystemSchema = new mongoose.Schema(
     description: {
       type: String,
     },
-    value: {
-      type: String,
-    },
-    unit: {
-      type: String,
-    },
+    values: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "Value",
+      },
+    ],
     startDate: {
       type: Date,
       required: true,

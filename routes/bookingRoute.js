@@ -23,7 +23,7 @@ const {
  *     Booking:
  *       type: object
  *       required:
- *         - policySystemBookingId
+ *         - policySystemId
  *         - customerId
  *         - accommodationTypeId
  *         - checkInHour
@@ -32,7 +32,7 @@ const {
  *         - childNumber
  *         - durationBookingHour
  *       properties:
- *         policySystemBookingId:
+ *         policySystemId:
  *           type: string
  *           description: Reference to PolicySystemBooking
  *         customerId:
