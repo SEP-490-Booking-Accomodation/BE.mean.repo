@@ -31,6 +31,7 @@ const createBooking = asyncHandler(async (req, res) => {
       durationBookingHour,
       completedDate,
       passwordRoom,
+      note,
       status,
     } = req.body;
 
@@ -98,6 +99,7 @@ const createBooking = asyncHandler(async (req, res) => {
       durationBookingHour,
       completedDate: vietnamTime4,
       passwordRoom,
+      note,
       status,
     });
 

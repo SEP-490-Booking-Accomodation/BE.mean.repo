@@ -99,6 +99,9 @@ const {
  *         passwordRoom:
  *           type: string
  *           description: Password room for open
+ *         note:
+ *           type: string
+ *           description: Note of customer
  *         status:
  *           type: integer
  *           enum: [1, 2, 3, 4, 5, 6, 7, 8]
