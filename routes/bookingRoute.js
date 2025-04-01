@@ -386,16 +386,26 @@ router.get("/all-Bookings", authMiddleware, getAllBooking);
  *         required: true
  *         schema:
  *           type: string
- *           description: Booking ID
+ *         description: Booking ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               passwordRoomInput:
+ *                 type: string
+ *                 description: Input password for the room
  *     responses:
  *       200:
  *         description: Password room updated successfully
  *         content:
- *           application/x-www-form-urlencoded:
+ *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 passwordRoom:
+ *                 passwordRoomInput:
  *                   type: string
  *                   description: Generated password for the room
  *       404:
@@ -403,6 +413,7 @@ router.get("/all-Bookings", authMiddleware, getAllBooking);
  *       500:
  *         description: Server error
  */
+
 router.put(
   "/:bookingId/generate-password",
   authMiddleware,
