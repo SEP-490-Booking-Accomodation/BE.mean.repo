@@ -35,11 +35,20 @@ const createBooking = asyncHandler(async (req, res) => {
       status,
     } = req.body;
 
+    const vietnamTimeNow = moment().tz("Asia/Ho_Chi_Minh");
+
     const vietnamTime1 = checkInHour
       ? moment(checkInHour, "DD-MM-YYYY HH:mm:ss")
           .tz("Asia/Ho_Chi_Minh")
           .toDate()
       : null;
+
+    if (vietnamTime1 && moment(vietnamTime1).isBefore(vietnamTimeNow)) {
+      return res
+        .status(400)
+        .json({ message: "Check-in time cannot be in the past." });
+    }
+
     const vietnamTime2 = checkOutHour
       ? moment(checkOutHour, "DD-MM-YYYY HH:mm:ss")
           .tz("Asia/Ho_Chi_Minh")
@@ -81,8 +90,12 @@ const createBooking = asyncHandler(async (req, res) => {
         .json({ message: "No available rooms for this time slot." });
     }
 
+    // Cập nhật trạng thái của phòng accommodation sau khi đã chọn
+    availableRoom.status = "2"; // Đặt trạng thái là 2 (phòng đã được đặt)
+    await availableRoom.save();
+
     const newBooking = new Booking({
-      policySystemIds,
+      policySystemIds: policySystemIds,
       customerId,
       accommodationId: availableRoom._id,
       couponId,
