@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isCustomer } = require("../middlewares/authMiddleware");
+const { authMiddleware, isCustomer, isOwner} = require("../middlewares/authMiddleware");
 const {
   createAccommodationType,
   updateAccommodationType,
@@ -88,7 +88,7 @@ const {
 router.post(
   "/create-accommodation-type",
   authMiddleware,
-  isCustomer,
+  isOwner,
   createAccommodationType
 );
 
@@ -121,7 +121,7 @@ router.post(
  *       404:
  *         description: Accommodation type not found
  */
-router.put("/:id", authMiddleware, updateAccommodationType);
+router.put("/:id", authMiddleware, isOwner, updateAccommodationType);
 
 /**
  * @swagger
@@ -146,21 +146,27 @@ router.put("/:id", authMiddleware, updateAccommodationType);
  *       404:
  *         description: Accommodation type not found
  */
-router.delete("/:id", authMiddleware, deleteAccommodationType);
+router.delete("/:id", authMiddleware, isOwner, deleteAccommodationType);
 
 /**
  * @swagger
  * /api/accommodation-type/all-accommodation-types:
  *   get:
  *     summary: Get all accommodation types
- *     description: Retrieves a list of all accommodation types
+ *     description: Retrieves a list of all accommodation types, optionally filtered by rental location
  *     tags:
  *       - AccommodationType
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: rentalLocationId
+ *         schema:
+ *           type: string
+ *         description: ID of the rental location to filter accommodation types
  *     responses:
  *       200:
- *         description: Successfully retrieved all accommodation types
+ *         description: Successfully retrieved accommodation types
  *       404:
  *         description: No accommodation types found
  */

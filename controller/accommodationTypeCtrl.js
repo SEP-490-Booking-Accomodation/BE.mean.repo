@@ -88,27 +88,35 @@ const getAccommodationType = asyncHandler(async (req, res) => {
 
 const getAllAccommodationType = asyncHandler(async (req, res) => {
   try {
-    // First get all accommodation types
-    const accommodationTypes = await AccommodationType.find({
-      isDelete: false,
-    }).populate("rentalLocationId", "_id name");
 
-    // Get formatted accommodation types with empty serviceIds array
+    const { rentalLocationId } = req.query;
+
+    const query = { isDelete: false };
+
+    if (rentalLocationId) {
+      query.rentalLocationId = rentalLocationId;
+    }
+
+    // Get accommodation types with the applied filter
+    const accommodationTypes = await AccommodationType.find(query)
+        .populate("rentalLocationId", "_id name");
+
+    // Get formatted accommodation types with services
     const formattedAccommodationTypes = await Promise.all(
-      accommodationTypes.map(async (doc) => {
-        const docObj = doc.toJSON();
+        accommodationTypes.map(async (doc) => {
+          const docObj = doc.toJSON();
 
-        // Find all services that reference this accommodation type
-        const serviceIds = await Service.find({
-          accommodationTypeId: doc._id,
-          isDelete: false,
-        }).select("_id name description status");
+          // Find all services that reference this accommodation type
+          const serviceIds = await Service.find({
+            accommodationTypeId: doc._id,
+            isDelete: false,
+          }).select("_id name description status");
 
-        // Add services to the accommodation type object
-        docObj.serviceIds = serviceIds;
+          // Add services to the accommodation type object
+          docObj.serviceIds = serviceIds;
 
-        return docObj;
-      })
+          return docObj;
+        })
     );
 
     res.status(200).json({
