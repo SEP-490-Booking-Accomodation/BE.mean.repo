@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isCustomer } = require("../middlewares/authMiddleware");
+const { authMiddleware, isCustomer, isOwner} = require("../middlewares/authMiddleware");
 const {
   createAccommodationType,
   updateAccommodationType,
@@ -47,15 +47,20 @@ const {
  *         overtimeHourlyPrice:
  *           type: number
  *           description: The hourly price for overtime stay
+ *         image:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Array of image URLs for the accommodation type
  *       example:
- *          rentalLocationId: "63b92f4e17d7b3c2a4e4f3d2"
- *          serviceIds: ["63b92f4e17d7b3c2a4e4f3e3", "63b92f4e17d7b3c2a4e4f3e4"]
- *          name: "Deluxe Room"
- *          description: "A spacious room with premium amenities."
- *          image: ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
- *          maxPeopleNumber: 4
- *          basePrice: 200
- *          overtimeHourlyPrice: 20
+ *         rentalLocationId: "63b92f4e17d7b3c2a4e4f3d2"
+ *         serviceIds: ["63b92f4e17d7b3c2a4e4f3e3", "63b92f4e17d7b3c2a4e4f3e4"]
+ *         name: "Deluxe Room"
+ *         description: "A spacious room with premium amenities."
+ *         maxPeopleNumber: 4
+ *         basePrice: 200
+ *         overtimeHourlyPrice: 20
+ *         image: ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
  */
 
 /**
@@ -83,7 +88,7 @@ const {
 router.post(
   "/create-accommodation-type",
   authMiddleware,
-  isCustomer,
+  isOwner,
   createAccommodationType
 );
 
@@ -116,7 +121,7 @@ router.post(
  *       404:
  *         description: Accommodation type not found
  */
-router.put("/:id", authMiddleware, updateAccommodationType);
+router.put("/:id", authMiddleware, isOwner, updateAccommodationType);
 
 /**
  * @swagger
@@ -141,21 +146,27 @@ router.put("/:id", authMiddleware, updateAccommodationType);
  *       404:
  *         description: Accommodation type not found
  */
-router.delete("/:id", authMiddleware, deleteAccommodationType);
+router.delete("/:id", authMiddleware, isOwner, deleteAccommodationType);
 
 /**
  * @swagger
  * /api/accommodation-type/all-accommodation-types:
  *   get:
  *     summary: Get all accommodation types
- *     description: Retrieves a list of all accommodation types
+ *     description: Retrieves a list of all accommodation types, optionally filtered by rental location
  *     tags:
  *       - AccommodationType
  *     security:
  *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: rentalLocationId
+ *         schema:
+ *           type: string
+ *         description: ID of the rental location to filter accommodation types
  *     responses:
  *       200:
- *         description: Successfully retrieved all accommodation types
+ *         description: Successfully retrieved accommodation types
  *       404:
  *         description: No accommodation types found
  */
