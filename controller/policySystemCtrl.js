@@ -130,18 +130,106 @@ const createPolicySystem = asyncHandler(async (req, res) => {
 const updatePolicySystem = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
+  // try {
+  //   const updatePolicySystem = await PolicySystem.findByIdAndUpdate(
+  //     id,
+  //     req.body,
+  //     {
+  //       new: true,
+  //     }
+  //   );
+  //   res.json(updatePolicySystem);
+  // } catch (error) {
+  //   throw new Error(error);
+  // }
+
   try {
-    const updatePolicySystem = await PolicySystem.findByIdAndUpdate(
-      id,
-      req.body,
-      {
-        new: true,
+    const { values, ...policySystemData } = req.body;
+    const session = await startSession();
+    session.startTransaction();
+
+    try {
+      const updatedPolicyOwner = await PolicySystem.findByIdAndUpdate(
+        id,
+        policySystemData,
+        { new: true, session }
+      );
+
+      if (Array.isArray(values)) {
+        const existingValues = await Value.find({ policySystemId: id });
+
+        const valuesToUpdate = [];
+        const valuesToCreate = [];
+        const existingValueIds = new Set();
+
+        values.forEach((value) => {
+          if (value._id) {
+            // If value has ID, it's an update
+            valuesToUpdate.push(value);
+            existingValueIds.add(value._id.toString());
+          } else {
+            // If no ID, it's a new value
+            valuesToCreate.push({
+              ...value,
+              policySystemId: id,
+            });
+          }
+        });
+
+        // Find values to delete (existing values not in the request)
+        const valuesToDelete = existingValues.filter(
+          (value) => !existingValueIds.has(value._id.toString())
+        );
+
+        if (valuesToCreate.length > 0) {
+          await Value.create(valuesToCreate, { session, ordered: true });
+        }
+
+        for (const value of valuesToUpdate) {
+          await Value.findByIdAndUpdate(value._id, value, { session });
+        }
+
+        // Soft delete instead of hard delete
+        for (const value of valuesToDelete) {
+          await Value.findByIdAndUpdate(
+            value._id,
+            {
+              isDelete: true,
+              updateBy: req.user?._id || policySystemData.updateBy,
+            },
+            { session }
+          );
+        }
       }
-    );
-    res.json(updatePolicySystem);
+
+      await session.commitTransaction();
+      session.endSession();
+
+      if (policySystemData.isDelete === true) {
+        await softDelete(PolicySystem, id);
+      }
+
+      const completeUpdatedPolicySystem = await PolicySystem.findById(id);
+      const associatedValues = await Value.find({
+        policySystemId: id,
+        isDelete: { $ne: true },
+      });
+
+      res.json({
+        ...completeUpdatedPolicySystem.toObject(),
+        values: associatedValues,
+      });
+    } catch (error) {
+      // If anything fails, abort the transaction
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   } catch (error) {
-    throw new Error(error);
+    res.status(400);
+    throw new Error(error.message);
   }
+
 });
 
 const deletePolicySystem = asyncHandler(async (req, res) => {

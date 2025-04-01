@@ -85,6 +85,9 @@ var bookingSchema = new mongoose.Schema(
     passwordRoom: {
       type: String,
     },
+    note: {
+      type: String,
+    },
     status: {
       type: Number,
       enum: Object.values(BOOKING_STATUS),
