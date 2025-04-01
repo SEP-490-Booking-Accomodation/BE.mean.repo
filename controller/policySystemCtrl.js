@@ -7,11 +7,49 @@ const softDelete = require("../utils/softDelete");
 
 
 const createPolicySystem = asyncHandler(async (req, res) => {
+  // try {
+  //   const newPolicySystem = await PolicySystem.create(req.body);
+  //   res.json(newPolicySystem);
+  // } catch (error) {
+  //   throw new Error(error);
+  // }
+
   try {
-    const newPolicySystem = await PolicySystem.create(req.body);
-    res.json(newPolicySystem);
+    const { values, ...policySystemData } = req.body;
+
+    const session = await startSession();
+    session.startTransaction();
+
+    try {
+      const newPolicySystem = await PolicySystem.create([policySystemData], {
+        session,
+      });
+
+      if (Array.isArray(values) && values.length > 0) {
+        const valueList = values.map((value) => ({
+          ...value,
+          policySystemId: newPolicySystem[0]._id,
+        }));
+
+        await Value.insertMany(valueList, { session });
+      }
+
+      await session.commitTransaction();
+      session.endSession();
+
+      const completePolicySystem = await PolicySystem.findById(
+        newPolicySystem[0]._id
+      );
+
+      res.status(201).json(completePolicySystem);
+    } catch (error) {
+      await session.abortTransaction();
+      session.endSession();
+      throw error;
+    }
   } catch (error) {
-    throw new Error(error);
+    res.status(400);
+    throw new Error(error.message);
   }
 });
 
