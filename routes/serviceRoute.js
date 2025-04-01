@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isCustomer } = require("../middlewares/authMiddleware");
+const { authMiddleware, isOwner } = require("../middlewares/authMiddleware");
 const {
   createService,
   updateService,
@@ -62,7 +62,7 @@ const {
  *       400:
  *         description: Bad request
  */
-router.post("/create-service", authMiddleware, isCustomer, createService);
+router.post("/create-service", authMiddleware, isOwner, createService);
 
 /**
  * @swagger
@@ -93,7 +93,7 @@ router.post("/create-service", authMiddleware, isCustomer, createService);
  *       404:
  *         description: Service not found
  */
-router.put("/:id", authMiddleware, updateService);
+router.put("/:id", authMiddleware, isOwner, updateService);
 
 /**
  * @swagger
@@ -118,7 +118,7 @@ router.put("/:id", authMiddleware, updateService);
  *       404:
  *         description: Service not found
  */
-router.delete("/:id", authMiddleware, deleteService);
+router.delete("/:id", authMiddleware, isOwner , deleteService);
 
 /**
  * @swagger
@@ -143,7 +143,7 @@ router.delete("/:id", authMiddleware, deleteService);
  *       404:
  *         description: No services found
  */
-router.get("/all-services", getAllService);
+router.get("/all-services", authMiddleware, isOwner , getAllService);
 
 /**
  * @swagger
@@ -168,6 +168,6 @@ router.get("/all-services", getAllService);
  *       404:
  *         description: Service not found
  */
-router.get("/:id", getService);
+router.get("/:id", authMiddleware, isOwner ,getService);
 
 module.exports = router;  

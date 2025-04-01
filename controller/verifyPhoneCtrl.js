@@ -1,4 +1,4 @@
-﻿const telesign = require('telesignsdk');
+﻿const TeleSignSDK = require('telesignsdk');
 const { isValidPhoneNumber } = require('libphonenumber-js');
 
 // Configuration constants
@@ -40,12 +40,13 @@ const otpStore = new OTPStore();
 const sendVerification = async (req, res) => {
     const { phoneNumber } = req.body;
 
-    if (!phoneNumber || !isValidPhoneNumber(phoneNumber)) {
+    if (!phoneNumber || !isValidPhoneNumber(phoneNumber, 'VN')) {
         return res.status(400).json({ error: 'Valid phone number is required' });
     }
 
     const customerId = process.env.TELESIGN_CUSTOMER_ID;
     const apiKey = process.env.TELESIGN_API_KEY;
+    const restEndpoint = process.env.TELESIGN_REST_ENDPOINT || "https://rest-api.telesign.com";
 
     if (!customerId || !apiKey) {
         return res.status(500).json({
@@ -55,11 +56,11 @@ const sendVerification = async (req, res) => {
     }
 
     try {
-        const client = new telesign(
+        // Initialize properly according to TeleSign documentation
+        const client = new TeleSignSDK(
             customerId,
             apiKey,
-            'https://rest-api.telesign.com',
-            10000
+            restEndpoint
         );
 
         const otp = Math.floor(Math.pow(10, CONFIG.OTP_LENGTH - 1) +
@@ -68,48 +69,56 @@ const sendVerification = async (req, res) => {
 
         const message = CONFIG.MESSAGE_TEMPLATE.replace('$$CODE$$', otp);
 
-        console.log('Attempting to send SMS to:', phoneNumber); // Log the exact number
+        console.log('Sending SMS to:', phoneNumber);
+        console.log('Message:', message);
 
-        const response = await new Promise((resolve, reject) => {
-            client.sms.message(
-                (error, responseBody) => {
-                    if (error) {
-                        console.error('SMS Error:', error);
-                        reject(error);
-                    } else {
-                        console.log('SMS Response:', responseBody);
+        // Convert to promise-based approach
+        const sendSMS = () => {
+            return new Promise((resolve, reject) => {
+                client.sms.message(
+                    (err, responseBody) => {
+                        if (err) {
+                            return reject(err);
+                        }
                         resolve(responseBody);
-                    }
-                },
-                phoneNumber,
-                message,
-                'OTP'
-            );
-        });
+                    },
+                    phoneNumber,
+                    message,
+                    'OTP'
+                );
+            });
+        };
 
-        if (response.status && response.status.code !== 290) {
-            let errorMessage = response.status.description;
-            if (errorMessage.includes('trial account')) {
-                errorMessage += ' Please ensure this number is verified in your TeleSign trial account or upgrade to a paid plan.';
-            }
-            throw new Error(`Message not successfully queued. Status: ${errorMessage}`);
+        try {
+            const response = await sendSMS();
+
+            console.log('SMS Response:', response);
+
+            otpStore.set(phoneNumber, otp);
+
+            return res.json({
+                message: 'Verification code sent',
+                referenceId: response.reference_id || 'N/A',
+                statusCode: response.status?.code,
+                statusDescription: response.status?.description
+            });
+        } catch (smsError) {
+            console.error('SMS Send Error:', smsError);
+            return res.status(500).json({
+                error: 'Failed to send verification code',
+                details: smsError.message
+            });
         }
 
-        otpStore.set(phoneNumber, otp);
-
-        return res.json({
-            message: 'Verification code sent',
-            referenceId: response.reference_id || 'N/A',
-            statusCode: response.status?.code,
-            statusDescription: response.status?.description
-        });
     } catch (error) {
-        console.error('Telesign Verification Error:', error);
+        console.error('Comprehensive Telesign Error:', {
+            message: error.message,
+            stack: error.stack
+        });
+
         return res.status(500).json({
             error: 'Failed to send verification code',
-            details: error.message,
-            code: error.code,
-            telesignResponse: error.responseBody
+            details: error.message
         });
     }
 };
