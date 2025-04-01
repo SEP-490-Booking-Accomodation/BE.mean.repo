@@ -38,11 +38,6 @@ const {
  *         description:
  *           type: string
  *           description: A detailed description of the accommodation type
- *         image:
- *           type: array
- *           items:
- *             type: string
- *           description: The image associated with this
  *         maxPeopleNumber:
  *           type: number
  *           description: The maximum number of people allowed for this accommodation type
