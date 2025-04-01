@@ -1,4 +1,5 @@
 const PolicySystem = require("../models/policySystemModel");
+const Value = require("../models/valueModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
@@ -155,13 +156,50 @@ const getPolicySystem = asyncHandler(async (req, res) => {
         path: "policySystemCategoryId",
         model: "PolicySystemCategory",
         select: "-createdAt -updatedAt -isDelete",
-      })
-      .populate({
-        path: "policySystemBookingId",
-        model: "PolicySystemBooking",
-        select: "-createdAt -updatedAt -isDelete",
       });
-    res.json(get1PolicySystem);
+
+    // Nếu không tìm thấy policy system, trả về lỗi 404
+    if (!get1PolicySystem) {
+      return res
+        .status(404)
+        .json({ success: false, message: "PolicySystem not found" });
+    }
+
+    // Chuyển đổi sang object để thêm giá trị mới
+    const formattedPolicySystem = get1PolicySystem.toObject();
+
+    // Lấy danh sách Values liên quan
+    const values = await Value.find({
+      policySystemId: get1PolicySystem._id, // Sửa policySystemId thành policyBookingId
+      isDelete: false,
+    });
+
+    formattedPolicySystem.values = values;
+
+    res.status(200).json({
+      success: true,
+      data: formattedPolicySystem,
+    });
+
+    // const formattedPolicySystem = await Promise.all(
+    //   get1PolicySystem.map(async (doc) => {
+    //     const docObj = doc.toJSON();
+
+    //     const values = await Value.find({
+    //       policySystemId: doc._id,
+    //       isDelete: false,
+    //     });
+
+    //     docObj.values = values;
+
+    //     return docObj;
+    //   })
+    // );
+
+    // res.status(200).json({
+    //   success: true,
+    //   data: formattedPolicySystem,
+    // });
   } catch (error) {
     throw new Error(error);
   }
@@ -196,17 +234,81 @@ const getAllPolicySystem = asyncHandler(async (req, res) => {
         path: "policySystemCategoryId",
         model: "PolicySystemCategory",
         select: "-createdAt -updatedAt -isDelete",
-      })
-      .populate({
-        path: "policySystemBookingId",
-        model: "PolicySystemBooking",
-        select: "-createdAt -updatedAt -isDelete",
       });
-    res.json(getAllPolicySystem);
+    
+    const formattedPolicySystems = await Promise.all(
+      getAllPolicySystem.map(async (doc) => {
+        const docObj = doc.toJSON();
+
+        const values = await Value.find({
+          policySystemId: doc._id,
+          isDelete: false,
+        });
+
+        docObj.values = values;
+
+        return docObj;
+      })
+    );
+    
+    res.status(200).json({
+      success: true,
+      data: formattedPolicySystems,
+    });
   } catch (error) {
     throw new Error(error);
   }
 });
+
+const getPolicySystemByHashtag = async (req, res) => {
+  try {
+    const { hashTag } = req.params;
+
+    if (!hashTag) {
+      return res.status(400).json({ message: "hashTag is required" });
+    }
+
+    // Tìm tất cả các Value có hashTag
+    const values = await Value.find({ hashTag }).select("policySystemId");
+
+    console.log(values);
+
+    if (!values.length) {
+      return res
+        .status(404)
+        .json({ message: "No matching PolicySystem found" });
+    }
+
+    const policySystemIds = values.map((value) => value.policySystemId);
+
+    console.log(policySystemIds);
+
+    // Tìm các PolicySystem tương ứng với policySystemIds
+    const policies = await PolicySystem.find({
+      _id: { $in: policySystemIds },
+    });
+
+    const formattedPolicySystems = await Promise.all(
+      policies.map(async (doc) => {
+        const docObj = doc.toJSON();
+
+        const values = await Value.find({
+          policySystemId: doc._id,
+          isDelete: false,
+        });
+
+        docObj.values = values;
+
+        return docObj;
+      })
+    );
+
+    res.status(200).json({ success: true, data: formattedPolicySystems });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
 
 module.exports = {
   createPolicySystem,
@@ -214,4 +316,5 @@ module.exports = {
   deletePolicySystem,
   getPolicySystem,
   getAllPolicySystem,
+  getPolicySystemByHashtag,
 };

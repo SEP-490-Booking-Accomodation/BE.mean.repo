@@ -1,6 +1,7 @@
 const Booking = require("../models/bookingModel");
 const Transaction = require("../models/transactionModel");
 const RentalLocation = require("../models/rentalLocationModel");
+const PolicySystem = require("../models/policySystemModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const softDelete = require("../utils/softDelete");
@@ -13,7 +14,7 @@ const axios = require("axios");
 const createBooking = asyncHandler(async (req, res) => {
   try {
     const {
-      policySystemId,
+      policySystemIds,
       customerId,
       accommodationTypeId,
       couponId,
@@ -80,7 +81,7 @@ const createBooking = asyncHandler(async (req, res) => {
     }
 
     const newBooking = new Booking({
-      policySystemId,
+      policySystemIds,
       customerId,
       accommodationId: availableRoom._id,
       couponId,
@@ -335,15 +336,16 @@ const getBooking = asyncHandler(async (req, res) => {
       .populate({
         path: "accommodationId",
         populate: [
-          { path: "accommodationTypeId"},
-          { path: "rentalLocationId"},
+          { path: "accommodationTypeId" },
+          { path: "rentalLocationId" },
         ],
       })
       .populate("policySystemId")
       .populate({
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
-      });
+      })
+      .populate("policySystemIds");
     res.json(get1Booking);
   } catch (error) {
     throw new Error(error);
@@ -352,7 +354,7 @@ const getBooking = asyncHandler(async (req, res) => {
 
 // Hàm tạo mật khẩu ngẫu nhiên gồm 6 chữ số
 const generatePassword = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+  return Math.floor(100000 + Math.random() * 900000).toString();
 };
 
 // API để tạo passwordRoom bất cứ khi nào cần
@@ -385,12 +387,10 @@ const generateRoomPassword = async (req, res) => {
     }
 
     if (checkIn.isBefore(now) || checkOut.isSameOrBefore(checkIn)) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Invalid booking dates: check-in must be in the future and check-out must be after check-in",
-        });
+      return res.status(400).json({
+        message:
+          "Invalid booking dates: check-in must be in the future and check-out must be after check-in",
+      });
     }
 
     // Tạo mật khẩu mới
@@ -421,10 +421,12 @@ const getBookingsByCustomerId = asyncHandler(async (req, res) => {
     const bookings = await Booking.find({
       customerId,
       isDelete: false,
-    }).populate({
-      path: "customerId",
-      populate: { path: "userId", select: "fullName" },
-    });
+    })
+      .populate({
+        path: "customerId",
+        populate: { path: "userId", select: "fullName" },
+      })
+      .populate("policySystemIds");
     if (bookings.length === 0) {
       return res
         .status(404)
@@ -463,7 +465,8 @@ const getBookingsByRentalLocation = asyncHandler(async (req, res) => {
       .populate({
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
-      });
+      })
+      .populate("policySystemIds");
 
     const formattedBookings = bookings.map((booking, index) => ({
       [`booking_${index + 1}`]: booking,
@@ -484,12 +487,31 @@ const getAllBooking = asyncHandler(async (req, res) => {
   try {
     const getAllBooking = await Booking.find({ isDelete: false })
       .populate("accommodationId")
-      .populate("policySystemId")
+      .populate("policySystemIds")
       .populate({
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
       });
-    res.json(getAllBooking);
+
+    // const formattedBookings = await Promise.all(
+    //   getAllBooking.map(async (doc) => {
+    //     const docObj = doc.toJSON();
+
+    //     const policySystemIds = await PolicySystem.find({
+    //       bookingId: doc._id,
+    //       isDelete: false,
+    //     }).select("_id name description status");
+
+    //     docObj.policySystemIds = policySystemIds;
+
+    //     return docObj;
+    //   })
+    // );
+
+    res.status(200).json({
+      success: true,
+      data: getAllBooking
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -543,7 +565,8 @@ const getBookingsByOwner = asyncHandler(async (req, res) => {
       .populate({
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
-      });
+      })
+      .populate("policySystemIds");
 
     const formattedBookings = bookings.map((booking, index) => ({
       [`booking_${index + 1}`]: booking,

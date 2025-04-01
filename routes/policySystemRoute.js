@@ -7,6 +7,7 @@ const {
   deletePolicySystem,
   getAllPolicySystem,
   getPolicySystem,
+  getPolicySystemByHashtag,
 } = require("../controller/policySystemCtrl");
 
 /**
@@ -28,9 +29,9 @@ const {
  *         policySystemCategoryId:
  *           type: string
  *           description: The ID of the Policy System Category
- *         policySystemBookingId:
+ *         policySystemIds:
  *           type: string
- *           description: The ID of the Policy System Booking
+ *           description: The ID of the Policy System
  *         name:
  *           type: string
  *           description: The name of the policy system
@@ -114,7 +115,7 @@ router.post("/create-policy-system", authMiddleware, isAdmin, createPolicySystem
  *                 type: string
  *               policySystemCategoryId:
  *                 type: string
- *               policySystemBookingId:
+ *               policySystemIds:
  *                 type: string
  *               description:
  *                 type: string
@@ -199,7 +200,41 @@ router.delete("/:id", authMiddleware, isAdmin, deletePolicySystem);
  *       403:
  *         description: Forbidden, requires admin privileges
  */
-router.get("/all-policy-systems", authMiddleware, isNotGuest, getAllPolicySystem);
+router.get("/all-policy-systems", getAllPolicySystem);
+
+/**
+ * @swagger
+ * /api/policy-system/all-policy-systems-by-hashtag/{hashTag}:
+ *   get:
+ *     summary: Get all specific policies system by hashTag
+ *     description: Retrieves a single policy system by its hashTag
+ *     tags:
+ *       - PolicySystem
+ *     parameters:
+ *       - in: path
+ *         name: hashTag
+ *         required: true
+ *         description: The hashTag of the policy system to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: The policy system data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PolicySystem'
+ *       404:
+ *         description: Policy system not found
+ *       401:
+ *         description: Unauthorized access
+ *       403:
+ *         description: Forbidden, requires admin privileges
+ */
+router.get(
+  "/all-policy-systems-by-hashtag/:hashTag",
+  getPolicySystemByHashtag
+);
 
 /**
  * @swagger
@@ -230,6 +265,6 @@ router.get("/all-policy-systems", authMiddleware, isNotGuest, getAllPolicySystem
  *       403:
  *         description: Forbidden, requires admin privileges
  */
-router.get("/:id", authMiddleware, isAdmin, getPolicySystem);
+router.get("/:id", getPolicySystem);
 
 module.exports = router;

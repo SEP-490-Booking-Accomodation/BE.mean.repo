@@ -8,7 +8,7 @@ var valueSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: "PolicyOwner",
     },
-    policyBookingId: {
+    policySystemId: {
       type: mongoose.Schema.ObjectId,
       ref: "PolicySystem",
     },
