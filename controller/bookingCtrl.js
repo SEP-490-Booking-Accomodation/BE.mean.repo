@@ -367,16 +367,14 @@ const getBooking = asyncHandler(async (req, res) => {
   }
 });
 
-// Hàm tạo mật khẩu ngẫu nhiên gồm 6 chữ số
-const generatePassword = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-};
-
 // API để tạo passwordRoom bất cứ khi nào cần
 const generateRoomPassword = async (req, res) => {
   try {
     const { bookingId } = req.params;
+    const {passwordRoomInput} = req.body;
     const booking = await Booking.findById(bookingId);
+
+    console.log(passwordRoomInput);
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
@@ -408,9 +406,7 @@ const generateRoomPassword = async (req, res) => {
       });
     }
 
-    // Tạo mật khẩu mới
-    const passwordRoom = generatePassword();
-    booking.passwordRoom = passwordRoom;
+    booking.passwordRoom = passwordRoomInput;
     await booking.save();
 
     // Xóa passwordRoom sau khi hết thời gian checkOut
@@ -423,7 +419,7 @@ const generateRoomPassword = async (req, res) => {
       }, timeUntilCheckOut);
     }
 
-    res.json({ message: "Password generated successfully", passwordRoom });
+    res.json({ message: "Password generated successfully", passwordRoomInput });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
