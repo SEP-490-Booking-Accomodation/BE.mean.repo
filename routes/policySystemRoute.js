@@ -35,17 +35,29 @@ const {
  *         name:
  *           type: string
  *           description: The name of the policy system
+ *         values:
+ *           type: array
+ *           description: List of associated values
+ *           items:
+ *             type: object
+ *             properties:
+ *               val1:
+ *                 type: string
+ *               val2:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               unit:
+ *                 type: string
+ *               valueType:
+ *                 type: string
+ *               hashTag:
+ *                 type: string
+ *               note:
+ *                 type: string
  *         description:
  *           type: string
  *           description: Description of the policy system
- *         value:
- *           type: array
- *           items:
- *             type: string
- *           description: The value of the policy
- *         unit:
- *           type: string
- *           description: The unit for the value
  *         startDate:
  *           type: string
  *           format: date-time
