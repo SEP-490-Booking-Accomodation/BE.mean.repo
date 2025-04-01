@@ -37,6 +37,7 @@ const {
  *           items:
  *             type: string
  *           description: Reference to PolicySystemBooking
+ *           example: ["policy123", "policy456"]
  *         customerId:
  *           type: string
  *           description: Reference to Customer
@@ -119,7 +120,7 @@ const {
  *     requestBody:
  *       required: true
  *       content:
- *         application/x-www-form-urlencoded:
+ *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Booking'
  *     responses:
@@ -164,7 +165,7 @@ router.put("/:id", authMiddleware, isOwner, updateBooking);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         application/x-www-form-urlencoded:
  *           schema:
  *             type: object
  *             required:
@@ -210,15 +211,11 @@ router.post("/momo/payment", processMoMoPayment);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         application/x-www-form-urlencoded:
  *           schema:
  *             type: object
  *             required:
- *               - requestId
  *               - orderId
- *               - amount
- *               - resultCode
- *               - message
  *             properties:
  *               requestId:
  *                 type: string
