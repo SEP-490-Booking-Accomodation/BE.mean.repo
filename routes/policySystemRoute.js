@@ -7,6 +7,7 @@ const {
   deletePolicySystem,
   getAllPolicySystem,
   getPolicySystem,
+  getPolicySystemByHashtag,
 } = require("../controller/policySystemCtrl");
 
 /**
@@ -28,23 +29,32 @@ const {
  *         policySystemCategoryId:
  *           type: string
  *           description: The ID of the Policy System Category
- *         policySystemBookingId:
- *           type: string
- *           description: The ID of the Policy System Booking
  *         name:
  *           type: string
  *           description: The name of the policy system
+ *         values:
+ *           type: array
+ *           description: List of associated values
+ *           items:
+ *             type: object
+ *             properties:
+ *               val1:
+ *                 type: string
+ *               val2:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               unit:
+ *                 type: string
+ *               valueType:
+ *                 type: string
+ *               hashTag:
+ *                 type: string
+ *               note:
+ *                 type: string
  *         description:
  *           type: string
  *           description: Description of the policy system
- *         value:
- *           type: array
- *           items:
- *             type: string
- *           description: The value of the policy
- *         unit:
- *           type: string
- *           description: The unit for the value
  *         startDate:
  *           type: string
  *           format: date-time
@@ -91,7 +101,7 @@ router.post("/create-policy-system", authMiddleware, isAdmin, createPolicySystem
 /**
  * @swagger
  * /api/policy-system/{id}:
- *   patch:
+ *   put:
  *     summary: Update a Policy System
  *     description: Partially update a Policy System by ID.
  *     tags:
@@ -108,38 +118,7 @@ router.post("/create-policy-system", authMiddleware, isAdmin, createPolicySystem
  *       content:
  *         application/x-www-form-urlencoded:
  *           schema:
- *             type: object
- *             properties:
- *               name:
- *                 type: string
- *               policySystemCategoryId:
- *                 type: string
- *               policySystemBookingId:
- *                 type: string
- *               description:
- *                 type: string
- *               value:
- *                 type: number
- *               unit:
- *                 type: string
- *               startDate:
- *                 type: string
- *                 format: date-time
- *                 pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
- *                 description: Start date of the policy system
- *                 example: "04-02-2025 15:30:45 +07:00"
- *               endDate:
- *                 type: string
- *                 format: date-time
- *                 pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
- *                 description: End date of the policy system
- *                 example: "04-02-2025 15:30:45 +07:00"
- *               isActive:
- *                 type: boolean
- *               staffId:
- *                 type: string
- *               updateBy:
- *                 type: string
+ *             $ref: '#/components/schemas/PolicySystem'
  *     responses:
  *       200:
  *         description: Policy System updated successfully
@@ -148,7 +127,7 @@ router.post("/create-policy-system", authMiddleware, isAdmin, createPolicySystem
  *       404:
  *         description: Policy System not found
  */
-router.patch("/:id", authMiddleware, isAdmin, updatePolicySystem);
+router.put("/:id", authMiddleware, isAdmin, updatePolicySystem);
 
 /**
  * @swagger
@@ -199,7 +178,41 @@ router.delete("/:id", authMiddleware, isAdmin, deletePolicySystem);
  *       403:
  *         description: Forbidden, requires admin privileges
  */
-router.get("/all-policy-systems", authMiddleware, isNotGuest, getAllPolicySystem);
+router.get("/all-policy-systems", getAllPolicySystem);
+
+/**
+ * @swagger
+ * /api/policy-system/all-policy-systems-by-hashtag/{hashTag}:
+ *   get:
+ *     summary: Get all specific policies system by hashTag
+ *     description: Retrieves a single policy system by its hashTag
+ *     tags:
+ *       - PolicySystem
+ *     parameters:
+ *       - in: path
+ *         name: hashTag
+ *         required: true
+ *         description: The hashTag of the policy system to retrieve
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: The policy system data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PolicySystem'
+ *       404:
+ *         description: Policy system not found
+ *       401:
+ *         description: Unauthorized access
+ *       403:
+ *         description: Forbidden, requires admin privileges
+ */
+router.get(
+  "/all-policy-systems-by-hashtag/:hashTag",
+  getPolicySystemByHashtag
+);
 
 /**
  * @swagger
@@ -230,6 +243,6 @@ router.get("/all-policy-systems", authMiddleware, isNotGuest, getAllPolicySystem
  *       403:
  *         description: Forbidden, requires admin privileges
  */
-router.get("/:id", authMiddleware, isAdmin, getPolicySystem);
+router.get("/:id", getPolicySystem);
 
 module.exports = router;

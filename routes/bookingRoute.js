@@ -23,7 +23,7 @@ const {
  *     Booking:
  *       type: object
  *       required:
- *         - policySystemId
+ *         - policySystemIds
  *         - customerId
  *         - accommodationTypeId
  *         - checkInHour
@@ -32,9 +32,12 @@ const {
  *         - childNumber
  *         - durationBookingHour
  *       properties:
- *         policySystemId:
- *           type: string
+ *         policySystemIds:
+ *           type: array
+ *           items:
+ *             type: string
  *           description: Reference to PolicySystemBooking
+ *           example: ["policy123", "policy456"]
  *         customerId:
  *           type: string
  *           description: Reference to Customer
@@ -97,6 +100,9 @@ const {
  *         passwordRoom:
  *           type: string
  *           description: Password room for open
+ *         note:
+ *           type: string
+ *           description: Note of customer
  *         status:
  *           type: integer
  *           enum: [1, 2, 3, 4, 5, 6, 7, 8]
@@ -114,7 +120,7 @@ const {
  *     requestBody:
  *       required: true
  *       content:
- *         application/x-www-form-urlencoded:
+ *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/Booking'
  *     responses:
@@ -159,7 +165,7 @@ router.put("/:id", authMiddleware, isOwner, updateBooking);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         application/x-www-form-urlencoded:
  *           schema:
  *             type: object
  *             required:
@@ -205,15 +211,11 @@ router.post("/momo/payment", processMoMoPayment);
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         application/x-www-form-urlencoded:
  *           schema:
  *             type: object
  *             required:
- *               - requestId
  *               - orderId
- *               - amount
- *               - resultCode
- *               - message
  *             properties:
  *               requestId:
  *                 type: string
@@ -384,16 +386,26 @@ router.get("/all-Bookings", authMiddleware, getAllBooking);
  *         required: true
  *         schema:
  *           type: string
- *           description: Booking ID
+ *         description: Booking ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               passwordRoomInput:
+ *                 type: string
+ *                 description: Input password for the room
  *     responses:
  *       200:
  *         description: Password room updated successfully
  *         content:
- *           application/x-www-form-urlencoded:
+ *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 passwordRoom:
+ *                 passwordRoomInput:
  *                   type: string
  *                   description: Generated password for the room
  *       404:
@@ -401,6 +413,7 @@ router.get("/all-Bookings", authMiddleware, getAllBooking);
  *       500:
  *         description: Server error
  */
+
 router.put(
   "/:bookingId/generate-password",
   authMiddleware,

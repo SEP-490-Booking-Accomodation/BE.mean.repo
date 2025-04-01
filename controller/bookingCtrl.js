@@ -1,6 +1,7 @@
 const Booking = require("../models/bookingModel");
 const Transaction = require("../models/transactionModel");
 const RentalLocation = require("../models/rentalLocationModel");
+const PolicySystem = require("../models/policySystemModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const softDelete = require("../utils/softDelete");
@@ -13,7 +14,7 @@ const axios = require("axios");
 const createBooking = asyncHandler(async (req, res) => {
   try {
     const {
-      policySystemId,
+      policySystemIds,
       customerId,
       accommodationTypeId,
       couponId,
@@ -30,14 +31,24 @@ const createBooking = asyncHandler(async (req, res) => {
       durationBookingHour,
       completedDate,
       passwordRoom,
+      note,
       status,
     } = req.body;
+
+    const vietnamTimeNow = moment().tz("Asia/Ho_Chi_Minh");
 
     const vietnamTime1 = checkInHour
       ? moment(checkInHour, "DD-MM-YYYY HH:mm:ss")
           .tz("Asia/Ho_Chi_Minh")
           .toDate()
       : null;
+
+    if (vietnamTime1 && moment(vietnamTime1).isBefore(vietnamTimeNow)) {
+      return res
+        .status(400)
+        .json({ message: "Check-in time cannot be in the past." });
+    }
+
     const vietnamTime2 = checkOutHour
       ? moment(checkOutHour, "DD-MM-YYYY HH:mm:ss")
           .tz("Asia/Ho_Chi_Minh")
@@ -79,8 +90,12 @@ const createBooking = asyncHandler(async (req, res) => {
         .json({ message: "No available rooms for this time slot." });
     }
 
+    // Cập nhật trạng thái của phòng accommodation sau khi đã chọn
+    availableRoom.status = "2"; // Đặt trạng thái là 2 (phòng đã được đặt)
+    await availableRoom.save();
+
     const newBooking = new Booking({
-      policySystemId,
+      policySystemIds: policySystemIds,
       customerId,
       accommodationId: availableRoom._id,
       couponId,
@@ -97,6 +112,7 @@ const createBooking = asyncHandler(async (req, res) => {
       durationBookingHour,
       completedDate: vietnamTime4,
       passwordRoom,
+      note,
       status,
     });
 
@@ -335,31 +351,30 @@ const getBooking = asyncHandler(async (req, res) => {
       .populate({
         path: "accommodationId",
         populate: [
-          { path: "accommodationTypeId"},
-          { path: "rentalLocationId"},
+          { path: "accommodationTypeId" },
+          { path: "rentalLocationId" },
         ],
       })
-      .populate("policySystemId")
+      .populate("policySystemIds")
       .populate({
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
-      });
+      })
+      .populate("policySystemIds");
     res.json(get1Booking);
   } catch (error) {
     throw new Error(error);
   }
 });
 
-// Hàm tạo mật khẩu ngẫu nhiên gồm 6 chữ số
-const generatePassword = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-};
-
 // API để tạo passwordRoom bất cứ khi nào cần
 const generateRoomPassword = async (req, res) => {
   try {
     const { bookingId } = req.params;
+    const {passwordRoomInput} = req.body;
     const booking = await Booking.findById(bookingId);
+
+    console.log(passwordRoomInput);
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
@@ -385,17 +400,13 @@ const generateRoomPassword = async (req, res) => {
     }
 
     if (checkIn.isBefore(now) || checkOut.isSameOrBefore(checkIn)) {
-      return res
-        .status(400)
-        .json({
-          message:
-            "Invalid booking dates: check-in must be in the future and check-out must be after check-in",
-        });
+      return res.status(400).json({
+        message:
+          "Invalid booking dates: check-in must be in the future and check-out must be after check-in",
+      });
     }
 
-    // Tạo mật khẩu mới
-    const passwordRoom = generatePassword();
-    booking.passwordRoom = passwordRoom;
+    booking.passwordRoom = passwordRoomInput;
     await booking.save();
 
     // Xóa passwordRoom sau khi hết thời gian checkOut
@@ -408,7 +419,7 @@ const generateRoomPassword = async (req, res) => {
       }, timeUntilCheckOut);
     }
 
-    res.json({ message: "Password generated successfully", passwordRoom });
+    res.json({ message: "Password generated successfully", passwordRoomInput });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -421,10 +432,12 @@ const getBookingsByCustomerId = asyncHandler(async (req, res) => {
     const bookings = await Booking.find({
       customerId,
       isDelete: false,
-    }).populate({
-      path: "customerId",
-      populate: { path: "userId", select: "fullName" },
-    });
+    })
+      .populate({
+        path: "customerId",
+        populate: { path: "userId", select: "fullName" },
+      })
+      .populate("policySystemIds");
     if (bookings.length === 0) {
       return res
         .status(404)
@@ -463,7 +476,8 @@ const getBookingsByRentalLocation = asyncHandler(async (req, res) => {
       .populate({
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
-      });
+      })
+      .populate("policySystemIds");
 
     const formattedBookings = bookings.map((booking, index) => ({
       [`booking_${index + 1}`]: booking,
@@ -484,12 +498,31 @@ const getAllBooking = asyncHandler(async (req, res) => {
   try {
     const getAllBooking = await Booking.find({ isDelete: false })
       .populate("accommodationId")
-      .populate("policySystemId")
+      .populate("policySystemIds")
       .populate({
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
       });
-    res.json(getAllBooking);
+
+    // const formattedBookings = await Promise.all(
+    //   getAllBooking.map(async (doc) => {
+    //     const docObj = doc.toJSON();
+
+    //     const policySystemIds = await PolicySystem.find({
+    //       bookingId: doc._id,
+    //       isDelete: false,
+    //     }).select("_id name description status");
+
+    //     docObj.policySystemIds = policySystemIds;
+
+    //     return docObj;
+    //   })
+    // );
+
+    res.status(200).json({
+      success: true,
+      data: getAllBooking
+    });
   } catch (error) {
     throw new Error(error);
   }
@@ -543,7 +576,8 @@ const getBookingsByOwner = asyncHandler(async (req, res) => {
       .populate({
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
-      });
+      })
+      .populate("policySystemIds");
 
     const formattedBookings = bookings.map((booking, index) => ({
       [`booking_${index + 1}`]: booking,

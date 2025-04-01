@@ -22,10 +22,12 @@ const PAYMENT_STATUS = Object.freeze({
 // Declare the Schema of the Mongo model
 var bookingSchema = new mongoose.Schema(
   {
-    policySystemId: {
-      type: mongoose.Schema.ObjectId,
-      ref: "PolicySystem",
-    },
+    policySystemIds: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "PolicySystem",
+      },
+    ],
     customerId: {
       type: mongoose.Schema.ObjectId,
       ref: "Customer",
@@ -81,6 +83,9 @@ var bookingSchema = new mongoose.Schema(
       required: true,
     },
     passwordRoom: {
+      type: String,
+    },
+    note: {
       type: String,
     },
     status: {
