@@ -1,5 +1,6 @@
 const AccommodationType = require("../models/accommodationTypeModel");
 const asyncHandler = require("express-async-handler");
+const RentalLocation = require("../models/rentalLocationModel");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
@@ -131,10 +132,67 @@ const getAllAccommodationType = asyncHandler(async (req, res) => {
   }
 });
 
+const getAccommodationTypeByOwnerId = asyncHandler(async (req, res) => {
+  try {
+    const { ownerId } = req.query;
+
+    if (!ownerId) {
+      return res.status(400).json({
+        success: false,
+        message: "ownerId is required"
+      });
+    }
+
+    // First, find all rentalLocations that belong to this owner
+    const rentalLocations = await RentalLocation.find({
+      ownerId: ownerId,
+      isDelete: false
+    }).select("_id");
+
+    // Extract the rentalLocation IDs
+    const rentalLocationIds = rentalLocations.map(location => location._id);
+
+    // Now find all accommodation types that reference these rental locations
+    const accommodationTypes = await AccommodationType.find({
+      rentalLocationId: { $in: rentalLocationIds },
+      isDelete: false
+    }).populate("rentalLocationId", "_id name");
+
+    // Get formatted accommodation types with services
+    const formattedAccommodationTypes = await Promise.all(
+        accommodationTypes.map(async (doc) => {
+          const docObj = doc.toJSON();
+
+          // Find all services that reference this accommodation type
+          const serviceIds = await Service.find({
+            accommodationTypeId: doc._id,
+            isDelete: false,
+          }).select("_id name description status");
+
+          // Add services to the accommodation type object
+          docObj.serviceIds = serviceIds;
+
+          return docObj;
+        })
+    );
+
+    res.status(200).json({
+      success: true,
+      data: formattedAccommodationTypes,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
+});
+
 module.exports = {
   createAccommodationType,
   updateAccommodationType,
   deleteAccommodationType,
   getAccommodationType,
   getAllAccommodationType,
+  getAccommodationTypeByOwnerId
 };
