@@ -171,6 +171,7 @@ router.put("/:id", authMiddleware, isOwner, updateBooking);
  *             required:
  *               - bookingId
  *               - amount
+ *               - returnUrlFE
  *             properties:
  *               bookingId:
  *                 type: string
@@ -181,6 +182,9 @@ router.put("/:id", authMiddleware, isOwner, updateBooking);
  *               description:
  *                 type: string
  *                 description: Payment description (optional)
+ *               returnUrlFE:
+ *                 type: string
+ *                 description: Payment return URL
  *     responses:
  *       200:
  *         description: Returns payment URL for MoMo.
