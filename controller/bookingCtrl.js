@@ -217,7 +217,7 @@ const deleteBooking = asyncHandler(async (req, res) => {
 
 const processMoMoPayment = async (req, res) => {
   try {
-    const { bookingId, amount, description, returnUrlFE } = req.body;
+    const { bookingId, amount, description, returnUrlFE, orderIdFE } = req.body;
     if (!bookingId || !amount) {
       return res.status(400).json({ message: "Missing required fields" });
     }
@@ -231,7 +231,7 @@ const processMoMoPayment = async (req, res) => {
     const accessKey = process.env.MOMO_ACCESS_KEY;
     const secretKey = process.env.MOMO_SECRET_KEY;
     const requestId = partnerCode + new Date().getTime();
-    const orderId = requestId;
+    const orderId = orderIdFE;
     const orderInfo = description || "Payment for booking";
     const returnUrl = returnUrlFE;
     const notifyUrl = process.env.MOMO_NOTIFY_URL;
