@@ -217,7 +217,7 @@ const deleteBooking = asyncHandler(async (req, res) => {
 
 const processMoMoPayment = async (req, res) => {
   try {
-    const { bookingId, amount, description } = req.body;
+    const { bookingId, amount, description, returnUrlFE, orderIdFE } = req.body;
     if (!bookingId || !amount) {
       return res.status(400).json({ message: "Missing required fields" });
     }
@@ -231,9 +231,9 @@ const processMoMoPayment = async (req, res) => {
     const accessKey = process.env.MOMO_ACCESS_KEY;
     const secretKey = process.env.MOMO_SECRET_KEY;
     const requestId = partnerCode + new Date().getTime();
-    const orderId = requestId;
+    const orderId = orderIdFE;
     const orderInfo = description || "Payment for booking";
-    const returnUrl = process.env.MOMO_RETURN_URL;
+    const returnUrl = returnUrlFE;
     const notifyUrl = process.env.MOMO_NOTIFY_URL;
     const extraData = "";
     const requestType = "captureWallet";
@@ -326,14 +326,23 @@ const processMoMoNotify = async (req, res) => {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
+    // Tìm booking liên quan
+    const booking = await Booking.findById(transaction.bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
     // Kiểm tra trạng thái thanh toán từ MoMo
     if (resultCode === 0) {
       transaction.transactionStatus = 2; // Đánh dấu đã thanh toán
       transaction.transactionEndDate = new Date(responseTime);
+      booking.paymentStatus = 3;
     } else {
       transaction.transactionStatus = 3; // Thanh toán thất bại
+      booking.paymentStatus = 5;
     }
 
+    await booking.save();
     await transaction.save();
 
     return res.json({ message: "Notification processed successfully" });
@@ -371,7 +380,7 @@ const getBooking = asyncHandler(async (req, res) => {
 const generateRoomPassword = async (req, res) => {
   try {
     const { bookingId } = req.params;
-    const {passwordRoomInput} = req.body;
+    const { passwordRoomInput } = req.body;
     const booking = await Booking.findById(bookingId);
 
     console.log(passwordRoomInput);
@@ -437,7 +446,20 @@ const getBookingsByCustomerId = asyncHandler(async (req, res) => {
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
       })
-      .populate("policySystemIds");
+      .populate("policySystemIds")
+      .populate({
+        path: "accommodationId",
+        populate: [
+          {
+            path: "rentalLocationId",
+            select: "name address openHour closeHour ward district city",
+          },
+          {
+            path: "accommodationTypeId",
+            select: "name maxPeopleNumber basePrice overtimeHourlyPrice",
+          },
+        ],
+      });
     if (bookings.length === 0) {
       return res
         .status(404)
@@ -521,7 +543,7 @@ const getAllBooking = asyncHandler(async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: getAllBooking
+      data: getAllBooking,
     });
   } catch (error) {
     throw new Error(error);
