@@ -185,6 +185,9 @@ router.put("/:id", authMiddleware, isOwner, updateBooking);
  *               returnUrlFE:
  *                 type: string
  *                 description: Payment return URL
+ *               orderIdFE:
+ *                 type: string
+ *                 description: Payment order ID
  *     responses:
  *       200:
  *         description: Returns payment URL for MoMo.
