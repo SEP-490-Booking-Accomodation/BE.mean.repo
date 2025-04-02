@@ -326,14 +326,23 @@ const processMoMoNotify = async (req, res) => {
       return res.status(404).json({ message: "Transaction not found" });
     }
 
+    // Tìm booking liên quan
+    const booking = await Booking.findById(transaction.bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
     // Kiểm tra trạng thái thanh toán từ MoMo
     if (resultCode === 0) {
       transaction.transactionStatus = 2; // Đánh dấu đã thanh toán
       transaction.transactionEndDate = new Date(responseTime);
+      booking.paymentStatus = 3;
     } else {
       transaction.transactionStatus = 3; // Thanh toán thất bại
+      booking.paymentStatus = 5;
     }
 
+    await booking.save();
     await transaction.save();
 
     return res.json({ message: "Notification processed successfully" });
@@ -371,7 +380,7 @@ const getBooking = asyncHandler(async (req, res) => {
 const generateRoomPassword = async (req, res) => {
   try {
     const { bookingId } = req.params;
-    const {passwordRoomInput} = req.body;
+    const { passwordRoomInput } = req.body;
     const booking = await Booking.findById(bookingId);
 
     console.log(passwordRoomInput);
@@ -521,7 +530,7 @@ const getAllBooking = asyncHandler(async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: getAllBooking
+      data: getAllBooking,
     });
   } catch (error) {
     throw new Error(error);
