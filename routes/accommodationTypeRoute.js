@@ -7,6 +7,7 @@ const {
   deleteAccommodationType,
   getAccommodationType,
   getAllAccommodationType,
+  getAccommodationTypeByOwnerId
 } = require("../controller/accommodationTypeCtrl");
 
 /**
@@ -172,6 +173,35 @@ router.delete("/:id", authMiddleware, isOwner, deleteAccommodationType);
  */
 
 router.get("/all-accommodation-types", getAllAccommodationType);
+
+
+/**
+ * @swagger
+ * /api/accommodation-type/by-owner:
+ *   get:
+ *     summary: Get accommodation types by owner ID
+ *     description: Retrieves a list of all accommodation types associated with a specific owner
+ *     tags:
+ *       - AccommodationType
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: ownerId
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: ID of the owner to filter accommodation types
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved accommodation types
+ *       400:
+ *         description: ownerId is required
+ *       500:
+ *         description: Internal Server Error
+ */
+
+router.get("/by-owner", getAccommodationTypeByOwnerId);
 
 /**
  * @swagger
