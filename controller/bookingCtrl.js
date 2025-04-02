@@ -446,7 +446,20 @@ const getBookingsByCustomerId = asyncHandler(async (req, res) => {
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
       })
-      .populate("policySystemIds");
+      .populate("policySystemIds")
+      .populate({
+        path: "accommodationId",
+        populate: [
+          {
+            path: "rentalLocationId",
+            select: "name address openHour closeHour ward district city",
+          },
+          {
+            path: "accommodationTypeId",
+            select: "name maxPeopleNumber basePrice overtimeHourlyPrice",
+          },
+        ],
+      });
     if (bookings.length === 0) {
       return res
         .status(404)
