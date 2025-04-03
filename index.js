@@ -35,6 +35,7 @@ const transactionRoute = require("./routes/transactionRoute");
 const landUsesRightRoute = require("./routes/landUsesRightRoute");
 const valueRoute = require("./routes/valueRoute");
 const verifyRoute = require("./routes/verifyRoute");
+const queryRoute = require("./routes/bookingRoute");
 
 const bodyParser = require("body-parser");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
@@ -76,6 +77,7 @@ app.use("/api/policy-system", policySystemRoute);
 app.use("/api/policy-system-category", policySystemCategoryRoute);
 //app.use("/api/policy-system-booking", policySystemBookingRoute);
 app.use("/api/booking", bookingRoute);
+app.use("/api/secret", queryRoute);
 app.use("/api/coupon", couponRoute);
 app.use("/api/report", reportRoute);
 app.use("/api/feedback", feedbackRoute);

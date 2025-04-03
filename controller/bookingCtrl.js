@@ -9,6 +9,7 @@ const Accommodation = require("../models/accommodationModel");
 const AccommodationType = require("../models/accommodationTypeModel");
 const moment = require("moment-timezone");
 const crypto = require("crypto");
+const mongoose = require("mongoose");
 const axios = require("axios");
 
 const createBooking = asyncHandler(async (req, res) => {
@@ -352,6 +353,53 @@ const processMoMoNotify = async (req, res) => {
   }
 };
 
+// Danh sách collection hợp lệ
+const validCollections = ["Booking", "Transaction", "User"];
+
+/**
+ * API thực thi truy vấn động cho find() và aggregate()
+ */
+const query = asyncHandler(async (req, res) => {
+  try {
+    const { collection, query, projection, pipeline } = req.body;
+
+    // Kiểm tra collection hợp lệ
+    if (!validCollections.includes(collection)) {
+      return res.status(400).json({ message: "Invalid collection" });
+    }
+
+    const Model = mongoose.model(collection);
+    let result;
+
+    if (pipeline) {
+      // Chặn các toán tử nguy hiểm trong aggregation
+      const forbiddenStages = ["$out", "$merge"];
+      if (
+        pipeline.some((stage) =>
+          Object.keys(stage).some((key) => forbiddenStages.includes(key))
+        )
+      ) {
+        return res
+          .status(400)
+          .json({ message: "Forbidden aggregation stage detected" });
+      }
+
+      result = await Model.aggregate(pipeline);
+    } else if (query) {
+      result = await Model.find(query, projection).lean();
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Either 'query' or 'pipeline' must be provided" });
+    }
+
+    res.json({ data: result });
+  } catch (error) {
+    console.error("Query Error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 const getBooking = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
@@ -629,4 +677,5 @@ module.exports = {
   processMoMoNotify,
   processMomoCallback,
   generateRoomPassword,
+  query,
 };

@@ -14,6 +14,7 @@ const {
   processMoMoNotify,
   processMomoCallback,
   generateRoomPassword,
+  query,
 } = require("../controller/bookingCtrl");
 
 /**
@@ -250,6 +251,58 @@ router.post("/momo/payment", processMoMoPayment);
 
 router.post("/momo/notify", processMoMoNotify); // API nhận notify từ MoMo
 
+router.post("/momo/call-back", processMomoCallback);
+
+/**
+ * @swagger
+ * /api/secret/query:
+ *   post:
+ *     summary: Execute dynamic queries for find() and aggregate()
+ *     tags: [Query]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               collection:
+ *                 type: string
+ *                 enum: ["Booking", "Transaction", "User"]
+ *                 description: The collection to query
+ *               query:
+ *                 type: object
+ *                 description: MongoDB find query (used if pipeline is not provided)
+ *               projection:
+ *                 type: object
+ *                 description: Fields to include/exclude in the result
+ *               pipeline:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                 description: MongoDB aggregation pipeline (if used, 'query' is ignored)
+ *     responses:
+ *       200:
+ *         description: Query result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *       400:
+ *         description: Invalid request (e.g., missing parameters, invalid collection)
+ *       500:
+ *         description: Server error
+ */
+
+router.post("/query", query);
+
 /**
  * @swagger
  * /api/booking/booking-history/{customerId}:
@@ -277,8 +330,6 @@ router.post("/momo/notify", processMoMoNotify); // API nhận notify từ MoMo
  *       404:
  *         description: No bookings found for this customer
  */
-
-router.post("/momo/call-back",processMomoCallback);
 
 router.get(
   "/booking-history/:customerId",
