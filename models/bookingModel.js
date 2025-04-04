@@ -19,6 +19,10 @@ const PAYMENT_STATUS = Object.freeze({
   FAILED: 5,
 });
 
+const PAYMENT_METHOD = Object.freeze({
+  MOMO: 1,
+});
+
 // Declare the Schema of the Mongo model
 var bookingSchema = new mongoose.Schema(
   {
@@ -55,8 +59,8 @@ var bookingSchema = new mongoose.Schema(
       type: Date,
     },
     paymentMethod: {
-      type: String,
-      required: true,
+      type: Number,
+      enum: Object.values(PAYMENT_METHOD),
     },
     paymentStatus: {
       type: Number,
