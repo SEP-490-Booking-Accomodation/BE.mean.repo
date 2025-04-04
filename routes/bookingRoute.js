@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isOwner } = require("../middlewares/authMiddleware");
+const { authMiddleware, isOwner, isAdminAndOwner } = require("../middlewares/authMiddleware");
 const {
   createBooking,
   updateBooking,
@@ -154,7 +154,7 @@ router.post("/create-Booking", authMiddleware, createBooking);
  *       200:
  *         description: Booking updated successfully
  */
-router.put("/:id", authMiddleware, isOwner, updateBooking);
+router.put("/:id", authMiddleware, isAdminAndOwner, updateBooking);
 
 /**
  * @swagger
