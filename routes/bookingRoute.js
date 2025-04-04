@@ -76,13 +76,13 @@ const {
  *           example: "04-02-2025 15:30:45 +07:00"
  *           description: Confirmation date
  *         paymentMethod:
- *           default: 1
- *           type: string
- *           description: Payment method
+ *           type: integer
+ *           enum: [1]
+ *           description: Payment method (1=MOMO)
  *         paymentStatus:
  *           type: integer
  *           enum: [1, 2, 3, 4, 5]
- *           description: Payment method (1=BOOKING, 2=PENDING, 3=PAID, 4=REFUND, 5=FAILED)
+ *           description: Payment status (1=BOOKING, 2=PENDING, 3=PAID, 4=REFUND, 5=FAILED)
  *         adultNumber:
  *           type: number
  *           description: Number of adults
