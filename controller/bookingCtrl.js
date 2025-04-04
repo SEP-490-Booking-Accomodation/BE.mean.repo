@@ -567,8 +567,37 @@ const getBookingsByRentalLocation = asyncHandler(async (req, res) => {
 const getAllBooking = asyncHandler(async (req, res) => {
   try {
     const getAllBooking = await Booking.find({ isDelete: false })
-      .populate("accommodationId")
-      .populate("policySystemIds")
+      .populate({
+        path: "accommodationId",
+        populate: [
+          {
+            path: "rentalLocationId",
+            select: "name address openHour closeHour ward district city",
+          },
+          {
+            path: "accommodationTypeId",
+            select: "name maxPeopleNumber basePrice overtimeHourlyPrice",
+          },
+        ],
+      })
+      .populate({
+        path: "policySystemIds",
+        populate: [
+          {
+            path: "staffId",
+            // select: "name address openHour closeHour ward district city",
+            populate: {
+              path: "userId",
+              select: "fullName",
+            }
+          },
+          {
+            path: "policySystemCategoryId",
+            // select: "name maxPeopleNumber basePrice overtimeHourlyPrice",
+          },
+        ],
+      })
+
       .populate({
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
