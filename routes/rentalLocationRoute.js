@@ -45,6 +45,11 @@ const {
  *         landUsesRightsId:
  *           type: string
  *           description: The ID of the land use rights associated with the rental location
+ *         accommodationTypeIds:
+ *           type: array
+ *           items:
+ *             type: string
+ *             description: Array of accommodation type IDs associated with the rental location
  *         name:
  *           type: string
  *           description: The name of the rental location
@@ -60,8 +65,10 @@ const {
  *             5 - Deleted
  *             6 - Needs_Update
  *         image:
- *           type: string
- *           description: A URL or path to the rental location's image
+ *           type: array
+ *           items:
+ *             type: string
+ *             description: A URL or path to the rental location's image
  *         description:
  *           type: string
  *           description: A detailed description of the rental location
@@ -98,9 +105,10 @@ const {
  *       example:
  *         ownerId: "63b92f4e17d7b3c2a4e4f3d2"
  *         landUsesRightId: "63b92f4e1722b3c2a4e4f3f2"
+ *         accommodationTypeIds: ["63b92f4e27d7b2c2a4e4f3x9", "63b92f4e27d7b2c2a4e4f3x8"]
  *         name: "Cozy Rental Space"
  *         status: 1
- *         image: "/uploads/images/rental1.jpg"
+ *         image: ["/uploads/images/rental1.jpg"]
  *         description: "A cozy space ideal for short-term stays."
  *         address: "123 Rental Lane"
  *         ward: "Ward 5"
