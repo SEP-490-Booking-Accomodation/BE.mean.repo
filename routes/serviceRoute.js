@@ -125,7 +125,7 @@ router.delete("/:id", authMiddleware, isOwner , deleteService);
  * /api/service/all-services:
  *   get:
  *     summary: Get all services
- *     description: Retrieves a list of all services
+ *     description: Retrieves a list of all services. Can be filtered by rentalLocationId or ownerId.
  *     parameters:
  *       - in: query
  *         name: rentalLocationId
@@ -133,17 +133,27 @@ router.delete("/:id", authMiddleware, isOwner , deleteService);
  *         schema:
  *           type: string
  *         description: ID of the rental location
+ *       - in: query
+ *         name: ownerId
+ *         required: false
+ *         schema:
+ *           type: string
+ *         description: ID of the owner to filter services by
  *     tags:
  *       - Service
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Successfully retrieved all services
+ *         description: Successfully retrieved services
+ *       400:
+ *         description: Invalid ID format
  *       404:
- *         description: No services found
+ *         description: No services found with the specified criteria
+ *       500:
+ *         description: Internal server error
  */
-router.get("/all-services", authMiddleware, isOwner , getAllService);
+router.get("/all-services", authMiddleware, isOwner, getAllService);
 
 /**
  * @swagger
@@ -168,6 +178,6 @@ router.get("/all-services", authMiddleware, isOwner , getAllService);
  *       404:
  *         description: Service not found
  */
-router.get("/:id", authMiddleware, isOwner ,getService);
+router.get("/:id", authMiddleware ,isOwner, getService);
 
 module.exports = router;  
