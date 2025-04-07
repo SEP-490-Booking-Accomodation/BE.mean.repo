@@ -98,6 +98,9 @@ const {
  *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
  *           example: "04-02-2025 15:30:45 +07:00"
  *           description: Completion date
+ *         totalPrice:
+ *           type: number
+ *           description: Total Price of Booking
  *         passwordRoom:
  *           type: string
  *           description: Password room for open
