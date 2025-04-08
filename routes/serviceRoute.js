@@ -62,7 +62,7 @@ const {
  *       400:
  *         description: Bad request
  */
-router.post("/create-service", authMiddleware, isOwner, createService);
+router.post("/create-service", authMiddleware, createService);
 
 /**
  * @swagger
@@ -93,7 +93,7 @@ router.post("/create-service", authMiddleware, isOwner, createService);
  *       404:
  *         description: Service not found
  */
-router.put("/:id", authMiddleware, isOwner, updateService);
+router.put("/:id", authMiddleware, updateService);
 
 /**
  * @swagger
@@ -118,7 +118,7 @@ router.put("/:id", authMiddleware, isOwner, updateService);
  *       404:
  *         description: Service not found
  */
-router.delete("/:id", authMiddleware, isOwner , deleteService);
+router.delete("/:id", authMiddleware, deleteService);
 
 /**
  * @swagger
@@ -143,7 +143,7 @@ router.delete("/:id", authMiddleware, isOwner , deleteService);
  *       404:
  *         description: No services found
  */
-router.get("/all-services", authMiddleware, isOwner , getAllService);
+router.get("/all-services", authMiddleware, getAllService);
 
 /**
  * @swagger
@@ -168,6 +168,6 @@ router.get("/all-services", authMiddleware, isOwner , getAllService);
  *       404:
  *         description: Service not found
  */
-router.get("/:id", authMiddleware, isOwner ,getService);
+router.get("/:id", authMiddleware, getService);
 
 module.exports = router;  
