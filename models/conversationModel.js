@@ -6,14 +6,7 @@ var conversationSchema = new mongoose.Schema(
             type: mongoose.Schema.ObjectId,
             ref: "User",
         },
-        startedDate: {
-            type: Date,
-            default: () => moment().tz("Asia/Ho_Chi_Minh").toDate(),
-        },
-        lastMessage: {
-            type: String,
-        },
-        lastMessageDate: {
+        joinDate: {
             type: Date,
             default: () => moment().tz("Asia/Ho_Chi_Minh").toDate(),
         },
@@ -38,14 +31,8 @@ var conversationSchema = new mongoose.Schema(
                     .tz("Asia/Ho_Chi_Minh")
                     .format("DD/MM/YYYY HH:mm:ss");
 
-                if (ret.startedDate) {
-                    ret.startedDate = moment(ret.startedDate)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-
-                if (ret.lastMessageDate) {
-                    ret.lastMessageDate = moment(ret.lastMessageDate)
+                if (ret.joinDate) {
+                    ret.joinDate = moment(ret.joinDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
@@ -63,14 +50,8 @@ var conversationSchema = new mongoose.Schema(
                     .tz("Asia/Ho_Chi_Minh")
                     .format("DD/MM/YYYY HH:mm:ss");
 
-                if (ret.startedDate) {
-                    ret.startedDate = moment(ret.startedDate)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-
-                if (ret.lastMessageDate) {
-                    ret.lastMessageDate = moment(ret.lastMessageDate)
+                if (ret.joinDate) {
+                    ret.joinDate = moment(ret.joinDate)
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
