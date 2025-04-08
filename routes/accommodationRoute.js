@@ -32,7 +32,7 @@ const {
  *           description: The ID of the accommodation type
  *         roomNo:
  *           type: string
- *           description: Room numbrt of Accommodation
+ *           description: Room number of Accommodation
  *         description:
  *           type: string
  *           description: A detailed description of the accommodation

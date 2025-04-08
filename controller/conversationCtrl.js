@@ -20,8 +20,7 @@ const updateConversation = asyncHandler(async (req, res) => {
         const updatedConversation = await Conversation.findByIdAndUpdate(
             id,
             {
-                ...req.body,
-                lastMessageDate: moment().tz("Asia/Ho_Chi_Minh").toDate(), // Update to current VN time
+                ...req.body
             },
             { new: true }
         );
