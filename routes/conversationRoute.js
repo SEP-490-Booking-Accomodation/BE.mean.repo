@@ -17,24 +17,15 @@ const {
  *       type: object
  *       required:
  *         - userId
- *         - startedDate
- *         - lastMessage
- *         - lastMessageDate
+ *         - joinDate
  *       properties:
  *         userId:
  *           type: string
  *           description: The ID of the user associated with the conversation
- *         startedDate:
+ *         joinDate:
  *           type: string
  *           format: date-time
  *           description: The date when the conversation started
- *         lastMessage:
- *           type: string
- *           description: The last message sent in the conversation
- *         lastMessageDate:
- *           type: string
- *           format: date-time
- *           description: The date when the last message was sent
  *         status:
  *           type: boolean
  *           description: The status of the conversation (e.g., active or inactive)
@@ -48,9 +39,7 @@ const {
  *           description: The date the conversation was last updated
  *       example:
  *         userId: "63b92f4e17d7b3c2a4e4f3d3"
- *         startedDate: "06/02/2025 10:30:00"
- *         lastMessage: "Hello, how are you?"
- *         lastMessageDate: "06/02/2025 11:00:00"
+ *         joinDate: "06/02/2025 10:30:00"
  *         status: true
  */
 
