@@ -7,6 +7,8 @@ const {
   deleteConversation,
   getConversation,
   getAllConversation,
+  getUserConversations,
+  getConversationBetweenUsers,
 } = require("../controller/conversationCtrl");
 
 /**
@@ -16,12 +18,16 @@ const {
  *     Conversation:
  *       type: object
  *       required:
- *         - userId
- *         - joinDate
+ *         - participants
  *       properties:
- *         userId:
+ *         participants:
+ *           type: array
+ *           items:
+ *             type: string
+ *           description: Array of user IDs participating in the conversation (exactly 2)
+ *         lastMessage:
  *           type: string
- *           description: The ID of the user associated with the conversation
+ *           description: Reference to the last message in the conversation
  *         joinDate:
  *           type: string
  *           format: date-time
@@ -38,7 +44,7 @@ const {
  *           format: date-time
  *           description: The date the conversation was last updated
  *       example:
- *         userId: "63b92f4e17d7b3c2a4e4f3d3"
+ *         participants: ["63b92f4e17d7b3c2a4e4f3d3", "63b92f4e17d7b3c2a4e4f3d4"]
  *         joinDate: "06/02/2025 10:30:00"
  *         status: true
  */
@@ -47,8 +53,8 @@ const {
  * @swagger
  * /api/conversation/create-conversation:
  *   post:
- *     summary: Create a new conversation
- *     description: Creates a new conversation and returns the newly created object
+ *     summary: Create a new conversation between two users
+ *     description: Creates a new conversation with exactly 2 participants and returns the newly created object
  *     tags:
  *       - Conversation
  *     security:
@@ -62,14 +68,12 @@ const {
  *     responses:
  *       201:
  *         description: Conversation created successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Conversation'
+ *       200:
+ *         description: Conversation already exists
  *       400:
- *         description: Invalid input
+ *         description: Invalid input (must have exactly 2 participants)
  */
-router.post("/create-conversation", authMiddleware, createConversation);
+router.post("/create-conversation", createConversation);
 
 /**
  * @swagger
@@ -97,14 +101,10 @@ router.post("/create-conversation", authMiddleware, createConversation);
  *     responses:
  *       200:
  *         description: Conversation updated successfully
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Conversation'
  *       404:
  *         description: Conversation not found
  */
-router.put("/:id", authMiddleware, updateConversation);
+router.put("/:id", updateConversation);
 
 /**
  * @swagger
@@ -129,7 +129,7 @@ router.put("/:id", authMiddleware, updateConversation);
  *       404:
  *         description: Conversation not found
  */
-router.delete("/:id", authMiddleware, deleteConversation);
+router.delete("/:id", deleteConversation);
 
 /**
  * @swagger
@@ -144,16 +144,10 @@ router.delete("/:id", authMiddleware, deleteConversation);
  *     responses:
  *       200:
  *         description: Successfully retrieved all conversations
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Conversation'
  *       404:
  *         description: No conversations found
  */
-router.get("/all-conversations", authMiddleware, getAllConversation);
+router.get("/all-conversations", getAllConversation);
 
 /**
  * @swagger
@@ -175,13 +169,65 @@ router.get("/all-conversations", authMiddleware, getAllConversation);
  *     responses:
  *       200:
  *         description: Successfully retrieved conversation
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Conversation'
  *       404:
  *         description: Conversation not found
  */
-router.get("/:id", authMiddleware, getConversation);
-module.exports = router;
+router.get("/:id", getConversation);
 
+/**
+ * @swagger
+ * /api/conversation/user/{userId}:
+ *   get:
+ *     summary: Get all conversations for a user
+ *     description: Retrieves all conversations where the specified user is a participant
+ *     tags:
+ *       - Conversation
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: The ID of the user to get conversations for
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user conversations
+ *       404:
+ *         description: No conversations found for this user
+ */
+router.get("/user/:userId", getUserConversations);
+
+/**
+ * @swagger
+ * /api/conversation/between/{userId1}/{userId2}:
+ *   get:
+ *     summary: Get conversation between two users
+ *     description: Retrieves the conversation between two specific users
+ *     tags:
+ *       - Conversation
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId1
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: The ID of the first user
+ *       - in: path
+ *         name: userId2
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: The ID of the second user
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved conversation
+ *       404:
+ *         description: No conversation found between these users
+ */
+router.get("/between/:userId1/:userId2", getConversationBetweenUsers);
+
+module.exports = router;

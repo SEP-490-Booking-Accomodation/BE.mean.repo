@@ -2,9 +2,13 @@ const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
 var conversationSchema = new mongoose.Schema(
     {
-        userId: {
+        participants: [{
             type: mongoose.Schema.ObjectId,
             ref: "User",
+        }],
+        lastMessage: {
+            type: mongoose.Schema.ObjectId,
+            ref: "Message",
         },
         joinDate: {
             type: Date,
@@ -17,7 +21,7 @@ var conversationSchema = new mongoose.Schema(
         isDelete: {
             type: Boolean,
             default: false,
-        },
+        }
     },
     {
         timestamps: true,
@@ -55,7 +59,6 @@ var conversationSchema = new mongoose.Schema(
                         .tz("Asia/Ho_Chi_Minh")
                         .format("DD/MM/YYYY HH:mm:ss");
                 }
-
                 return ret;
             },
         },
