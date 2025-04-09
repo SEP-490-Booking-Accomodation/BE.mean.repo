@@ -412,7 +412,7 @@ router.get("/occupied-time-slots", getOccupiedTimeSlots);
  *                 example: "10-04-2025 11:26:00"
  *     responses:
  *       200:
- *         description: Room availability checked successfully
+ *         description: Accommodation availability checked successfully
  *         content:
  *           application/json:
  *             schema:
@@ -420,11 +420,11 @@ router.get("/occupied-time-slots", getOccupiedTimeSlots);
  *               properties:
  *                 isAvailable:
  *                   type: boolean
- *                   description: Indicates whether rooms are available for the requested time slot
+ *                   description: Indicates whether Accommodations are available for the requested time slot
  *                   example: true
  *                 message:
  *                   type: string
- *                   example: "Rooms are available for the selected time slot"
+ *                   example: "Accommodations are available for the selected time slot"
  *                 data:
  *                   type: array
  *                   items:
@@ -447,7 +447,7 @@ router.get("/occupied-time-slots", getOccupiedTimeSlots);
  *                   type: string
  *                   example: "accommodationTypeId, checkIn, and checkOut are required"
  *       404:
- *         description: No active rooms found for the specified accommodation type
+ *         description: No active Accommodations found for the specified accommodation type
  *         content:
  *           application/json:
  *             schema:
@@ -455,7 +455,7 @@ router.get("/occupied-time-slots", getOccupiedTimeSlots);
  *               properties:
  *                 message:
  *                   type: string
- *                   example: "No active rooms found for this accommodation type"
+ *                   example: "No active Accommodations found for this accommodation type"
  *       500:
  *         description: Server error
  *         content:
