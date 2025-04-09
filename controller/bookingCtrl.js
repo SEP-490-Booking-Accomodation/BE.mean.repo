@@ -153,7 +153,7 @@ const getOccupiedTimeSlots = asyncHandler(async (req, res) => {
       "Booking query:",
       await Booking.find({
         accommodationId: { $in: accommodationIds },
-        isDeleted: false,
+        isDelete: false,
       })
     );
 
@@ -749,6 +749,79 @@ const getBookingsByOwner = asyncHandler(async (req, res) => {
   }
 });
 
+const checkRoomAvailability = asyncHandler(async (req, res) => {
+  try {
+    // 1. Get input parameters from the request (accommodationTypeId, checkIn, checkOut)
+    const { accommodationTypeId, checkIn, checkOut } = req.body;
+
+    if (!accommodationTypeId || !checkIn || !checkOut) {
+      return res.status(400).json({ message: "accommodationTypeId, checkIn, and checkOut are required" });
+    }
+
+    const requestedCheckIn = moment.tz(checkIn, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh").toDate();
+    const requestedCheckOut = moment.tz(checkOut, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh").toDate();
+
+    // Validate that check-out is after check-in
+    if (requestedCheckOut <= requestedCheckIn) {
+      return res.status(400).json({ message: "Check-out time must be after check-in time" });
+    }
+
+    // 2. Fetch accommodations of the specified accommodation type that are active
+    const accommodations = await Accommodation.find({
+      accommodationTypeId: accommodationTypeId, // Matches your schema
+      status: 1, // Active accommodations only
+    });
+
+    if (!accommodations || accommodations.length === 0) {
+      return res.status(404).json({ message: "No active rooms found for this accommodation type" });
+    }
+
+    // Get the list of accommodation IDs
+    const accommodationIds = accommodations.map((room) => room._id.toString());
+
+    // 3. Fetch bookings for these accommodations that overlap with the requested time slot
+    const bookings = await Booking.find({
+      accommodationId: { $in: accommodationIds }, // Matches your schema
+      isDelete: false,
+      $or: [
+        // Check for overlap: a booking overlaps if it starts before the requested check-out
+        // and ends after the requested check-in
+        {
+          checkInHour: { $lt: requestedCheckOut }, // Matches your schema
+          checkOutHour: { $gt: requestedCheckIn }, // Matches your schema
+        },
+      ],
+    }).select("accommodationId checkInHour checkOutHour");
+
+    // 4. Determine which rooms are occupied
+    const occupiedRoomIds = new Set(
+        bookings.map((booking) => booking.accommodationId.toString())
+    );
+
+    // 5. Find available rooms (rooms that are not occupied)
+    const availableRooms = accommodations
+        .filter((room) => !occupiedRoomIds.has(room._id.toString()))
+        .map((room) => ({
+          roomId: room._id.toString(),
+          name: room.name || `AccommodationId ${room._id}`, // Include additional room details if needed
+        }));
+
+    // 6. Return the result
+
+    const isAvailable = availableRooms.length > 0;
+
+    res.status(200).json({
+      isAvailable: isAvailable, // Add the boolean field
+      message: isAvailable
+          ? "Accommodations are available for the selected time slot"
+          : "No Accommodations are available for the selected time slot",
+      data: availableRooms,
+    });
+  } catch (error) {
+    console.error("Error checking room availability:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 module.exports = {
   createBooking,
   updateBooking,
@@ -764,4 +837,5 @@ module.exports = {
   processMomoCallback,
   generateRoomPassword,
   query,
+  checkRoomAvailability
 };
