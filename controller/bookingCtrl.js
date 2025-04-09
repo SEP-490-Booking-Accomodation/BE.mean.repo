@@ -67,39 +67,43 @@ const createBooking = asyncHandler(async (req, res) => {
           .toDate()
       : null;
 
-    // Tìm các phòng có accommodationTypeId và còn trống trong khoảng thời gian này
-    const availableRoom = await Accommodation.findOne({
-      accommodationTypeId,
-      status: "1",
-      _id: {
-        $nin: await Booking.distinct("accommodationId", {
-          accommodationTypeId,
-          $or: [
-            {
-              checkInHour: { $lt: vietnamTime1 },
-              checkOutHour: { $gt: vietnamTime2 },
-            },
-          ],
-        }),
-      },
+    // Tìm tất cả phòng AVAILABLE với accommodationTypeId
+    const availableRooms = await Accommodation.find({
+      status: 1,
+      accommodationTypeId: accommodationTypeId,
     });
 
-    console.log(availableRoom);
+    // Tìm danh sách phòng đã bị đặt trong khoảng thời gian đó
+    const bookedRoomIds = await Booking.find({
+      accommodationId: { $in: availableRooms.map((room) => room._id) },
+      checkInHour: { $lt: vietnamTime2 },
+      checkOutHour: { $gt: vietnamTime1 },
+    }).distinct("accommodationId");
 
-    if (!availableRoom) {
+    console.log(bookedRoomIds);
+
+    // Lọc ra những phòng chưa bị đặt trùng thời gian
+    const bookedRoomIdStrings = bookedRoomIds.map((id) => id.toString());
+
+    const suitableRooms = availableRooms.filter(
+      (room) => !bookedRoomIdStrings.includes(room._id.toString())
+    );
+
+    console.log(suitableRooms);
+
+    // Lấy phòng đầu tiên phù hợp
+    const room = suitableRooms.length > 0 ? suitableRooms[0] : null;
+
+    if (!room) {
       return res
         .status(400)
-        .json({ message: "No available rooms for this time slot." });
+        .json({ message: "No available room for the selected time." });
     }
-
-    // Cập nhật trạng thái của phòng accommodation sau khi đã chọn
-    availableRoom.status = "2"; // Đặt trạng thái là 2 (phòng đã được đặt)
-    await availableRoom.save();
 
     const newBooking = new Booking({
       policySystemIds: policySystemIds,
       customerId,
-      accommodationId: availableRoom._id,
+      accommodationId: room._id,
       couponId,
       feedbackId,
       checkInHour: vietnamTime1,
@@ -127,6 +131,56 @@ const createBooking = asyncHandler(async (req, res) => {
     });
   } catch (error) {
     throw new Error(error);
+  }
+});
+
+const getOccupiedTimeSlots = asyncHandler(async (req, res) => {
+  try {
+    // Lấy tất cả phòng đang hoạt động
+    const accommodations = await Accommodation.find({ status: 1 });
+
+    // Lấy danh sách ID các phòng
+    const accommodationIds = accommodations.map((room) => room._id.toString());
+
+    console.log(accommodationIds);
+
+    // Tìm tất cả các booking tương ứng (chưa bị xóa)
+    const bookings = await Booking.find({
+      accommodationId: { $in: accommodationIds },
+    }).select("accommodationId checkInHour checkOutHour");
+
+    console.log(
+      "Booking query:",
+      await Booking.find({
+        accommodationId: { $in: accommodationIds },
+        isDeleted: false,
+      })
+    );
+
+    // Nhóm kết quả theo phòng
+    const result = {};
+    bookings.forEach((booking) => {
+      const roomId = booking.accommodationId.toString();
+      if (!result[roomId]) result[roomId] = [];
+
+      result[roomId].push({
+        checkInHour: moment(booking.checkInHour)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("DD-MM-YYYY HH:mm:ss"),
+        checkOutHour: moment(booking.checkOutHour)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("DD-MM-YYYY HH:mm:ss"),
+      });
+    });
+    console.log(result);
+
+    res.status(200).json({
+      message: "Occupied time slots fetched successfully",
+      data: result,
+    });
+  } catch (error) {
+    console.error("Error fetching time slots:", error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
@@ -591,7 +645,7 @@ const getAllBooking = asyncHandler(async (req, res) => {
             populate: {
               path: "userId",
               select: "fullName",
-            }
+            },
           },
           {
             path: "policySystemCategoryId",
@@ -704,6 +758,7 @@ module.exports = {
   getBookingsByOwner,
   getBookingsByRentalLocation,
   getAllBooking,
+  getOccupiedTimeSlots,
   processMoMoPayment,
   processMoMoNotify,
   processMomoCallback,

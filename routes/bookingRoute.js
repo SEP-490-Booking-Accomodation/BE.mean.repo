@@ -15,6 +15,7 @@ const {
   processMomoCallback,
   generateRoomPassword,
   query,
+  getOccupiedTimeSlots,
 } = require("../controller/bookingCtrl");
 
 /**
@@ -339,6 +340,41 @@ router.get(
   authMiddleware,
   getBookingsByCustomerId
 );
+
+/**
+ * @swagger
+ * /api/booking/occupied-time-slots:
+ *   get:
+ *     summary: Get occupied time slots for all active accommodations
+ *     tags: [Booking]
+ *     responses:
+ *       200:
+ *         description: Occupied time slots fetched successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Occupied time slots fetched successfully
+ *                 data:
+ *                   type: object
+ *                   additionalProperties:
+ *                     type: array
+ *                     items:
+ *                       type: object
+ *                       properties:
+ *                         checkInHour:
+ *                           type: string
+ *                           example: "10:00"
+ *                         checkOutHour:
+ *                           type: string
+ *                           example: "12:00"
+ *       500:
+ *         description: Server error
+ */
+router.get("/occupied-time-slots", getOccupiedTimeSlots);
 
 /**
  * @swagger
