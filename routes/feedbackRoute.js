@@ -221,7 +221,7 @@ router.get("/owner/:ownerId", authMiddleware, getAllFeedbackByOwnerId);
  *       200:
  *         description: List of feedback related to the customer
  */
-router.get("/customer/:cusId", getAllFeedbackByCustomerId);
+router.get("/customer/:cusId", authMiddleware, getAllFeedbackByCustomerId);
 
 /**
  * @swagger
