@@ -6,13 +6,41 @@ const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
 const Accommodation = require("../models/accommodationModel");
 const Service = require("../models/serviceModel");
+const mongoose = require('mongoose');
 
 const createAccommodationType = asyncHandler(async (req, res) => {
     try {
-        const newAccommodationType = await AccommodationType.create(req.body);
-        res.json(newAccommodationType);
+        const session = await mongoose.startSession();
+        session.startTransaction();
+
+        try {
+            const newAccommodationType = await AccommodationType.create([req.body], { session });
+
+            const accommodationTypeId = newAccommodationType[0]._id;
+
+            const { rentalLocationId } = req.body;
+
+            if (rentalLocationId) {
+                await RentalLocation.findByIdAndUpdate(
+                    rentalLocationId,
+                    { $push: { accommodationTypeIds: accommodationTypeId } },
+                    { session }
+                );
+            }
+
+            // Commit the transaction
+            await session.commitTransaction();
+            session.endSession();
+
+            res.json(newAccommodationType[0]);
+        } catch (error) {
+            // If anything fails, abort the transaction
+            await session.abortTransaction();
+            session.endSession();
+            throw error;
+        }
     } catch (error) {
-        throw new Error(error);
+        res.status(500).json({ message: error.message });
     }
 });
 const updateAccommodationType = asyncHandler(async (req, res) => {
