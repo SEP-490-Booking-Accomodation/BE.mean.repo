@@ -14,6 +14,7 @@ const {
   getAllFeedbackByRentalId,
   getAllFeedbackByOwnerId,
   getAverageRatingByRentalId,
+  getAllFeedbackByCustomerId,
 } = require("../controller/feedbackCtrl");
 
 /**
@@ -200,6 +201,27 @@ router.get("/rental/:rentalId/average-rating", getAverageRatingByRentalId);
  *         description: List of feedback related to the owner
  */
 router.get("/owner/:ownerId", authMiddleware, getAllFeedbackByOwnerId);
+
+/**
+ * @swagger
+ * /api/feedback/customer/{cusId}:
+ *   get:
+ *     summary: Get all feedback by customer
+ *     description: Retrieve all feedback entries associated with a specific customer
+ *     tags:
+ *       - Feedback
+ *     parameters:
+ *       - in: path
+ *         name: cusId
+ *         required: true
+ *         description: The ID of the customer
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: List of feedback related to the customer
+ */
+router.get("/customer/:cusId", getAllFeedbackByCustomerId);
 
 /**
  * @swagger

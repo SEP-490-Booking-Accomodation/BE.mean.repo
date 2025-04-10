@@ -751,18 +751,25 @@ const getBookingsByOwner = asyncHandler(async (req, res) => {
 
 const checkRoomAvailability = asyncHandler(async (req, res) => {
   try {
-
     const { accommodationTypeId, checkIn, checkOut } = req.body;
 
     if (!accommodationTypeId || !checkIn || !checkOut) {
-      return res.status(400).json({ message: "accommodationTypeId, checkIn, and checkOut are required" });
+      return res.status(400).json({
+        message: "accommodationTypeId, checkIn, and checkOut are required",
+      });
     }
 
-    const requestedCheckIn = moment.tz(checkIn, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh").toDate();
-    const requestedCheckOut = moment.tz(checkOut, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh").toDate();
+    const requestedCheckIn = moment
+      .tz(checkIn, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+      .toDate();
+    const requestedCheckOut = moment
+      .tz(checkOut, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+      .toDate();
 
     if (requestedCheckOut <= requestedCheckIn) {
-      return res.status(400).json({ message: "Check-out time must be after check-in time" });
+      return res
+        .status(400)
+        .json({ message: "Check-out time must be after check-in time" });
     }
 
     const accommodations = await Accommodation.find({
@@ -771,7 +778,9 @@ const checkRoomAvailability = asyncHandler(async (req, res) => {
     });
 
     if (!accommodations || accommodations.length === 0) {
-      return res.status(404).json({ message: "No active rooms found for this accommodation type" });
+      return res
+        .status(404)
+        .json({ message: "No active rooms found for this accommodation type" });
     }
 
     const accommodationIds = accommodations.map((room) => room._id.toString());
@@ -788,23 +797,23 @@ const checkRoomAvailability = asyncHandler(async (req, res) => {
     }).select("accommodationId checkInHour checkOutHour");
 
     const occupiedRoomIds = new Set(
-        bookings.map((booking) => booking.accommodationId.toString())
+      bookings.map((booking) => booking.accommodationId.toString())
     );
 
     const availableRooms = accommodations
-        .filter((room) => !occupiedRoomIds.has(room._id.toString()))
-        .map((room) => ({
-          roomId: room._id.toString(),
-          name: room.name || `AccommodationId ${room._id}`,
-        }));
+      .filter((room) => !occupiedRoomIds.has(room._id.toString()))
+      .map((room) => ({
+        roomId: room._id.toString(),
+        name: room.name || `AccommodationId ${room._id}`,
+      }));
 
     const isAvailable = availableRooms.length > 0;
 
     res.status(200).json({
       isAvailable: isAvailable, // Add the boolean field
       message: isAvailable
-          ? "Accommodations are available for the selected time slot"
-          : "No Accommodations are available for the selected time slot",
+        ? "Accommodations are available for the selected time slot"
+        : "No Accommodations are available for the selected time slot",
       data: availableRooms,
     });
   } catch (error) {
@@ -827,5 +836,5 @@ module.exports = {
   processMomoCallback,
   generateRoomPassword,
   query,
-  checkRoomAvailability
+  checkRoomAvailability,
 };
