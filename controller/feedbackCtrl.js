@@ -205,7 +205,6 @@ const getAllFeedbackByCustomerId = asyncHandler(async (req, res) => {
     // Lọc ra những feedbackId hợp lệ
     const feedbackIds = bookings.map((b) => b.feedbackId).filter((id) => id); // bỏ undefined/null
 
-
     console.log(feedbackIds);
     if (feedbackIds.length === 0) {
       return res.json([]);
@@ -216,28 +215,28 @@ const getAllFeedbackByCustomerId = asyncHandler(async (req, res) => {
       _id: { $in: feedbackIds },
       isDelete: false,
     })
-      .populate({
-        path: "replyBy",
-        model: "Owner",
-        select: "-createdAt -updatedAt -isDelete",
-        populate: {
-          path: "userId",
-          select: "fullName email avatarUrl phone",
-        },
-      })
-      .populate({
-        path: "bookingId",
-        model: "Booking",
-        select: "checkInHour durationBookingHour",
-        populate: {
-          path: "customerId",
-          populate: {
-            path: "userId",
-            select:
-              "-password -tokenId -createdAt -updatedAt -isDelete -roleID -isActive -isVerifiedPhone -isVerifiedEmail",
-          },
-        },
-      });
+      // .populate({
+      //   path: "replyBy",
+      //   model: "Owner",
+      //   select: "-createdAt -updatedAt -isDelete",
+      //   populate: {
+      //     path: "userId",
+      //     select: "fullName email avatarUrl phone",
+      //   },
+      // })
+      // .populate({
+      //   path: "bookingId",
+      //   model: "Booking",
+      //   select: "checkInHour durationBookingHour",
+      //   populate: {
+      //     path: "customerId",
+      //     populate: {
+      //       path: "userId",
+      //       select:
+      //         "-password -tokenId -createdAt -updatedAt -isDelete -roleID -isActive -isVerifiedPhone -isVerifiedEmail",
+      //     },
+      //   },
+      // });
 
     res.json(feedbacks);
   } catch (error) {
