@@ -19,6 +19,9 @@ const {
  *         - bankNo
  *         - bankAccountName
  *       properties:
+ *         ownerId:
+ *           type: string
+ *           description: The id of the owner
  *         bankName:
  *           type: string
  *           description: The name of the bank
@@ -29,6 +32,7 @@ const {
  *           type: string
  *           description: The name associated with the bank account
  *       example:
+ *         ownerId: ""
  *         bankName: "Vietcombank"
  *         bankNo: "1234567890"
  *         bankAccountName: "John Doe"

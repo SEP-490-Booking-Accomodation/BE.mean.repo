@@ -1,5 +1,5 @@
 const express = require("express");
-const twilio = require('twilio');
+const twilio = require("twilio");
 const dbConnect = require("./config/dbConnect");
 const { swaggerUi, swaggerSpec } = require("./config/swaggerConfig");
 const cors = require("cors");
@@ -93,8 +93,6 @@ app.use("/api/transaction", transactionRoute);
 app.use("/api/land-uses-right", landUsesRightRoute);
 app.use("/api/value", valueRoute);
 app.use("/api", verifyRoute);
-
-
 
 app.use(notFound);
 app.use(errorHandler);
