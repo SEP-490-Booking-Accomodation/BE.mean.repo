@@ -42,5 +42,6 @@
     "twilio": "^5.5.1",
     "uniqid": "^5.4.0"
   },
+  "devDependencies": {},
   "description": ""
 }
