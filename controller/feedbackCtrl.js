@@ -5,6 +5,7 @@ const softDelete = require("../utils/softDelete");
 const Coupon = require("../models/couponModel");
 const Booking = require("../models/bookingModel");
 const Accommodation = require("../models/accommodationModel");
+const { populate } = require("../models/paymentInformationModel");
 
 const createFeedback = asyncHandler(async (req, res) => {
   try {
@@ -189,6 +190,60 @@ const getAverageRatingByRentalId = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllFeedbackByCustomerId = asyncHandler(async (req, res) => {
+  const { cusId } = req.params;
+  validateMongoDbId(cusId);
+
+  try {
+    // Lấy tất cả bookings của customer này
+    const bookings = await Booking.find({ customerId: cusId }).select(
+      "feedbackId"
+    );
+
+    console.log(bookings);
+
+    // Lọc ra những feedbackId hợp lệ
+    const feedbackIds = bookings.map((b) => b.feedbackId).filter((id) => id); // bỏ undefined/null
+
+
+    console.log(feedbackIds);
+    if (feedbackIds.length === 0) {
+      return res.json([]);
+    }
+
+    // Tìm feedback theo các ID đã lọc
+    const feedbacks = await Feedback.find({
+      _id: { $in: feedbackIds },
+      isDelete: false,
+    })
+      .populate({
+        path: "replyBy",
+        model: "Owner",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select: "fullName email avatarUrl phone",
+        },
+      })
+      .populate({
+        path: "bookingId",
+        model: "Booking",
+        select: "checkInHour durationBookingHour",
+        populate: {
+          path: "customerId",
+          populate: {
+            path: "userId",
+            select:
+              "-password -tokenId -createdAt -updatedAt -isDelete -roleID -isActive -isVerifiedPhone -isVerifiedEmail",
+          },
+        },
+      });
+
+    res.json(feedbacks);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 const getAllFeedbackByOwnerId = asyncHandler(async (req, res) => {
   const { ownerId } = req.params;
@@ -235,5 +290,6 @@ module.exports = {
   getAllFeedback,
   getAllFeedbackByRentalId,
   getAllFeedbackByOwnerId,
+  getAllFeedbackByCustomerId,
   getAverageRatingByRentalId,
 };
