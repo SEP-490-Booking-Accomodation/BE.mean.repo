@@ -23,6 +23,9 @@ const {
  *         - taxID
  *         - businessLicensesFile
  *       properties:
+ *         ownerId:
+ *           type: string
+ *           description: The id of the owner
  *         companyName:
  *           type: string
  *           description: The name of the company
@@ -42,6 +45,7 @@ const {
  *           type: string
  *           description: A file path or URL to the business license file
  *       example:
+ *         ownerId: ""
  *         companyName: "Example Corp"
  *         representativeName: "John Doe"
  *         citizenIdentification: "123456789"
