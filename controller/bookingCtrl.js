@@ -153,7 +153,7 @@ const getOccupiedTimeSlots = asyncHandler(async (req, res) => {
       "Booking query:",
       await Booking.find({
         accommodationId: { $in: accommodationIds },
-        isDeleted: false,
+        isDelete: false,
       })
     );
 
@@ -749,6 +749,69 @@ const getBookingsByOwner = asyncHandler(async (req, res) => {
   }
 });
 
+const checkRoomAvailability = asyncHandler(async (req, res) => {
+  try {
+
+    const { accommodationTypeId, checkIn, checkOut } = req.body;
+
+    if (!accommodationTypeId || !checkIn || !checkOut) {
+      return res.status(400).json({ message: "accommodationTypeId, checkIn, and checkOut are required" });
+    }
+
+    const requestedCheckIn = moment.tz(checkIn, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh").toDate();
+    const requestedCheckOut = moment.tz(checkOut, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh").toDate();
+
+    if (requestedCheckOut <= requestedCheckIn) {
+      return res.status(400).json({ message: "Check-out time must be after check-in time" });
+    }
+
+    const accommodations = await Accommodation.find({
+      accommodationTypeId: accommodationTypeId,
+      status: 1,
+    });
+
+    if (!accommodations || accommodations.length === 0) {
+      return res.status(404).json({ message: "No active rooms found for this accommodation type" });
+    }
+
+    const accommodationIds = accommodations.map((room) => room._id.toString());
+
+    const bookings = await Booking.find({
+      accommodationId: { $in: accommodationIds },
+      isDelete: false,
+      $or: [
+        {
+          checkInHour: { $lt: requestedCheckOut },
+          checkOutHour: { $gt: requestedCheckIn },
+        },
+      ],
+    }).select("accommodationId checkInHour checkOutHour");
+
+    const occupiedRoomIds = new Set(
+        bookings.map((booking) => booking.accommodationId.toString())
+    );
+
+    const availableRooms = accommodations
+        .filter((room) => !occupiedRoomIds.has(room._id.toString()))
+        .map((room) => ({
+          roomId: room._id.toString(),
+          name: room.name || `AccommodationId ${room._id}`,
+        }));
+
+    const isAvailable = availableRooms.length > 0;
+
+    res.status(200).json({
+      isAvailable: isAvailable, // Add the boolean field
+      message: isAvailable
+          ? "Accommodations are available for the selected time slot"
+          : "No Accommodations are available for the selected time slot",
+      data: availableRooms,
+    });
+  } catch (error) {
+    console.error("Error checking room availability:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
 module.exports = {
   createBooking,
   updateBooking,
@@ -764,4 +827,5 @@ module.exports = {
   processMomoCallback,
   generateRoomPassword,
   query,
+  checkRoomAvailability
 };

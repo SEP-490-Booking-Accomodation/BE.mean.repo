@@ -16,6 +16,7 @@ const {
   generateRoomPassword,
   query,
   getOccupiedTimeSlots,
+  checkRoomAvailability
 } = require("../controller/bookingCtrl");
 
 /**
@@ -375,6 +376,98 @@ router.get(
  *         description: Server error
  */
 router.get("/occupied-time-slots", getOccupiedTimeSlots);
+
+/**
+ * @swagger
+ * /api/booking/check-availability:
+ *   post:
+ *     summary: Check room availability for a specific accommodation type and time slot
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []  # Requires authentication (adjust if not needed)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - accommodationTypeId
+ *               - checkIn
+ *               - checkOut
+ *             properties:
+ *               accommodationTypeId:
+ *                 type: string
+ *                 description: The ID of the accommodation type
+ *                 example: "67f40b0ca4689ec49f9f6afd"
+ *               checkIn:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Check-in time in DD-MM-YYYY HH:mm:ss format (Asia/Ho_Chi_Minh timezone)
+ *                 example: "10-04-2025 08:26:00"
+ *               checkOut:
+ *                 type: string
+ *                 format: date-time
+ *                 description: Check-out time in DD-MM-YYYY HH:mm:ss format (Asia/Ho_Chi_Minh timezone)
+ *                 example: "10-04-2025 11:26:00"
+ *     responses:
+ *       200:
+ *         description: Accommodation availability checked successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isAvailable:
+ *                   type: boolean
+ *                   description: Indicates whether Accommodations are available for the requested time slot
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Accommodations are available for the selected time slot"
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       roomId:
+ *                         type: string
+ *                         example: "room1_id"
+ *                       name:
+ *                         type: string
+ *                         example: "Capsule Room 1"
+ *       400:
+ *         description: Invalid input (e.g., missing required fields or invalid check-in/check-out times)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "accommodationTypeId, checkIn, and checkOut are required"
+ *       404:
+ *         description: No active Accommodations found for the specified accommodation type
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "No active Accommodations found for this accommodation type"
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Server error"
+ */
+router.post("/check-availability", checkRoomAvailability);
 
 /**
  * @swagger
