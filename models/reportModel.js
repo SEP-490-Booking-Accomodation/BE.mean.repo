@@ -10,7 +10,7 @@ var reportSchema = new mongoose.Schema(
     },
     replyBy: {
       type: mongoose.Schema.ObjectId,
-      ref: "Staff",
+      ref: "Admin",
     },
     contentReply: {
       type: String,

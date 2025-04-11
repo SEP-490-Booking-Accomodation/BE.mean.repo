@@ -2,7 +2,7 @@ const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
 
 // Declare the Schema of the Mongo model
-var staffSchema = new mongoose.Schema(
+var adminSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.ObjectId,
@@ -43,4 +43,4 @@ var staffSchema = new mongoose.Schema(
 );
 
 //Export the model
-module.exports = mongoose.model("Staff", staffSchema);
+module.exports = mongoose.model("Admin", adminSchema);

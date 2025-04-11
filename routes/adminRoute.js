@@ -28,13 +28,13 @@ const {
   deleteStaff,
   getAllStaff,
   getStaff,
-} = require("../controller/staffCtrl");
+} = require("../controller/adminCtrl");
 
 /**
  * @swagger
  * components:
  *   schemas:
- *     Staff:
+ *     Admin:
  *       type: object
  *       properties:
  *         userId:
@@ -68,10 +68,10 @@ const {
 
 /**
  * @swagger
- * /api/staff/{id}:
+ * /api/admin/{id}:
  *   put:
- *     summary: Cập nhật thông tin staff theo ID.
- *     tags: [Staff]
+ *     summary: Cập nhật thông tin admin theo ID.
+ *     tags: [Admin]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -80,7 +80,7 @@ const {
  *         schema:
  *           type: string
  *         required: true
- *         description: ID của staff cần cập nhật.
+ *         description: ID của admin cần cập nhật.
  *     requestBody:
  *       required: true
  *       content:
@@ -89,18 +89,18 @@ const {
  *             $ref: '#/components/schemas/Staff'
  *     responses:
  *       200:
- *         description: Staff đã được cập nhật.
+ *         description: admin đã được cập nhật.
  *       404:
- *         description: Không tìm thấy staff.
+ *         description: Không tìm thấy admin.
  */
 router.put("/:id", authMiddleware, isAdmin, updateStaff);
 
 // /**
 //  * @swagger
-//  * /api/staff/{id}:
+//  * /api/admin/{id}:
 //  *   delete:
-//  *     summary: Xóa staff theo ID.
-//  *     tags: [Staff]
+//  *     summary: Xóa admin theo ID.
+//  *     tags: [Admin]
 //  *     security:
 //  *       - bearerAuth: []
 //  *     parameters:
@@ -109,41 +109,41 @@ router.put("/:id", authMiddleware, isAdmin, updateStaff);
 //  *         schema:
 //  *           type: string
 //  *         required: true
-//  *         description: ID của staff cần xóa.
+//  *         description: ID của admin cần xóa.
 //  *     responses:
 //  *       200:
-//  *         description: Staff đã được xóa.
+//  *         description: admin đã được xóa.
 //  *       404:
-//  *         description: Không tìm thấy staff.
+//  *         description: Không tìm thấy admin.
 //  */
 // router.delete("/:id", authMiddleware, isAdmin, deleteStaff);
 
 /**
  * @swagger
- * /api/staff/all-staffs:
+ * /api/admin/all-admins:
  *   get:
- *     summary: Lấy danh sách tất cả staff.
- *     tags: [Staff]
+ *     summary: Lấy danh sách tất cả admin.
+ *     tags: [Admin]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Danh sách staff.
+ *         description: Danh sách admin.
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
- *                 $ref: '#/components/schemas/Staff'
+ *                 $ref: '#/components/schemas/Admin'
  */
-router.get("/all-staffs", authMiddleware, isAdmin, getAllStaff);
+router.get("/all-admins", authMiddleware, isAdmin, getAllStaff);
 
 /**
  * @swagger
- * /api/staff/{id}:
+ * /api/admin/{id}:
  *   get:
- *     summary: Lấy thông tin chi tiết của một staff theo ID.
- *     tags: [Staff]
+ *     summary: Lấy thông tin chi tiết của một admin theo ID.
+ *     tags: [Admin]
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -152,16 +152,16 @@ router.get("/all-staffs", authMiddleware, isAdmin, getAllStaff);
  *         schema:
  *           type: string
  *         required: true
- *         description: ID của staff cần lấy thông tin.
+ *         description: ID của admin cần lấy thông tin.
  *     responses:
  *       200:
- *         description: Thông tin staff.
+ *         description: Thông tin admin.
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Staff'
+ *               $ref: '#/components/schemas/Admin'
  *       404:
- *         description: Không tìm thấy staff.
+ *         description: Không tìm thấy admin.
  */
 router.get("/:id", authMiddleware, isAdmin, getStaff);
 

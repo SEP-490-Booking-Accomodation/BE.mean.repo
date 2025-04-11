@@ -24,7 +24,7 @@ const authMiddleware = asyncHandler(async (req, res, next) => {
 const isAdmin = asyncHandler(async (req, res, next) => {
   const { email } = req.user;
   const adminUser = await User.findOne({ email });
-  if (!adminUser.roleID.equals("67927feaa0a58ce4f7e8e83a")) {
+  if (!adminUser.roleID.equals("67f87c9ac19b91da666bbdc5")) {
     throw new Error("Bạn không phải là 1 quản trị viên!");
   } else {
     next();
@@ -33,7 +33,7 @@ const isAdmin = asyncHandler(async (req, res, next) => {
 const isOwner = asyncHandler(async (req, res, next) => {
   const { email } = req.user;
   const brandUser = await User.findOne({ email });
-  if (!brandUser.roleID.equals("67927ff7a0a58ce4f7e8e83d")) {
+  if (!brandUser.roleID.equals("67f87ca3c19b91da666bbdc7")) {
     throw new Error("Bạn không phải là 1 đại diện!");
   } else {
     next();
@@ -42,7 +42,7 @@ const isOwner = asyncHandler(async (req, res, next) => {
 const isCustomer = asyncHandler(async (req, res, next) => {
   const { email } = req.user;
   const BAUser = await User.findOne({ email });
-  if (!BAUser.roleID.equals("67927ffda0a58ce4f7e8e840")) {
+  if (!BAUser.roleID.equals("67f87ca8c19b91da666bbdc9")) {
     throw new Error("Bạn không phải là 1 người dùng!");
   } else {
     next();
@@ -51,7 +51,7 @@ const isCustomer = asyncHandler(async (req, res, next) => {
 const isNotGuest = asyncHandler(async (req, res, next) => {
   const { email } = req.user;
   const user = await User.findOne({ email });
-  if (user.roleID.equals("67928007a0a58ce4f7e8e843")) {
+  if (user.roleID.equals("67f87cadc19b91da666bbdcb")) {
     throw new Error("Bạn không có quyền truy cập!");
   } else {
     next();
@@ -61,8 +61,8 @@ const isCusAndOwner = asyncHandler(async (req, res, next) => {
   const { email } = req.user;
   const user = await User.findOne({ email });
   if (
-    !user.roleID.equals("67927ffda0a58ce4f7e8e840") &&
-    !user.roleID.equals("67927ff7a0a58ce4f7e8e83d")
+    !user.roleID.equals("67f87ca3c19b91da666bbdc7") &&
+    !user.roleID.equals("67f87ca8c19b91da666bbdc9")
   ) {
     throw new Error("Bạn không phải là 1 người dùng hoặc đại diện!");
   } else {
@@ -73,8 +73,8 @@ const isAdminAndOwner = asyncHandler(async (req, res, next) => {
   const { email } = req.user;
   const user = await User.findOne({ email });
   if (
-   !user.roleID.equals("67927feaa0a58ce4f7e8e83a") &&
-   !user.roleID.equals("67927ff7a0a58ce4f7e8e83d")
+    !user.roleID.equals("67f87c9ac19b91da666bbdc5") &&
+    !user.roleID.equals("67f87ca3c19b91da666bbdc7")
   ) {
     throw new Error("Bạn không phải là 1 quản trị viên hoặc đại diện!");
   } else {
