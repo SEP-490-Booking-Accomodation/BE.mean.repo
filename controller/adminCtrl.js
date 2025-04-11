@@ -1,4 +1,4 @@
-const Staff = require("../models/staffModel");
+const Staff = require("../models/adminModel");
 const Role = require("../models/roleModel");
 const User = require("../models/userModel");
 const asyncHandler = require("express-async-handler");
@@ -28,18 +28,18 @@ const updateStaff = asyncHandler(async (req, res) => {
 });
 
 const deleteStaff = asyncHandler(async (req, res) => {
-  const {id} = req.params;
-    try {
-        const deletedStaff = await softDelete(Staff, id);
+  const { id } = req.params;
+  try {
+    const deletedStaff = await softDelete(Staff, id);
 
-        if (!deletedStaff) {
-            return res.status(404).json({message: "Staff not found"});
-        }
-
-        res.json({message: "Staff deleted successfully", data: deletedStaff});
-    } catch (error) {
-        res.status(500).json({message: error.message});
+    if (!deletedStaff) {
+      return res.status(404).json({ message: "Staff not found" });
     }
+
+    res.json({ message: "Staff deleted successfully", data: deletedStaff });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 const getStaff = asyncHandler(async (req, res) => {

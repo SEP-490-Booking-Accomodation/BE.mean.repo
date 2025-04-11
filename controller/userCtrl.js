@@ -1,7 +1,7 @@
 const User = require("../models/userModel");
 const Token = require("../models/tokenModel");
 const Role = require("../models/roleModel");
-const Staff = require("../models/staffModel");
+const Admin = require("../models/adminModel");
 const Owner = require("../models/ownerModel");
 const Customer = require("../models/customerModel");
 const asyncHandler = require("express-async-handler");
@@ -18,9 +18,9 @@ const admin = require("../config/firebaseConfig");
 
 // Định nghĩa các role ID
 const ROLE_IDS = {
-  staff: "67927feaa0a58ce4f7e8e83a",
-  owner: "67927ff7a0a58ce4f7e8e83d",
-  customer: "67927ffda0a58ce4f7e8e840",
+  admin: "67f87c9ac19b91da666bbdc5",
+  owner: "67f87ca3c19b91da666bbdc7",
+  customer: "67f87ca8c19b91da666bbdc9",
 };
 
 //Create a user
@@ -66,8 +66,8 @@ const createUser = asyncHandler(async (req, res) => {
     await newUser.save();
 
     // Kiểm tra roleID và lưu vào bảng tương ứng
-    if (roleID === ROLE_IDS.staff) {
-      await Staff.create({ userId: newUser._id });
+    if (roleID === ROLE_IDS.admin) {
+      await Admin.create({ userId: newUser._id });
     } else if (roleID === ROLE_IDS.owner) {
       await Owner.create({ userId: newUser._id });
     } else if (roleID === ROLE_IDS.customer) {

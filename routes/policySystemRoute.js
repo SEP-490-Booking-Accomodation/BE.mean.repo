@@ -17,15 +17,15 @@ const {
  *     PolicySystem:
  *       type: object
  *       required:
- *         - staffId
+ *         - adminId
  *         - policySystemCategoryId
  *         - name
  *         - startDate
  *         - endDate
  *       properties:
- *         staffId:
+ *         adminId:
  *           type: string
- *           description: The ID of the staff member
+ *           description: The ID of the admin member
  *         policySystemCategoryId:
  *           type: string
  *           description: The ID of the Policy System Category

@@ -1,100 +1,100 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
 var landUsesRightSchema = new mongoose.Schema(
-    {
-        staffId: {
-            type: mongoose.Schema.ObjectId,
-            ref: "Staff",
-        },
-        rentalLocationId: {
-            type: mongoose.Schema.ObjectId,
-            ref: "RentalLocation",
-        },
-        documentName: {
-            type: String,
-        },
-        documentType: {
-            type: String,
-        },
-        documentStatus: {
-            type: Boolean,
-            default: false,
-        },
-        documentFile: [],
-        uploadDate: {
-            type: Date,
-        },
-        approvedDate: {
-            type: Date,
-        },
-        refuseDate: {
-            type: Date,
-        },
-        note: {
-            type: String,
-        },
-        isDelete: {
-            type: Boolean,
-            default: false,
-        }
+  {
+    adminId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Admin",
     },
-    {
-        timestamps: true,
-        toJSON: {
-            virtuals: true,
-            transform: (doc, ret) => {
-                ret.createdAt = moment(ret.createdAt)
-                    .tz("Asia/Ho_Chi_Minh")
-                    .format("DD/MM/YYYY HH:mm:ss");
-                ret.updatedAt = moment(ret.updatedAt)
-                    .tz("Asia/Ho_Chi_Minh")
-                    .format("DD/MM/YYYY HH:mm:ss");
-                if (ret.uploadDate) {
-                    ret.uploadDate = moment(ret.uploadDate)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                if (ret.approvedDate) {
-                    ret.approvedDate = moment(ret.approvedDate)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                if (ret.refuseDate) {
-                    ret.refuseDate = moment(ret.refuseDate)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                return ret;
-            },
-        },
-        toObject: {
-            virtuals: true,
-            transform: (doc, ret) => {
-                ret.createdAt = moment(ret.createdAt)
-                    .tz("Asia/Ho_Chi_Minh")
-                    .format("DD/MM/YYYY HH:mm:ss");
-                ret.updatedAt = moment(ret.updatedAt)
-                    .tz("Asia/Ho_Chi_Minh")
-                    .format("DD/MM/YYYY HH:mm:ss");
-                if (ret.uploadDate) {
-                    ret.uploadDate = moment(ret.uploadDate)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                if (ret.approvedDate) {
-                    ret.approvedDate = moment(ret.approvedDate)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                if (ret.refuseDate) {
-                    ret.refuseDate = moment(ret.refuseDate)
-                        .tz("Asia/Ho_Chi_Minh")
-                        .format("DD/MM/YYYY HH:mm:ss");
-                }
-                return ret;
-            },
-        },
-    }
+    rentalLocationId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "RentalLocation",
+    },
+    documentName: {
+      type: String,
+    },
+    documentType: {
+      type: String,
+    },
+    documentStatus: {
+      type: Boolean,
+      default: false,
+    },
+    documentFile: [],
+    uploadDate: {
+      type: Date,
+    },
+    approvedDate: {
+      type: Date,
+    },
+    refuseDate: {
+      type: Date,
+    },
+    note: {
+      type: String,
+    },
+    isDelete: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: (doc, ret) => {
+        ret.createdAt = moment(ret.createdAt)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("DD/MM/YYYY HH:mm:ss");
+        ret.updatedAt = moment(ret.updatedAt)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("DD/MM/YYYY HH:mm:ss");
+        if (ret.uploadDate) {
+          ret.uploadDate = moment(ret.uploadDate)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        if (ret.approvedDate) {
+          ret.approvedDate = moment(ret.approvedDate)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        if (ret.refuseDate) {
+          ret.refuseDate = moment(ret.refuseDate)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        return ret;
+      },
+    },
+    toObject: {
+      virtuals: true,
+      transform: (doc, ret) => {
+        ret.createdAt = moment(ret.createdAt)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("DD/MM/YYYY HH:mm:ss");
+        ret.updatedAt = moment(ret.updatedAt)
+          .tz("Asia/Ho_Chi_Minh")
+          .format("DD/MM/YYYY HH:mm:ss");
+        if (ret.uploadDate) {
+          ret.uploadDate = moment(ret.uploadDate)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        if (ret.approvedDate) {
+          ret.approvedDate = moment(ret.approvedDate)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        if (ret.refuseDate) {
+          ret.refuseDate = moment(ret.refuseDate)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        return ret;
+      },
+    },
+  }
 );
 landUsesRightSchema.pre("save", async function (next) {
     try {

@@ -4,13 +4,13 @@ const moment = require("moment-timezone");
 // Declare the Schema of the Mongo model
 var policySystemSchema = new mongoose.Schema(
   {
-    staffId: {
+    adminId: {
       type: mongoose.Schema.ObjectId,
-      ref: "Staff",
+      ref: "Admin",
     },
     updateBy: {
       type: mongoose.Schema.ObjectId,
-      ref: "Staff",
+      ref: "Admin",
     },
     policySystemCategoryId: {
       type: mongoose.Schema.ObjectId,

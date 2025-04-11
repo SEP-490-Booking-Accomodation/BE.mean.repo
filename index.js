@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 4000;
 // Import routes
 const authRouter = require("./routes/authRoute");
 const roleRouter = require("./routes/roleRoute");
-const staffRouter = require("./routes/staffRoute");
+const adminRouter = require("./routes/adminRoute");
 const ownerRouter = require("./routes/ownerRoute");
 const customerRouter = require("./routes/customerRoute");
 const policySystemRoute = require("./routes/policySystemRoute");
@@ -69,7 +69,7 @@ app.use(
 
 app.use("/api/user", authRouter);
 app.use("/api/role", roleRouter);
-app.use("/api/staff", staffRouter);
+app.use("/api/admin", adminRouter);
 app.use("/api/owner", ownerRouter);
 app.use("/api/customer", customerRouter);
 app.use("/api/policy-system", policySystemRoute);

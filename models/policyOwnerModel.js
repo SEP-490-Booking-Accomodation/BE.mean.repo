@@ -44,7 +44,7 @@ var policyOwnerSchema = new mongoose.Schema(
     },
     updateBy: {
       type: mongoose.Schema.ObjectId,
-      ref: "Staff",
+      ref: "Admin",
     },
   },
   {
