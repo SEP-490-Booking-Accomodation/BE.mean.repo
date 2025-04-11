@@ -5,11 +5,28 @@ const softDelete = require("../utils/softDelete");
 const Coupon = require("../models/couponModel");
 const Booking = require("../models/bookingModel");
 const Accommodation = require("../models/accommodationModel");
-const { populate } = require("../models/paymentInformationModel");
 
 const createFeedback = asyncHandler(async (req, res) => {
   try {
+    const { bookingId } = req.body;
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    const existingFeedback = await Feedback.findOne({
+      bookingId,
+      isDelete: false,
+    });
+    if (existingFeedback) {
+      return res.status(400).json({ message: "Booking Id already exists" });
+    }
+
     const newFeedback = await Feedback.create(req.body);
+
+    booking.feedbackId = newFeedback._id;
+    await booking.save();
+
     res.json(newFeedback);
   } catch (error) {
     throw new Error(error);

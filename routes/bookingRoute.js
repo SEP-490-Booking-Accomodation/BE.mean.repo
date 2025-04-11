@@ -159,7 +159,7 @@ router.post("/create-Booking", authMiddleware, createBooking);
  *       200:
  *         description: Booking updated successfully
  */
-router.put("/:id", authMiddleware, isAdminAndOwner, updateBooking);
+router.put("/:id", authMiddleware, updateBooking);
 
 /**
  * @swagger
