@@ -2,10 +2,7 @@ const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
 var serviceSchema = new mongoose.Schema(
   {
-    accommodationTypeId: {
-      type: mongoose.Schema.ObjectId,
-      ref: "AccommodationType",
-    },
+    
     name: {
       type: String,
       required: true,

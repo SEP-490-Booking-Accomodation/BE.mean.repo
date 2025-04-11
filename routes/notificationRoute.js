@@ -7,7 +7,7 @@ const {
   deleteNotification,
   getNotification,
   getAllNotification,
-  getUserNotifications
+  getUserNotifications,
 } = require("../controller/notificationCtrl");
 
 /**
