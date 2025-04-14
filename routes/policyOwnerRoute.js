@@ -59,7 +59,7 @@ const {
  *           default: 1
  *         updatedBy:
  *           type: string
- *           description: The Staff check for the policy
+ *           description: The admin check for the policy
  *       example:
  *         ownerId: "63b92f4e17d7b3c2a4e4f3d2"
  *         policyTitle: "Cancellation Policy"

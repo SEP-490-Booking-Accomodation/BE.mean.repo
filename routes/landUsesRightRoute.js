@@ -17,9 +17,9 @@ const {
  *     LandUsesRight:
  *       type: object
  *       properties:
- *         staffId:
+ *         adminId:
  *           type: string
- *           description: Reference to the Staff object ID
+ *           description: Reference to the admin object ID
  *         rentalLocationId:
  *           type: string
  *           description: Reference to the RentalLocation object ID
@@ -78,7 +78,7 @@ const {
  *       required:
  *         - rentalLocationId
  *       example:
- *         staffId: "60d0fe4f5311236168a109cb"
+ *         adminId: "60d0fe4f5311236168a109cb"
  *         rentalLocationId: "60d0fe4f5311236168a109cc"
  *         documentName: "Land Certificate"
  *         documentType: "Certificate"
