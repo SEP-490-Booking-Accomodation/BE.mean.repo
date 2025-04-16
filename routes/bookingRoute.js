@@ -109,6 +109,12 @@ const {
  *         note:
  *           type: string
  *           description: Note of customer
+ *         timeExpireRefund:
+ *           type: string
+ *           format: date-time
+ *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
+ *           example: "04-02-2025 15:30:45 +07:00"
+ *           description: Time for valid refund
  *         status:
  *           type: integer
  *           enum: [1, 2, 3, 4, 5, 6, 7, 8]

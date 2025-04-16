@@ -96,6 +96,9 @@ var bookingSchema = new mongoose.Schema(
     note: {
       type: String,
     },
+    timeExpireRefund: {
+      type: Date,
+    },
     status: {
       type: Number,
       enum: Object.values(BOOKING_STATUS),

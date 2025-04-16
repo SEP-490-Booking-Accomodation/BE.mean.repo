@@ -24,12 +24,9 @@ const {
  *         policyOwnerId:
  *           type: string
  *           description: The ID of the policy owner
- *         val1:
+ *         val:
  *           type: string
  *           description: The first value field
- *         val2:
- *           type: string
- *           description: The second value field
  *         description:
  *           type: string
  *           description: Description of the value

@@ -34,6 +34,7 @@ const createBooking = asyncHandler(async (req, res) => {
       totalPrice,
       passwordRoom,
       note,
+      timeExpireRefund,
       status,
     } = req.body;
 
@@ -120,6 +121,7 @@ const createBooking = asyncHandler(async (req, res) => {
       totalPrice,
       passwordRoom,
       note,
+      timeExpireRefund,
       status,
     });
 
