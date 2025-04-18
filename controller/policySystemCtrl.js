@@ -260,8 +260,8 @@ const getPolicySystem = asyncHandler(async (req, res) => {
       isDelete: false,
     })
       .populate({
-        path: "staffId",
-        model: "Staff",
+        path: "adminId",
+        model: "Admin",
         select: "-createdAt -updatedAt -isDelete",
         populate: {
           path: "userId",
@@ -271,7 +271,7 @@ const getPolicySystem = asyncHandler(async (req, res) => {
       })
       .populate({
         path: "updateBy",
-        model: "Staff",
+        model: "Admin",
         select: "-createdAt -updatedAt -isDelete",
         populate: {
           path: "userId",
@@ -338,8 +338,8 @@ const getAllPolicySystem = asyncHandler(async (req, res) => {
       isDelete: false,
     })
       .populate({
-        path: "staffId",
-        model: "Staff",
+        path: "adminId",
+        model: "Admin",
         select: "-createdAt -updatedAt -isDelete",
         populate: {
           path: "userId",
@@ -349,7 +349,7 @@ const getAllPolicySystem = asyncHandler(async (req, res) => {
       })
       .populate({
         path: "updateBy",
-        model: "Staff",
+        model: "Admin",
         select: "-createdAt -updatedAt -isDelete",
         populate: {
           path: "userId",

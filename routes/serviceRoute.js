@@ -16,14 +16,10 @@ const {
  *     Service:
  *       type: object
  *       required:
- *         - accommodationTypeId
  *         - name
  *         - description
  *         - status
  *       properties:
- *         accommodationTypeId:
- *           type: string
- *           description: The ID of the accommodation type associated with the service
  *         name:
  *           type: string
  *           description: The name of the service
@@ -34,7 +30,6 @@ const {
  *           type: boolean
  *           description: The status of the service (active/inactive)
  *       example:
- *         accommodationTypeId: "63b92f4e17d7b3c2a4e4f3d2"
  *         name: "Cleaning Service"
  *         description: "A service to clean and prepare the accommodation for the next guests."
  *         status: true
