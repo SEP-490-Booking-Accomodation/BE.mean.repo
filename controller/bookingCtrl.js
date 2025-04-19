@@ -127,6 +127,20 @@ const createBooking = asyncHandler(async (req, res) => {
 
     await newBooking.save();
 
+    // Nếu là trạng thái chờ thanh toán => set timeout huỷ sau 15 phút
+    if (newBooking.paymentStatus === 2) {
+      setTimeout(async () => {
+        const latestBooking = await Booking.findById(newBooking._id);
+        if (latestBooking && latestBooking.paymentStatus !== 3) {
+          latestBooking.status = 6; 
+          await latestBooking.save();
+          console.log(
+            `[AUTO CANCEL] Booking ${latestBooking._id} canceled due to timeout`
+          );
+        }
+      }, 15 * 60 * 1000); // 15 phút
+    }
+
     res.status(201).json({
       message: "Booking created successfully",
       booking: newBooking,
@@ -363,6 +377,8 @@ const processMomoCallback = async (req, res) => {
   return res.status(200).json(req.body);
 };
 
+const ENUM_TO_LENGTH = [0, 2, 4, 6, 8];
+
 const processMoMoNotify = async (req, res) => {
   try {
     const {
@@ -396,6 +412,61 @@ const processMoMoNotify = async (req, res) => {
       transaction.transactionStatus = 2; // Đánh dấu đã thanh toán
       transaction.transactionEndDate = new Date(responseTime);
       booking.paymentStatus = 3;
+
+      // Lấy accommodationType từ accommodation
+      const accommodation = await Accommodation.findById(
+        booking.accommodationId
+      );
+      if (accommodation && accommodation.accommodationTypeId) {
+        const accommodationType = await AccommodationType.findById(
+          accommodation.accommodationTypeId
+        );
+
+        if (accommodationType) {
+          const passwordLength =
+            ENUM_TO_LENGTH[accommodationType.numberOfPasswordRoom] || 4;
+
+          // Chuyển đổi checkInHour và checkOutHour sang Asia/Ho_Chi_Minh
+          const checkIn = moment
+            .utc(booking.checkInHour)
+            .tz("Asia/Ho_Chi_Minh");
+          const checkOut = moment
+            .utc(booking.checkOutHour)
+            .tz("Asia/Ho_Chi_Minh");
+
+          const now = moment().tz("Asia/Ho_Chi_Minh");
+          const timeUntilCheckIn = checkIn.diff(now);
+          const expireTime = checkIn
+            .clone()
+            .add(booking.durationBookingHour, "hours");
+          const timeUntilExpire = expireTime.diff(now);
+
+          // Lên lịch tạo password tại thời điểm check-in
+          if (timeUntilCheckIn > 0) {
+            setTimeout(async () => {
+              const password = Array.from({ length: passwordLength }, () =>
+                Math.floor(Math.random() * 10)
+              ).join("");
+              await Booking.findByIdAndUpdate(booking._id, {
+                passwordRoom: password,
+              });
+              console.log(
+                `[AUTO] Password set for booking ${booking._id}: ${password}`
+              );
+            }, timeUntilCheckIn);
+          }
+
+          // Lên lịch xoá password sau khi hết hạn
+          if (timeUntilExpire > 0) {
+            setTimeout(async () => {
+              await Booking.findByIdAndUpdate(booking._id, {
+                $unset: { passwordRoom: "" },
+              });
+              console.log(`[AUTO] Password removed for booking ${booking._id}`);
+            }, timeUntilExpire);
+          }
+        }
+      }
     } else {
       transaction.transactionStatus = 3; // Thanh toán thất bại
       booking.paymentStatus = 5;
@@ -642,7 +713,7 @@ const getAllBooking = asyncHandler(async (req, res) => {
         path: "policySystemIds",
         populate: [
           {
-            path: "staffId",
+            path: "adminId",
             // select: "name address openHour closeHour ward district city",
             populate: {
               path: "userId",
