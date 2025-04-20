@@ -6,10 +6,55 @@ const softDelete = require("../utils/softDelete");
 
 const createAccommodation = asyncHandler(async (req, res) => {
     try {
-        const newAccommodation = await Accommodation.create(req.body);
-        res.json(newAccommodation);
+        // Check if the request body is an array or a single object
+        const accommodationsData = Array.isArray(req.body) ? req.body : [req.body];
+
+        // Check for duplicates within the array itself (roomNo + rentalLocationId combination)
+        const roomLocationCombos = new Set();
+        for (const acc of accommodationsData) {
+            const combo = `${acc.roomNo}-${acc.rentalLocationId}`;
+            if (roomLocationCombos.has(combo)) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Duplicate room number ${acc.roomNo} found for the same rental location in request`
+                });
+            }
+            roomLocationCombos.add(combo);
+        }
+
+        const duplicateChecks = [];
+        for (const acc of accommodationsData) {
+            duplicateChecks.push({
+                roomNo: acc.roomNo,
+                rentalLocationId: acc.rentalLocationId,
+                isDelete: false
+            });
+        }
+
+        const existingRooms = await Accommodation.find({ $or: duplicateChecks });
+
+        if (existingRooms.length > 0) {
+            const existingCombos = existingRooms.map(room =>
+                `Room ${room.roomNo} at location ${room.rentalLocationId}`
+            );
+            return res.status(400).json({
+                success: false,
+                message: `These room and location combinations already exist: ${existingCombos.join(', ')}`
+            });
+        }
+
+        // If no duplicates, create all accommodations
+        const newAccommodations = await Accommodation.create(accommodationsData);
+
+        res.status(201).json({
+            success: true,
+            data: newAccommodations
+        });
     } catch (error) {
-        throw new Error(error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 });
 const updateAccommodation = asyncHandler(async (req, res) => {
