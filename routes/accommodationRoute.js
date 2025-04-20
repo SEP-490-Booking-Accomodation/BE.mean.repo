@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isCustomer, isOwner } = require("../middlewares/authMiddleware");
+const {authMiddleware, isCustomer, isOwner} = require("../middlewares/authMiddleware");
 const {
-  createAccommodation,
-  updateAccommodation,
-  deleteAccommodation,
-  getAccommodation,
-  getAccommodationsByLocationId,
-  getAllAccommodation,
+    createAccommodation,
+    updateAccommodation,
+    deleteAccommodation,
+    getAccommodation,
+    getAccommodationsByLocationId,
+    getAllAccommodation,
 } = require("../controller/accommodationCtrl");
 
 /**
@@ -64,8 +64,8 @@ const {
  * @swagger
  * /api/accommodation/create-accommodation:
  *   post:
- *     summary: Create a new accommodation
- *     description: Creates a new accommodation record
+ *     summary: Create one or multiple accommodations
+ *     description: Creates accommodations in batch. Room numbers must be unique within the same rental location.
  *     tags:
  *       - Accommodation
  *     security:
@@ -75,18 +75,56 @@ const {
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Accommodation'
+ *             type: array
+ *             items:
+ *               $ref: '#/components/schemas/Accommodation'
+ *           example:
+ *             - rentalLocationId: "63b92f4e17d7b3c2a4e4f3d2"
+ *               accommodationTypeId: "63b92f4e17d7b3c2a4e4f3e3"
+ *               roomNo: "101"
+ *               description: "A luxurious room with all modern amenities."
+ *               image: "/uploads/images/accommodation1.jpg"
+ *               status: 1
+ *             - rentalLocationId: "63b92f4e17d7b3c2a4e4f3d2"
+ *               accommodationTypeId: "63b92f4e17d7b3c2a4e4f3e3"
+ *               roomNo: "102"
+ *               description: "A spacious suite with ocean view."
+ *               image: "/uploads/images/accommodation2.jpg"
+ *               status: 1
  *     responses:
  *       201:
- *         description: Accommodation created successfully
+ *         description: Accommodations created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Accommodation'
  *       400:
- *         description: Bad request
+ *         description: Bad request - duplicate room numbers found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: false
+ *                 message:
+ *                   type: string
+ *                   example: "Room numbers already exist: 101, 102"
  */
 router.post(
-  "/create-accommodation",
-  authMiddleware,
-  isOwner,
-  createAccommodation
+    "/create-accommodation",
+    authMiddleware,
+    isOwner,
+    createAccommodation
 );
 
 /**
