@@ -7,6 +7,7 @@ const OWNER_STATUS_LOG = {
   APPROVING: 1,
   APPROVED: 2,
   DENIED: 3,
+  PENDING: 4,
 };
 
 var ownerSchema = new mongoose.Schema(
