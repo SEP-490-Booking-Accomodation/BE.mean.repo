@@ -1,30 +1,30 @@
-﻿const mongoose = require("mongoose"); // Erase if already required
+﻿const mongoose = require("mongoose");
 const moment = require("moment-timezone");
 
 const OWNER_STATUS_LOG = {
     APPROVING: 1,
     APPROVED: 2,
-    DENIED: 3
+    DENIED: 3,
+    PENDING: 4,
 };
 
-const ownerStatusLogSchema  = new mongoose.Schema({
+const ownerStatusLogSchema = new mongoose.Schema(
+    {
         ownerId: {
             type: mongoose.Schema.ObjectId,
             ref: "Owner",
-            required: true
+            required: true,
         },
         oldStatus: {
             type: Number,
             enum: Object.values(OWNER_STATUS_LOG),
-            required: false
         },
         newStatus: {
             type: Number,
             enum: Object.values(OWNER_STATUS_LOG),
-            required: false
         },
         note: {
-            type: String
+            type: String,
         },
     },
     {
@@ -60,5 +60,5 @@ const OwnerStatusLog = mongoose.model("OwnerStatusLog", ownerStatusLogSchema);
 
 module.exports = {
     OWNER_STATUS_LOG,
-    OwnerStatusLog
+    OwnerStatusLog,
 };
