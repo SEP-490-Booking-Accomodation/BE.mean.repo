@@ -3,7 +3,7 @@ const moment = require("moment-timezone");
 
 // Declare the Schema of the Mongo model
 
-const OWNER_STATUS_LOG = {
+const OWNER_MODEL_STATUS_LOG = {
   APPROVING: 1,
   APPROVED: 2,
   DENIED: 3
@@ -25,8 +25,8 @@ var ownerSchema = new mongoose.Schema(
     },
     approvalStatus: {
       type: Number,
-      enum: Object.values(OWNER_STATUS_LOG),
-      default: OWNER_STATUS_LOG.APPROVING,
+      enum: Object.values(OWNER_MODEL_STATUS_LOG),
+      default: OWNER_MODEL_STATUS_LOG.APPROVING,
     },
     note: {
       type: String,
@@ -65,5 +65,11 @@ var ownerSchema = new mongoose.Schema(
   }
 );
 
+const Owner = mongoose.model("Owner", ownerSchema);
+
 //Export the model
-module.exports = mongoose.model("Owner", ownerSchema);
+module.exports = {
+    OWNER_MODEL_STATUS_LOG,
+    Owner,
+};
+

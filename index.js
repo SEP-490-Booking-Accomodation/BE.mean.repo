@@ -36,6 +36,7 @@ const valueRoute = require("./routes/valueRoute");
 const verifyRoute = require("./routes/verifyRoute");
 const queryRoute = require("./routes/bookingRoute");
 const ownerStatusLogRoute = require("./routes/ownerStatusLogRoute");
+const rentalLocationStatusLogRoute = require("./routes/rentalLocationStatusLogRoute");
 
 const bodyParser = require("body-parser");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
@@ -95,6 +96,8 @@ app.use("/api/land-uses-right", landUsesRightRoute);
 app.use("/api/value", valueRoute);
 app.use("/api", verifyRoute);
 app.use("/api/owner-status-log", ownerStatusLogRoute);
+app.use("/api/rental-location-status-log", rentalLocationStatusLogRoute);
+
 
 app.use(notFound);
 app.use(errorHandler);

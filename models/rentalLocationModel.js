@@ -1,5 +1,6 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
+
 const RENTALLOCATION_STATUS = {
   PENDING: 1,
   INACTIVE: 2,
@@ -106,5 +107,12 @@ var rentalLocationSchema = new mongoose.Schema(
     },
   }
 );
+
+const RentalLocation = mongoose.model("RentalLocation", rentalLocationSchema);
 //Export the model
-module.exports = mongoose.model("RentalLocation", rentalLocationSchema);
+
+module.exports = {
+    RENTALLOCATION_STATUS,
+    RentalLocation,
+};
+

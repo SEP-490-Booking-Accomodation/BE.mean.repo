@@ -1,4 +1,4 @@
-const Owner = require("../models/ownerModel");
+const {Owner, OWNER_MODEL_STATUS_LOG} = require("../models/ownerModel");
 const Role = require("../models/roleModel");
 const User = require("../models/userModel");
 const { OwnerStatusLog, OWNER_STATUS_LOG } = require("../models/ownerStatusLogModel");
@@ -45,7 +45,7 @@ const updateOwner = asyncHandler(async (req, res) => {
         if (req.body.approvalStatus !== undefined) {
             newStatus = req.body.approvalStatus;
         } else {
-            newStatus = OWNER_STATUS_LOG.PENDING;
+            newStatus = OWNER_STATUS_LOG.APPROVING;
             req.body.approvalStatus = newStatus;
         }
 
