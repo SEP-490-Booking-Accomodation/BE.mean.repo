@@ -212,6 +212,7 @@ const getOccupiedTimeSlots = asyncHandler(async (req, res) => {
 //     throw new Error(error);
 //   }
 // });
+
 const updateBooking = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
@@ -219,41 +220,15 @@ const updateBooking = asyncHandler(async (req, res) => {
   try {
     const updateData = { ...req.body };
 
-    if (updateData.checkInHour) {
-      updateData.checkInHour = moment(
-        updateData.checkInHour,
-        "DD-MM-YYYY HH:mm:ss"
-      )
-        .tz("Asia/Ho_Chi_Minh")
-        .toDate();
-    }
-
-    if (updateData.checkOutHour) {
-      updateData.checkOutHour = moment(
-        updateData.checkOutHour,
-        "DD-MM-YYYY HH:mm:ss"
-      )
-        .tz("Asia/Ho_Chi_Minh")
-        .toDate();
-    }
-
-    if (updateData.confirmDate) {
-      updateData.confirmDate = moment(
-        updateData.confirmDate,
-        "DD-MM-YYYY HH:mm:ss"
-      )
-        .tz("Asia/Ho_Chi_Minh")
-        .toDate();
-    }
-
-    if (updateData.completedDate) {
-      updateData.completedDate = moment(
-        updateData.completedDate,
-        "DD-MM-YYYY HH:mm:ss"
-      )
-        .tz("Asia/Ho_Chi_Minh")
-        .toDate();
-    }
+    ["checkInHour", "checkOutHour", "confirmDate", "completedDate"].forEach(
+      (field) => {
+        if (updateData[field]) {
+          updateData[field] = moment(updateData[field], "DD-MM-YYYY HH:mm:ss")
+            .tz("Asia/Ho_Chi_Minh")
+            .toDate();
+        }
+      }
+    );
 
     const updatedBooking = await Booking.findByIdAndUpdate(id, updateData, {
       new: true,
@@ -261,6 +236,61 @@ const updateBooking = asyncHandler(async (req, res) => {
 
     if (!updatedBooking) {
       return res.status(404).json({ message: "Booking not found" });
+    }
+
+    console.log("Update status:", updateData.status);
+
+    // Nếu status được cập nhật thành 3 (CHECKEDIN) thì tạo password ngay
+    if (Number(updateData.status) === 3) {
+      const accommodation = await Accommodation.findById(
+        updatedBooking.accommodationId
+      );
+
+      console.log(accommodation);
+
+      if (accommodation?.accommodationTypeId) {
+        const accommodationType = await AccommodationType.findById(
+          accommodation.accommodationTypeId
+        );
+
+        if (accommodationType) {
+          const passwordLength = accommodationType.numberOfPasswordRoom || 4;
+          const password = Array.from({ length: passwordLength }, () =>
+            Math.floor(Math.random() * 10)
+          ).join("");
+
+          console.log(accommodationType.numberOfPasswordRoom);
+          console.log(passwordLength);
+
+          await Booking.findByIdAndUpdate(updatedBooking._id, {
+            passwordRoom: password,
+          });
+
+          console.log(
+            `[AUTO] Password set immediately for booking ${updatedBooking._id}: ${password}`
+          );
+
+          // Lên lịch xoá mật khẩu khi hết thời gian đặt phòng
+          const now = moment().tz("Asia/Ho_Chi_Minh");
+          const expireTime = moment(updatedBooking.checkInHour)
+            .tz("Asia/Ho_Chi_Minh")
+            .add(updatedBooking.durationBookingHour, "hours");
+
+          const timeUntilExpire = expireTime.diff(now);
+
+          if (timeUntilExpire > 0) {
+            setTimeout(async () => {
+              await Booking.findByIdAndUpdate(updatedBooking._id, {
+                $unset: { passwordRoom: "" },
+              });
+
+              console.log(
+                `[AUTO] Password removed for booking ${updatedBooking._id}`
+              );
+            }, timeUntilExpire);
+          }
+        }
+      }
     }
 
     res.json({
@@ -271,6 +301,7 @@ const updateBooking = asyncHandler(async (req, res) => {
     throw new Error(error);
   }
 });
+
 
 const deleteBooking = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -377,8 +408,6 @@ const processMomoCallback = async (req, res) => {
   return res.status(200).json(req.body);
 };
 
-const ENUM_TO_LENGTH = [0, 2, 4, 6, 8];
-
 const processMoMoNotify = async (req, res) => {
   try {
     const {
@@ -413,60 +442,7 @@ const processMoMoNotify = async (req, res) => {
       transaction.transactionEndDate = new Date(responseTime);
       booking.paymentStatus = 3;
 
-      // Lấy accommodationType từ accommodation
-      const accommodation = await Accommodation.findById(
-        booking.accommodationId
-      );
-      if (accommodation && accommodation.accommodationTypeId) {
-        const accommodationType = await AccommodationType.findById(
-          accommodation.accommodationTypeId
-        );
-
-        if (accommodationType) {
-          const passwordLength =
-            ENUM_TO_LENGTH[accommodationType.numberOfPasswordRoom] || 4;
-
-          // Chuyển đổi checkInHour và checkOutHour sang Asia/Ho_Chi_Minh
-          const checkIn = moment
-            .utc(booking.checkInHour)
-            .tz("Asia/Ho_Chi_Minh");
-          const checkOut = moment
-            .utc(booking.checkOutHour)
-            .tz("Asia/Ho_Chi_Minh");
-
-          const now = moment().tz("Asia/Ho_Chi_Minh");
-          const timeUntilCheckIn = checkIn.diff(now);
-          const expireTime = checkIn
-            .clone()
-            .add(booking.durationBookingHour, "hours");
-          const timeUntilExpire = expireTime.diff(now);
-
-          // Lên lịch tạo password tại thời điểm check-in
-          if (timeUntilCheckIn > 0) {
-            setTimeout(async () => {
-              const password = Array.from({ length: passwordLength }, () =>
-                Math.floor(Math.random() * 10)
-              ).join("");
-              await Booking.findByIdAndUpdate(booking._id, {
-                passwordRoom: password,
-              });
-              console.log(
-                `[AUTO] Password set for booking ${booking._id}: ${password}`
-              );
-            }, timeUntilCheckIn);
-          }
-
-          // Lên lịch xoá password sau khi hết hạn
-          if (timeUntilExpire > 0) {
-            setTimeout(async () => {
-              await Booking.findByIdAndUpdate(booking._id, {
-                $unset: { passwordRoom: "" },
-              });
-              console.log(`[AUTO] Password removed for booking ${booking._id}`);
-            }, timeUntilExpire);
-          }
-        }
-      }
+      
     } else {
       transaction.transactionStatus = 3; // Thanh toán thất bại
       booking.paymentStatus = 5;
