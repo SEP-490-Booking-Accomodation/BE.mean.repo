@@ -28,51 +28,46 @@ const createOwner = asyncHandler(async (req, res) => {
 });
 
 const updateOwner = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     validateMongoDbId(id);
+
     try {
-        // Find the current owner first to get the original status
         const currentOwner = await Owner.findById(id);
         if (!currentOwner) {
             res.status(404);
-            throw new Error('Owner not found');
+            throw new Error("Owner not found");
         }
-        const existingLog = await OwnerStatusLog.findOne({ownerId: id});
-        const oldStatus = existingLog ? existingLog.newStatus : OWNER_STATUS_LOG.APPROVING;
 
-        let newStatus;
-        if (req.body.isApproved === true) {
-            newStatus = OWNER_STATUS_LOG.APPROVED;
-        } else if (req.body.isApproved === false) {
-            newStatus = OWNER_STATUS_LOG.DENIED;
+        const oldStatus = currentOwner.approvalStatus;
+
+        let newStatus = oldStatus;
+
+        if (req.body.approvalStatus !== undefined) {
+            newStatus = req.body.approvalStatus;
         } else {
-            newStatus = oldStatus;
+            newStatus = OWNER_STATUS_LOG.PENDING;
+            req.body.approvalStatus = newStatus;
         }
 
-        const updateOwner = await Owner.findByIdAndUpdate(id, req.body, {
+        const updatedOwner = await Owner.findByIdAndUpdate(id, req.body, {
             new: true,
         });
 
-        if (req.body.isApproved !== undefined && oldStatus !== newStatus) {
-            if (existingLog) {
-                existingLog.oldStatus = oldStatus;
-                existingLog.newStatus = newStatus;
-                existingLog.note = req.body.note || `Status updated to ${newStatus === OWNER_STATUS_LOG.APPROVED ? 'approved' : 'denied'}`;
-                await existingLog.save();
-            } else {
-                await OwnerStatusLog.create({
-                    ownerId: id,
-                    oldStatus: oldStatus,
-                    newStatus: newStatus,
-                    note: req.body.note || `Status updated to ${newStatus === OWNER_STATUS_LOG.APPROVED ? 'approved' : 'denied'}`
-                });
-            }
+        if (oldStatus !== newStatus) {
+            await OwnerStatusLog.create({
+                ownerId: id,
+                oldStatus,
+                newStatus,
+                // note: req.body.note || `Status updated to ${newStatus}`,
+                note: req.body.note || ` `,
+            });
         }
-        res.json(updateOwner);
+        res.json(updatedOwner);
     } catch (error) {
         throw new Error(error);
     }
 });
+
 
 const deleteOwner = asyncHandler(async (req, res) => {
     const {id} = req.params;
