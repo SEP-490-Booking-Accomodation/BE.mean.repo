@@ -48,6 +48,24 @@ const {
  *           type: string
  *           format: date-time
  *           description: The ending date of the policy
+ *         values:
+ *           type: array
+ *           description: List of associated values
+ *           items:
+ *             type: object
+ *             properties:
+ *               val:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               unit:
+ *                 type: string
+ *               valueType:
+ *                 type: string
+ *               hashTag:
+ *                 type: string
+ *               note:
+ *                 type: string
  *         isDelete:
  *           type: boolean
  *           description: Flag indicating if the policy has been deleted
@@ -71,8 +89,7 @@ const {
  *         updateBy: "67b7b63be768c5abd6cf5e67"
  *         values: [
  *           {
- *             val1: "Value 1",
- *             val2: "Value 2",
+ *             val: "Value",
  *             description: "Description 1",
  *             unit: "Unit 1",
  *             valueType: "Type 1",
