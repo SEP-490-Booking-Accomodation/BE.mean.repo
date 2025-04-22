@@ -1,6 +1,6 @@
 const Booking = require("../models/bookingModel");
 const Transaction = require("../models/transactionModel");
-const RentalLocation = require("../models/rentalLocationModel");
+const {RentalLocation} = require("../models/rentalLocationModel");
 const PolicySystem = require("../models/policySystemModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
