@@ -38,9 +38,7 @@ const {
  *           items:
  *             type: object
  *             properties:
- *               val1:
- *                 type: string
- *               val2:
+ *               val:
  *                 type: string
  *               description:
  *                 type: string
