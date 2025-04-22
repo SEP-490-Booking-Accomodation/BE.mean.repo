@@ -62,7 +62,6 @@ const updateOwner = asyncHandler(async (req, res) => {
                 note: req.body.note || ` `,
             });
         }
-
         res.json(updatedOwner);
     } catch (error) {
         throw new Error(error);

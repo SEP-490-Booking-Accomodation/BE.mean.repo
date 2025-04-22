@@ -4,8 +4,7 @@ const moment = require("moment-timezone");
 const OWNER_STATUS_LOG = {
     APPROVING: 1,
     APPROVED: 2,
-    DENIED: 3,
-    PENDING: 4,
+    DENIED: 3
 };
 
 const ownerStatusLogSchema = new mongoose.Schema(
