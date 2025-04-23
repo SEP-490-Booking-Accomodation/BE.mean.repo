@@ -85,7 +85,7 @@ const updatePolicyOwner = asyncHandler(async (req, res) => {
                         valuesToUpdate.push(value);
                         existingValueIds.add(value._id.toString());
                     } else {
-                        // If no ID, it's a new value
+
                         valuesToCreate.push({
                             ...value,
                             policyOwnerId: id,
@@ -93,7 +93,6 @@ const updatePolicyOwner = asyncHandler(async (req, res) => {
                     }
                 });
 
-                // Find values to delete (existing values not in the request)
                 const valuesToDelete = existingValues.filter(
                     (value) => !existingValueIds.has(value._id.toString())
                 );
@@ -137,7 +136,6 @@ const updatePolicyOwner = asyncHandler(async (req, res) => {
                 values: associatedValues,
             });
         } catch (error) {
-            // If anything fails, abort the transaction
             await session.abortTransaction();
             session.endSession();
             throw error;
