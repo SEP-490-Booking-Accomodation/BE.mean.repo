@@ -277,6 +277,7 @@ const updateBooking = asyncHandler(async (req, res) => {
             .add(updatedBooking.durationBookingHour, "hours");
 
           const timeUntilExpire = expireTime.diff(now);
+          console.log(expireTime);
 
           if (timeUntilExpire > 0) {
             setTimeout(async () => {
