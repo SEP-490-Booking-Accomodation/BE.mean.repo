@@ -523,7 +523,8 @@ const getBooking = asyncHandler(async (req, res) => {
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
       })
-      .populate("policySystemIds");
+      .populate("policySystemIds")
+      .populate("couponId");
     res.json(get1Booking);
   } catch (error) {
     throw new Error(error);
