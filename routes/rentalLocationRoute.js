@@ -105,7 +105,7 @@ const {
  *       example:
  *         ownerId: "63b92f4e17d7b3c2a4e4f3d2"
  *         landUsesRightId: "63b92f4e1722b3c2a4e4f3f2"
- *         accommodationTypeIds: ["63b92f4e27d7b2c2a4e4f3x9", "63b92f4e27d7b2c2a4e4f3x8"]
+ *         accommodationTypeIds: ["67f8937365532b4157a80116", "67f8933e65532b4157a800ad"]
  *         name: "Cozy Rental Space"
  *         status: 1
  *         image: ["/uploads/images/rental1.jpg"]

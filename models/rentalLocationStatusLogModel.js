@@ -2,9 +2,12 @@
 const moment = require("moment-timezone");
 
 const RENTAL_STATUS_LOG = {
-    APPROVING: 1,
-    APPROVED: 2,
-    DENIED: 3
+    PENDING: 1,
+    INACTIVE: 2,
+    ACTIVE: 3,
+    PAUSE: 4,
+    DELETED: 5,
+    NEEDS_UPDATE: 6,
 };
 
 const rentalLocationStatusLogSchema  = new mongoose.Schema({
@@ -56,9 +59,9 @@ const rentalLocationStatusLogSchema  = new mongoose.Schema({
     }
 );
 
-const RentalLocationStatusLogModel = mongoose.model("RentalLocationStatusLog", rentalLocationStatusLogSchema);
+const RentalLocationStatusLog = mongoose.model("RentalLocationStatusLog", rentalLocationStatusLogSchema);
 
 module.exports = {
     RENTAL_STATUS_LOG,
-    RentalLocationStatusLog: RentalLocationStatusLogModel
+    RentalLocationStatusLog
 };

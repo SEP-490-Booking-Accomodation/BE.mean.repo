@@ -1,10 +1,12 @@
 ﻿const express = require("express");
 const router = express.Router();
-const { authMiddleware, isOwner } = require("../middlewares/authMiddleware");
 const {
-    getOwnerStatusLogByOwnerId
+  authMiddleware,
+  isAdminAndOwner,
+} = require("../middlewares/authMiddleware");
+const {
+  getOwnerStatusLogByOwnerId,
 } = require("../controller/ownerStatusLogCtrl.js");
-
 
 /**
  * @swagger
@@ -30,5 +32,10 @@ const {
  *         description: Status logs not found for this owner
  */
 
-router.get('/owner/:id', authMiddleware, isOwner, getOwnerStatusLogByOwnerId);
+router.get(
+  "/owner/:id",
+  authMiddleware,
+  isAdminAndOwner,
+  getOwnerStatusLogByOwnerId
+);
 module.exports = router;

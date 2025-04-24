@@ -1,6 +1,6 @@
 const Service = require("../models/serviceModel");
 const AccommodationType = require("../models/accommodationTypeModel");
-const RentalLocation = require("../models/rentalLocationModel");
+const {RentalLocation} = require("../models/rentalLocationModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");

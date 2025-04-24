@@ -1,13 +1,13 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isCustomer } = require("../middlewares/authMiddleware");
+const {authMiddleware, isCustomer} = require("../middlewares/authMiddleware");
 const {
-  createOwner,
-  updateOwner,
-  deleteOwner,
-  getAllOwner,
-  getOwner,
-  getOwnerByUserId,
+    createOwner,
+    updateOwner,
+    deleteOwner,
+    getAllOwner,
+    getOwner,
+    getOwnerByUserId,
 } = require("../controller/ownerCtrl");
 /**
  * @swagger
@@ -33,6 +33,14 @@ const {
  *           type: boolean
  *           description: Indicates whether the owner is approved
  *           default: false
+ *         approvalStatus:
+ *           type: integer
+ *           enum: [1, 2, 3]
+ *           description: |
+ *             Status code of the owner:
+ *             1 - APPROVING
+ *             2 - APPROVED
+ *             3 - DENIED
  *         note:
  *           type: string
  *           description: Additional notes for the owner
