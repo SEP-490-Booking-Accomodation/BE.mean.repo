@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authMiddleware, isOwner, isAdminAndOwner } = require("../middlewares/authMiddleware");
+const { authMiddleware, isOwner, isAdminAndOwner, isCustomer } = require("../middlewares/authMiddleware");
 const {
   createBooking,
   updateBooking,
@@ -117,8 +117,8 @@ const {
  *           description: Time for valid refund
  *         status:
  *           type: integer
- *           enum: [1, 2, 3, 4, 5, 6, 7, 8]
- *           description: Booking method (1=CONFIRMED, 2=NEEDCHECKIN, 3=CHECKEDIN, 4=NEEDCHECKOUT, 5=CHECKEDOUT 6=CANCELLED, 7=COMPLETED, 8=PENDING)
+ *           enum: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+ *           description: Booking method (1=CONFIRMED, 2=NEEDCHECKIN, 3=CHECKEDIN, 4=NEEDCHECKOUT, 5=CHECKEDOUT 6=CANCELLED, 7=COMPLETED, 8=PENDING, 9=REFUND)
  */
 
 /**
@@ -139,7 +139,7 @@ const {
  *       201:
  *         description: Booking created successfully
  */
-router.post("/create-Booking", authMiddleware, createBooking);
+router.post("/create-Booking", authMiddleware,isCustomer, createBooking);
 
 /**
  * @swagger
