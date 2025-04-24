@@ -96,21 +96,17 @@ var policySystemSchema = new mongoose.Schema(
 );
 
 policySystemSchema.pre("save", async function (next) {
-  if (!this.policySystemBookingId) {
-    this.policySystemBookingId = null; // Hoặc bạn có thể để null nếu muốn.
-  }
-  next();
   if (this.startDate && typeof this.startDate === "string") {
     // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
     this.startDate = moment
-      .tz(this.startDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+      .tz(this.startDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
       .utc()
       .toDate();
   }
   if (this.endDate && typeof this.endDate === "string") {
     // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
     this.endDate = moment
-      .tz(this.endDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+      .tz(this.endDate, "DD-MM-YYYY", "Asia/Ho_Chi_Minh")
       .utc()
       .toDate();
   }
