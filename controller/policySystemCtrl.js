@@ -26,13 +26,23 @@ const createPolicySystem = asyncHandler(async (req, res) => {
         session,
       });
 
+      let valueIds = [];
+
       if (Array.isArray(values) && values.length > 0) {
         const valueList = values.map((value) => ({
           ...value,
           policySystemId: newPolicySystem[0]._id,
         }));
 
-        await Value.insertMany(valueList, { session });
+        const createdValues = await Value.insertMany(valueList, { session });
+        valueIds = createdValues.map((value) => value._id);
+
+        // Update the PolicyOwner with references to the values
+        await PolicySystem.findByIdAndUpdate(
+          newPolicySystem[0]._id,
+          { values: valueIds },
+          { session }
+        );
       }
 
       await session.commitTransaction();
@@ -40,7 +50,7 @@ const createPolicySystem = asyncHandler(async (req, res) => {
 
       const completePolicySystem = await PolicySystem.findById(
         newPolicySystem[0]._id
-      );
+      ).populate("values");
 
       res.status(201).json(completePolicySystem);
     } catch (error) {
