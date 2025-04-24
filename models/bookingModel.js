@@ -9,6 +9,7 @@ const BOOKING_STATUS = Object.freeze({
   CANCELLED: 6,
   COMPLETED: 7,
   PENDING: 8,
+  REFUND: 9
 });
 
 const PAYMENT_STATUS = Object.freeze({
