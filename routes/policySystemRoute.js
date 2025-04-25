@@ -56,15 +56,13 @@ const {
  *         startDate:
  *           type: string
  *           format: date-time
- *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
  *           description: Start date of the policy system
- *           example: "04-02-2025 15:30:45 +07:00"
+ *           example: "2025-04-25"
  *         endDate:
  *           type: string
  *           format: date-time
- *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
  *           description: End date of the policy system
- *           example: "04-02-2025 15:30:45 +07:00"
+ *           example: "2025-04-26"
  *         updateBy:
  *           type: string
  *           description: The user update to the policy system
@@ -81,7 +79,7 @@ const {
  *     requestBody:
  *       required: true
  *       content:
- *         application/x-www-form-urlencoded:
+ *         application/json:
  *           schema:
  *             $ref: '#/components/schemas/PolicySystem'
  *     responses:

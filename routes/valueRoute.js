@@ -4,6 +4,7 @@ const {
   authMiddleware,
   isAdmin,
   isOwner,
+  isAdminAndOwner,
 } = require("../middlewares/authMiddleware");
 
 const {
@@ -73,7 +74,7 @@ const {
  *       400:
  *         description: Bad request
  */
-router.post("/create-value", authMiddleware, isOwner, createValue);
+router.post("/create-value", authMiddleware, isAdminAndOwner, createValue);
 
 /**
  * @swagger

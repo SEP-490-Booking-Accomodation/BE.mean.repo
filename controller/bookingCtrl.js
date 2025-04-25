@@ -1,6 +1,6 @@
 const Booking = require("../models/bookingModel");
 const Transaction = require("../models/transactionModel");
-const {RentalLocation} = require("../models/rentalLocationModel");
+const { RentalLocation } = require("../models/rentalLocationModel");
 const PolicySystem = require("../models/policySystemModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
@@ -132,7 +132,7 @@ const createBooking = asyncHandler(async (req, res) => {
       setTimeout(async () => {
         const latestBooking = await Booking.findById(newBooking._id);
         if (latestBooking && latestBooking.paymentStatus !== 3) {
-          latestBooking.status = 6; 
+          latestBooking.status = 6;
           await latestBooking.save();
           console.log(
             `[AUTO CANCEL] Booking ${latestBooking._id} canceled due to timeout`
@@ -303,7 +303,6 @@ const updateBooking = asyncHandler(async (req, res) => {
   }
 });
 
-
 const deleteBooking = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
@@ -442,8 +441,6 @@ const processMoMoNotify = async (req, res) => {
       transaction.transactionStatus = 2; // Đánh dấu đã thanh toán
       transaction.transactionEndDate = new Date(responseTime);
       booking.paymentStatus = 3;
-
-      
     } else {
       transaction.transactionStatus = 3; // Thanh toán thất bại
       booking.paymentStatus = 5;
@@ -523,7 +520,8 @@ const getBooking = asyncHandler(async (req, res) => {
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
       })
-      .populate("policySystemIds");
+      .populate("policySystemIds")
+      .populate("couponId");
     res.json(get1Booking);
   } catch (error) {
     throw new Error(error);

@@ -6,15 +6,7 @@ const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
 const { startSession } = require("mongoose");
 
-
 const createPolicySystem = asyncHandler(async (req, res) => {
-  // try {
-  //   const newPolicySystem = await PolicySystem.create(req.body);
-  //   res.json(newPolicySystem);
-  // } catch (error) {
-  //   throw new Error(error);
-  // }
-
   try {
     const { values, ...policySystemData } = req.body;
 
@@ -26,13 +18,28 @@ const createPolicySystem = asyncHandler(async (req, res) => {
         session,
       });
 
+      let valueIds = [];
+
+      console.log("typeof values:", typeof values);
+      console.log(values);
+      console.log(Array.isArray(values) && values.length > 0);
+
       if (Array.isArray(values) && values.length > 0) {
         const valueList = values.map((value) => ({
           ...value,
           policySystemId: newPolicySystem[0]._id,
         }));
 
-        await Value.insertMany(valueList, { session });
+        const createdValues = await Value.insertMany(valueList, { session });
+        valueIds = createdValues.map((value) => value._id);
+
+        console.log(valueIds);
+        // Update the PolicyOwner with references to the values
+        await PolicySystem.findByIdAndUpdate(
+          newPolicySystem[0]._id,
+          { values: valueIds },
+          { session }
+        );
       }
 
       await session.commitTransaction();
@@ -40,7 +47,7 @@ const createPolicySystem = asyncHandler(async (req, res) => {
 
       const completePolicySystem = await PolicySystem.findById(
         newPolicySystem[0]._id
-      );
+      ).populate("values");
 
       res.status(201).json(completePolicySystem);
     } catch (error) {
@@ -230,7 +237,6 @@ const updatePolicySystem = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error(error.message);
   }
-
 });
 
 const deletePolicySystem = asyncHandler(async (req, res) => {
@@ -362,7 +368,7 @@ const getAllPolicySystem = asyncHandler(async (req, res) => {
         model: "PolicySystemCategory",
         select: "-createdAt -updatedAt -isDelete",
       });
-    
+
     const formattedPolicySystems = await Promise.all(
       getAllPolicySystem.map(async (doc) => {
         const docObj = doc.toJSON();
@@ -377,7 +383,7 @@ const getAllPolicySystem = asyncHandler(async (req, res) => {
         return docObj;
       })
     );
-    
+
     res.status(200).json({
       success: true,
       data: formattedPolicySystems,
