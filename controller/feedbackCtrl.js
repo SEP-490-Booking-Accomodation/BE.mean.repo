@@ -231,7 +231,35 @@ const getAllFeedbackByCustomerId = asyncHandler(async (req, res) => {
     const feedbacks = await Feedback.find({
       _id: { $in: feedbackIds },
       isDelete: false,
-    })
+    }).populate({
+      path: "bookingId",
+      model: "Booking",
+      select: "checkInHour durationBookingHour accommodationId",
+      populate: [
+        {
+          path: "customerId",
+          populate: {
+            path: "userId",
+            select:
+              "-password -tokenId -createdAt -updatedAt -isDelete -roleID -isActive -isVerifiedPhone -isVerifiedEmail",
+          },
+        },
+        {
+          path: "accommodationId",
+          select: "accommodationTypeId rentalLocationId",
+          populate: [
+            {
+              path: "accommodationTypeId",
+              select: "name", // => accommodationTypeName
+            },
+            {
+              path: "rentalLocationId",
+              select: "name city", // => rentalLocationName, rentalLocationCity
+            },
+          ],
+        },
+      ],
+    });
       // .populate({
       //   path: "replyBy",
       //   model: "Owner",
