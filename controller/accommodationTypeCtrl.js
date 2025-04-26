@@ -1,62 +1,83 @@
 const AccommodationType = require("../models/accommodationTypeModel");
 const asyncHandler = require("express-async-handler");
-const {RentalLocation} = require("../models/rentalLocationModel");
 const validateMongoDbId = require("../utils/validateMongodbId");
-const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
-const Accommodation = require("../models/accommodationModel");
 const Service = require("../models/serviceModel");
-const mongoose = require('mongoose');
+
 
 const createAccommodationType = asyncHandler(async (req, res) => {
     try {
-        const session = await mongoose.startSession();
-        session.startTransaction();
+        const { name, ownerId } = req.body;
 
-        try {
-            const newAccommodationType = await AccommodationType.create([req.body], { session });
+        const existingAccommodationType = await AccommodationType.findOne({
+            name: name,
+            ownerId: ownerId,
+            isDelete: false
+        });
 
-            const accommodationTypeId = newAccommodationType[0]._id;
-
-            const { rentalLocationId } = req.body;
-
-            if (rentalLocationId) {
-                await RentalLocation.findByIdAndUpdate(
-                    rentalLocationId,
-                    { $push: { accommodationTypeIds: accommodationTypeId } },
-                    { session }
-                );
-            }
-
-            // Commit the transaction
-            await session.commitTransaction();
-            session.endSession();
-
-            res.json(newAccommodationType[0]);
-        } catch (error) {
-            // If anything fails, abort the transaction
-            await session.abortTransaction();
-            session.endSession();
-            throw error;
+        if (existingAccommodationType) {
+            return res.status(400).json({
+                success: false,
+                message: `Accommodation type with name '${name}' already exists for this owner`
+            });
         }
+        const newAccommodationType = await AccommodationType.create(req.body);
+
+        res.status(201).json({
+            success: true,
+            data: newAccommodationType
+        });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message || "Internal Server Error"
+        });
     }
 });
 const updateAccommodationType = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     validateMongoDbId(id);
+
     try {
-        const updateAccommodationType = await AccommodationType.findByIdAndUpdate(
+        const { name } = req.body;
+        const currentAccommodationType = await AccommodationType.findById(id);
+        if (!currentAccommodationType) {
+            return res.status(404).json({
+                success: false,
+                message: "Accommodation type not found"
+            });
+        }
+        if (name && name !== currentAccommodationType.name) {
+            const existingAccommodationType = await AccommodationType.findOne({
+                name: name,
+                ownerId: currentAccommodationType.ownerId,
+                _id: { $ne: id },
+                isDelete: false
+            });
+
+            if (existingAccommodationType) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Accommodation type with name '${name}' already exists for this owner`
+                });
+            }
+        }
+        const updatedAccommodationType = await AccommodationType.findByIdAndUpdate(
             id,
             req.body,
             {
                 new: true,
             }
         );
-        res.json(updateAccommodationType);
+        res.status(200).json({
+            success: true,
+            data: updatedAccommodationType
+        });
     } catch (error) {
-        throw new Error(error);
+        res.status(500).json({
+            success: false,
+            message: error.message || "Internal Server Error"
+        });
     }
 });
 
@@ -117,37 +138,29 @@ const getAccommodationType = asyncHandler(async (req, res) => {
 
 const getAllAccommodationType = asyncHandler(async (req, res) => {
     try {
-
-        const {rentalLocationId} = req.query;
-
-        const query = {isDelete: false};
-
-        if (rentalLocationId) {
-            query.rentalLocationId = rentalLocationId;
+        const { ownerId } = req.query;
+        const query = { isDelete: false };
+        if (ownerId) {
+            query.ownerId = ownerId;
         }
-
-        // Get accommodation types with the applied filter
         const accommodationTypes = await AccommodationType.find(query)
-            .populate("rentalLocationId", "_id name");
-
-        // Get formatted accommodation types with services
+            .populate({
+                path: "ownerId",
+                select: "_id name"
+            });
         const formattedAccommodationTypes = await Promise.all(
             accommodationTypes.map(async (doc) => {
                 const docObj = doc.toJSON();
-
-                // Find all services based on the IDs in serviceIds array
-                const serviceIds = await Service.find({
-                    _id: {$in: doc.serviceIds}, // Use existing serviceIds array
-                    isDelete: false,
-                }).select("_id name description status");
-
-                // Add services to the accommodation type object
-                docObj.serviceIds = serviceIds;
-
+                if (doc.serviceIds && doc.serviceIds.length > 0) {
+                    const services = await Service.find({
+                        _id: { $in: doc.serviceIds },
+                        isDelete: false,
+                    }).select("_id name description status");
+                    docObj.serviceIds = services;
+                }
                 return docObj;
             })
         );
-
         res.status(200).json({
             success: true,
             data: formattedAccommodationTypes,
@@ -170,39 +183,18 @@ const getAccommodationTypeByOwnerId = asyncHandler(async (req, res) => {
                 message: "ownerId is required"
             });
         }
-
-        // First, find all rentalLocations that belong to this owner
-        const rentalLocations = await RentalLocation.find({
+        const accommodationTypes = await AccommodationType.find({
             ownerId: ownerId,
             isDelete: false
-        }).select("_id");
-
-        // Extract the rentalLocation IDs
-        const rentalLocationIds = rentalLocations.map(location => location._id);
-
-        // Now find all accommodation types that reference these rental locations
-        const accommodationTypes = await AccommodationType.find({
-            rentalLocationId: {$in: rentalLocationIds},
-            isDelete: false
-        }).populate("rentalLocationId", "_id name");
-
-        // Get formatted accommodation types with services
-        const formattedAccommodationTypes = await Promise.all(
-            accommodationTypes.map(async (doc) => {
-                const docObj = doc.toJSON();
-
-                // Find all services that reference this accommodation type
-                const serviceIds = await Service.find({
-                    accommodationTypeId: doc._id,
-                    isDelete: false,
-                }).select("_id name description status");
-
-                // Add services to the accommodation type object
-                docObj.serviceIds = serviceIds;
-
-                return docObj;
-            })
-        );
+        }).populate({
+            path: "serviceIds",
+            match: { isDelete: false },
+            select: "_id name description status"
+        }).populate({
+            path: "ownerId",
+            select: "_id name"
+        });
+        const formattedAccommodationTypes = accommodationTypes.map(doc => doc.toJSON());
 
         res.status(200).json({
             success: true,

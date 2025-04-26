@@ -9,9 +9,9 @@ const ENUM_PASSWORD = Object.freeze({
 });
 var accommodationTypeSchema = new mongoose.Schema(
   {
-    rentalLocationId: {
+    ownerId: {
       type: mongoose.Schema.ObjectId,
-      ref: "RentalLocation",
+      ref: "Owner",
     },
     serviceIds: [
       {
