@@ -117,14 +117,15 @@ const getAllCustomer = async (req, res) => {
     }
 
     // Lấy lại danh sách khách hàng sau khi đã xoá những Customer không có User
-    const updatedCustomers = await Customer.find({ isDelete: false });
+    const updatedCustomers = await Customer.find({ isDelete: false }).populate(
+      "paymentInformationId"
+    );
 
     res.json(updatedCustomers);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 module.exports = {
   createCustomer,

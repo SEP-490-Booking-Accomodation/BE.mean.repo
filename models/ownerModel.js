@@ -6,7 +6,7 @@ const moment = require("moment-timezone");
 const OWNER_MODEL_STATUS_LOG = {
   APPROVING: 1,
   APPROVED: 2,
-  DENIED: 3
+  DENIED: 3,
 };
 
 var ownerSchema = new mongoose.Schema(
@@ -69,7 +69,6 @@ const Owner = mongoose.model("Owner", ownerSchema);
 
 //Export the model
 module.exports = {
-    OWNER_MODEL_STATUS_LOG,
-    Owner,
+  OWNER_MODEL_STATUS_LOG,
+  Owner,
 };
-
