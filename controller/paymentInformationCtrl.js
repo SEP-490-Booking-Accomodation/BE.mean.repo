@@ -4,6 +4,7 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
 const Owner = require("../models/ownerModel");
+const Customer = require("../models/customerModel");
 
 const createPaymentInformation = asyncHandler(async (req, res) => {
   try {
