@@ -6,6 +6,10 @@ var paymentInformationSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: "Owner",
     },
+    customerId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Customer",
+    },
     bankName: {
       type: String,
       required: true,
