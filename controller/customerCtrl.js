@@ -49,7 +49,9 @@ const getCustomer = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const get1Customer = await Customer.findById(id);
+    const get1Customer = await Customer.findById(id).populate(
+      "paymentInformationId"
+    );
     res.json(get1Customer);
   } catch (error) {
     throw new Error(error);
@@ -84,11 +86,13 @@ const getCustomerByUserId = asyncHandler(async (req, res) => {
     const customer = await Customer.findOne({
       userId: userId,
       isDelete: false,
-    }).populate({
-      path: "userId",
-      select:
-        "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isVerifiedPhone", // Loại bỏ trường nhạy cảm
-    });
+    })
+      .populate({
+        path: "userId",
+        select:
+          "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isVerifiedPhone", // Loại bỏ trường nhạy cảm
+      })
+      .populate("paymentInformationId");
 
     if (!customer) {
       return res
@@ -117,14 +121,15 @@ const getAllCustomer = async (req, res) => {
     }
 
     // Lấy lại danh sách khách hàng sau khi đã xoá những Customer không có User
-    const updatedCustomers = await Customer.find({ isDelete: false });
+    const updatedCustomers = await Customer.find({ isDelete: false }).populate(
+      "paymentInformationId"
+    );
 
     res.json(updatedCustomers);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 
 module.exports = {
   createCustomer,

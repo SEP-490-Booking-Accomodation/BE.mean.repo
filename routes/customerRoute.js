@@ -20,6 +20,9 @@ const {
  *         userId:
  *           type: string
  *           description: Tham chiếu đến model Người dùng
+ *         paymentInformationId:
+ *           type: string
+ *           description: The ID of the payment information related to this owner
  */
 
 // /**
