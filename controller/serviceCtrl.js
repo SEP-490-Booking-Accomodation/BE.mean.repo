@@ -47,7 +47,8 @@ const getService = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
-    const getService = await Service.findOne({ _id: id, isDelete: false });
+    const getService = await Service.findOne({ _id: id, isDelete: false })
+        .populate('ownerId');
     res.json(getService);
   } catch (error) {
     throw new Error(error);
@@ -56,12 +57,12 @@ const getService = asyncHandler(async (req, res) => {
 
 const getAllService = asyncHandler(async (req, res) => {
   try {
-    const { rentalLocationId, ownerId } = req.query; // Get both rentalLocationId and ownerId from query params
+    const { rentalLocationId, ownerId } = req.query;
+    let filter = { isDelete: false };
+    let serviceIds = [];
+    let shouldFilterByServiceIds = false;
 
-    let filter = { isDelete: false }; // Initialize filter with common condition
-    let accommodationTypeIds = [];
-
-    // If ownerId is provided, find rental locations owned by this owner
+    // Handle ownerId filter if provided
     if (ownerId) {
       if (!isValidObjectId(ownerId)) {
         return res.status(400).json({
@@ -70,42 +71,12 @@ const getAllService = asyncHandler(async (req, res) => {
         });
       }
 
-      // Find rental locations owned by this owner
-      const rentalLocations = await RentalLocation.find({
-        ownerId,
-        isDelete: false,
-      });
-
-      if (!rentalLocations.length) {
-        return res.status(404).json({
-          success: false,
-          message: "No rental locations found for this owner",
-        });
-      }
-
-      // Collect all accommodationTypeIds from these rental locations
-      rentalLocations.forEach((location) => {
-        if (
-          location.accommodationTypeIds &&
-          location.accommodationTypeIds.length > 0
-        ) {
-          accommodationTypeIds = [
-            ...accommodationTypeIds,
-            ...location.accommodationTypeIds,
-          ];
-        }
-      });
-
-      if (!accommodationTypeIds.length) {
-        return res.status(404).json({
-          success: false,
-          message:
-            "No accommodation types found for this owner's rental locations",
-        });
-      }
+      // Find services directly by ownerId
+      filter.ownerId = ownerId;
     }
-    // If only rentalLocationId is provided
-    else if (rentalLocationId) {
+
+    // Handle rentalLocationId filter if provided
+    if (rentalLocationId) {
       if (!isValidObjectId(rentalLocationId)) {
         return res.status(400).json({
           success: false,
@@ -127,7 +98,7 @@ const getAllService = asyncHandler(async (req, res) => {
       }
 
       // Get accommodation type IDs from the rental location
-      accommodationTypeIds = rentalLocation.accommodationTypeIds || [];
+      const accommodationTypeIds = rentalLocation.accommodationTypeIds || [];
 
       if (!accommodationTypeIds.length) {
         return res.status(404).json({
@@ -135,10 +106,7 @@ const getAllService = asyncHandler(async (req, res) => {
           message: "No accommodation types found for this rental location",
         });
       }
-    }
 
-    // If we have accommodationTypeIds to filter by
-    if (accommodationTypeIds.length > 0) {
       // Get all accommodation types by their IDs
       const accommodationTypes = await AccommodationType.find({
         _id: { $in: accommodationTypeIds },
@@ -153,7 +121,6 @@ const getAllService = asyncHandler(async (req, res) => {
       }
 
       // Collect all serviceIds from these accommodation types
-      let serviceIds = [];
       accommodationTypes.forEach((type) => {
         if (type.serviceIds && type.serviceIds.length > 0) {
           serviceIds = [...serviceIds, ...type.serviceIds];
@@ -167,12 +134,21 @@ const getAllService = asyncHandler(async (req, res) => {
         });
       }
 
-      // Add serviceIds to the filter
-      filter._id = { $in: serviceIds };
+      shouldFilterByServiceIds = true;
+    }
+
+    // Add serviceIds filter if needed
+    if (shouldFilterByServiceIds) {
+      // If we already have ownerId filter, we need to combine with AND
+      if (filter.ownerId) {
+        filter._id = { $in: serviceIds };
+      } else {
+        filter._id = { $in: serviceIds };
+      }
     }
 
     // Fetch services based on the final filter
-    const services = await Service.find(filter);
+    const services = await Service.find(filter).populate('ownerId');
 
     if (!services.length) {
       return res.status(404).json({

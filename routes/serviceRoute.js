@@ -20,6 +20,9 @@ const {
  *         - description
  *         - status
  *       properties:
+ *         ownerId:
+ *           type: string
+ *           description: The id of the owner
  *         name:
  *           type: string
  *           description: The name of the service
@@ -30,6 +33,7 @@ const {
  *           type: boolean
  *           description: The status of the service (active/inactive)
  *       example:
+ *         ownerId: "63b92f4e17d7b3c2a4e4f3d4"
  *         name: "Cleaning Service"
  *         description: "A service to clean and prepare the accommodation for the next guests."
  *         status: true

@@ -4,15 +4,35 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
 const Owner = require("../models/ownerModel");
+const Customer = require("../models/customerModel");
 
 const createPaymentInformation = asyncHandler(async (req, res) => {
   try {
-    const { ownerId, bankNo } = req.body;
+    const { ownerId, customerId, bankNo } = req.body;
 
-    // Kiểm tra owner có tồn tại không
-    const owner = await Owner.findById(ownerId);
-    if (!owner) {
-      return res.status(404).json({ message: "Owner not found" });
+    // Phải có ownerId hoặc customerId
+    if (!ownerId && !customerId) {
+      return res
+        .status(400)
+        .json({ message: "ownerId or customerId is required" });
+    }
+
+    // Kiểm tra tồn tại Owner hoặc Customer
+    let owner = null;
+    let customer = null;
+
+    if (ownerId) {
+      owner = await Owner.findById(ownerId);
+      if (!owner) {
+        return res.status(404).json({ message: "Owner not found" });
+      }
+    }
+
+    if (customerId) {
+      customer = await Customer.findById(customerId);
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
     }
 
     // Kiểm tra trùng bankNo
@@ -24,16 +44,24 @@ const createPaymentInformation = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Bank No already exists" });
     }
 
-        const newPaymentInformation = await PaymentInformation.create(req.body);
-    // Cập nhật businessInformationId vào owner
-    owner.paymentInformationId = newPaymentInformation._id;
-    await owner.save();
+    // Tạo PaymentInformation mới
+    const newPaymentInformation = await PaymentInformation.create(req.body);
+
+    // Gán paymentInformationId cho Owner hoặc Customer
+    if (owner) {
+      owner.paymentInformationId = newPaymentInformation._id;
+      await owner.save();
+    } else if (customer) {
+      customer.paymentInformationId = newPaymentInformation._id;
+      await customer.save();
+    }
 
     res.json(newPaymentInformation);
   } catch (error) {
     throw new Error(error);
   }
 });
+
 const updatePaymentInformation = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
