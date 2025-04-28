@@ -107,7 +107,10 @@ const getAccommodationType = asyncHandler(async (req, res) => {
         const accommodationType = await AccommodationType.findOne({
             _id: id,
             isDelete: false,
-        }).populate("rentalLocationId", "_id name");
+        }).populate({
+            path: "ownerId",
+            select: "_id name"
+        });
 
         if (!accommodationType) {
             return res.status(404).json({
@@ -115,14 +118,17 @@ const getAccommodationType = asyncHandler(async (req, res) => {
                 message: "Accommodation type not found",
             });
         }
+
         const formattedAccommodationType = accommodationType.toJSON();
 
-        const serviceIds = await Service.find({
-            _id: {$in: accommodationType.serviceIds},
-            isDelete: false,
-        }).select("_id name description status");
+        if (accommodationType.serviceIds && accommodationType.serviceIds.length > 0) {
+            const services = await Service.find({
+                _id: { $in: accommodationType.serviceIds },
+                isDelete: false,
+            }).select("_id name description status");
 
-        formattedAccommodationType.serviceIds = serviceIds;
+            formattedAccommodationType.serviceIds = services;
+        }
 
         res.status(200).json({
             success: true,
