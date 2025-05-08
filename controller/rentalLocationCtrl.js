@@ -35,9 +35,19 @@ const createRentalLocation = asyncHandler(async (req, res) => {
 const updateRentalLocation = asyncHandler(async (req, res) => {
     const { id } = req.params;
     validateMongoDbId(id);
+
     try {
         // Get the original rental location to know its old status
         const originalRentalLocation = await RentalLocation.findById(id);
+
+        if (!originalRentalLocation) {
+            return res.status(404).json({
+                success: false,
+                message: "Rental location not found",
+            });
+        }
+
+        const oldStatus = originalRentalLocation.status;
 
         // Update the rental location
         const updatedRentalLocation = await RentalLocation.findByIdAndUpdate(
@@ -48,14 +58,20 @@ const updateRentalLocation = asyncHandler(async (req, res) => {
             }
         );
 
-        // Create a log entry for this update
-        await RentalLocationStatusLog.create({
-            rentalLocationId: updatedRentalLocation._id,
-            oldStatus: originalRentalLocation.status || null,
-            newStatus: updatedRentalLocation.status,
-            note: `Rental location updated from ${originalRentalLocation.status || 'null'} to ${updatedRentalLocation.status}`
+        // Only create a log entry if the status has changed
+        if (oldStatus !== updatedRentalLocation.status) {
+            await RentalLocationStatusLog.create({
+                rentalLocationId: updatedRentalLocation._id,
+                oldStatus: oldStatus || null,
+                newStatus: updatedRentalLocation.status,
+                note: req.body.note || " ",
+            });
+        }
+
+        res.json({
+            success: true,
+            data: updatedRentalLocation,
         });
-        res.json(updatedRentalLocation);
     } catch (error) {
         throw new Error(error);
     }
@@ -504,7 +520,7 @@ const updateRentalLocationStatus = asyncHandler(async (req, res) => {
 
     validateMongoDbId(id);
 
-    if (![1, 2, 3, 4].includes(status)) {
+    if (![1, 2, 3, 4, 5, 6].includes(status)) {
         return res.status(400).json({
             success: false,
             message:
@@ -513,18 +529,39 @@ const updateRentalLocationStatus = asyncHandler(async (req, res) => {
     }
 
     try {
+        // Get the original rental location to know its old status
+        const originalRentalLocation = await RentalLocation.findById(id);
+
+        if (!originalRentalLocation) {
+            return res.status(404).json({
+                success: false,
+                message: "Rental location not found",
+            });
+        }
+
+        const oldStatus = originalRentalLocation.status;
+        if (oldStatus === status) {
+            return res.json({
+                success: true,
+                data: originalRentalLocation,
+                message: "No change in status"
+            });
+        }
+        // Update the rental location
         const updatedLocation = await RentalLocation.findByIdAndUpdate(
             id,
             {status: status},
             {new: true}
         );
 
-        if (!updatedLocation) {
-            return res.status(404).json({
-                success: false,
-                message: "Rental location not found",
-            });
-        }
+        // Create a log entry for this status update
+        await RentalLocationStatusLog.create({
+            rentalLocationId: updatedLocation._id,
+            oldStatus: oldStatus || null,
+            newStatus: updatedLocation.status,
+            note: req.body.note || " ",
+        });
+
         res.json({
             success: true,
             data: updatedLocation,
