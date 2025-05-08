@@ -78,6 +78,9 @@ var rentalLocationSchema = new mongoose.Schema(
     city: {
       type: String,
     },
+    note: {
+        type: String,
+    }
   },
   {
     timestamps: true,
