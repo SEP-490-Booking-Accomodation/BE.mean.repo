@@ -38,6 +38,7 @@ const {
  *         - openHour
  *         - closeHour
  *         - isOverNight
+ *         - note
  *       properties:
  *         ownerId:
  *           type: string
@@ -102,6 +103,9 @@ const {
  *         isOverNight:
  *           type: boolean
  *           description: Whether overnight stay is allowed
+ *         note:
+ *           type: string
+ *           description: note of rental location
  *       example:
  *         ownerId: "63b92f4e17d7b3c2a4e4f3d2"
  *         landUsesRightId: "63b92f4e1722b3c2a4e4f3f2"
@@ -120,6 +124,7 @@ const {
  *         openHour: "08:00"
  *         closeHour: "22:00"
  *         isOverNight: true
+ *         note: "Additional notes for the owner"
  */
 
 /**

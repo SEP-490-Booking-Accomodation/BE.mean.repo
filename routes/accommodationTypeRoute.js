@@ -17,7 +17,7 @@ const {
  *     AccommodationType:
  *       type: object
  *       required:
- *         - rentalLocationId
+ *         - ownerId
  *         - serviceIds
  *         - name
  *         - description
@@ -25,9 +25,9 @@ const {
  *         - basePrice
  *         - overtimeHourlyPrice
  *       properties:
- *         rentalLocationId:
+ *         ownerId:
  *           type: string
- *           description: The ID of the rental location associated with this accommodation type
+ *           description: TThe ID of the owner associated with this accommodation type
  *         serviceIds:
  *           type: array
  *           items:
@@ -63,7 +63,7 @@ const {
  *             type: string
  *           description: Array of image URLs for the accommodation type
  *       example:
- *         rentalLocationId: "63b92f4e17d7b3c2a4e4f3d2"
+ *         ownerId: "63b92f4e17d7b3c2a4d4f6h1"
  *         serviceIds: ["63b92f4e17d7b3c2a4e4f3e3", "63b92f4e17d7b3c2a4e4f3e4"]
  *         name: "Deluxe Room"
  *         description: "A spacious room with premium amenities."
@@ -171,7 +171,7 @@ router.delete("/:id", authMiddleware, isOwner, deleteAccommodationType);
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
- *         name: rentalLocationId
+ *         name: ownerId
  *         schema:
  *           type: string
  *         description: ID of the rental location to filter accommodation types
