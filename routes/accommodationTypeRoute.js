@@ -164,7 +164,7 @@ router.delete("/:id", authMiddleware, isOwner, deleteAccommodationType);
  * /api/accommodation-type/all-accommodation-types:
  *   get:
  *     summary: Get all accommodation types
- *     description: Retrieves a list of all accommodation types, optionally filtered by rental location
+ *     description: Retrieves a list of all accommodation types, optionally filtered by owner or rental location
  *     tags:
  *       - AccommodationType
  *     security:
@@ -172,6 +172,11 @@ router.delete("/:id", authMiddleware, isOwner, deleteAccommodationType);
  *     parameters:
  *       - in: query
  *         name: ownerId
+ *         schema:
+ *           type: string
+ *         description: ID of the owner to filter accommodation types
+ *       - in: query
+ *         name: rentalLocationId
  *         schema:
  *           type: string
  *         description: ID of the rental location to filter accommodation types
