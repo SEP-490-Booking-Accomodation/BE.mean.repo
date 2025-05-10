@@ -4,7 +4,7 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
 const { isValidObjectId } = require("../utils/mongoose-helpers");
-const Owner = require("../models/ownerModel");
+const { Owner } = require("../models/ownerModel");
 
 const createBusinessInformation = asyncHandler(async (req, res) => {
   try {
