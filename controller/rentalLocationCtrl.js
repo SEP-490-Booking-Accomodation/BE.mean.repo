@@ -1,4 +1,7 @@
-const {RentalLocation, RENTALLOCATION_STATUS} = require("../models/rentalLocationModel");
+const {
+  RentalLocation,
+  RENTALLOCATION_STATUS,
+} = require("../models/rentalLocationModel");
 const Accommodation = require("../models/accommodationModel");
 const AccommodationType = require("../models/accommodationTypeModel");
 const Feedback = require("../models/feedbackModel");
@@ -6,219 +9,237 @@ const Booking = require("../models/bookingModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
-const {isValidObjectId} = require("../utils/mongoose-helpers");
+const { isValidObjectId } = require("../utils/mongoose-helpers");
 const softDelete = require("../utils/softDelete");
-const Owner = require("../models/ownerModel");
-const {RentalLocationStatusLog, RENTAL_STATUS_LOG} = require("../models/rentalLocationStatusLogModel");
-const mongoose = require('mongoose');
-
+const { Owner } = require("../models/ownerModel");
+const {
+  RentalLocationStatusLog,
+  RENTAL_STATUS_LOG,
+} = require("../models/rentalLocationStatusLogModel");
+const mongoose = require("mongoose");
 
 const createRentalLocation = asyncHandler(async (req, res) => {
-    try {
-        const rentalLocationData = {
-            ...req.body
-        };
-        const newRentalLocation = await RentalLocation.create(rentalLocationData);
+  try {
+    const rentalLocationData = {
+      ...req.body,
+    };
+    const newRentalLocation = await RentalLocation.create(rentalLocationData);
 
-        await RentalLocationStatusLog.create({
-            rentalLocationId: newRentalLocation._id,
-            oldStatus: null,
-            newStatus: RENTAL_STATUS_LOG.PENDING,
-            note: "Rental location created and pending approval"
-        });
-        res.json(newRentalLocation);
-    } catch (error) {
-        throw new Error(error);
-    }
+    await RentalLocationStatusLog.create({
+      rentalLocationId: newRentalLocation._id,
+      oldStatus: null,
+      newStatus: RENTAL_STATUS_LOG.PENDING,
+      note: "Rental location created and pending approval",
+    });
+    res.json(newRentalLocation);
+  } catch (error) {
+    throw new Error(error);
+  }
 });
 
 const updateRentalLocation = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    validateMongoDbId(id);
-    try {
-        // Get the original rental location to know its old status
-        const originalRentalLocation = await RentalLocation.findById(id);
+  const { id } = req.params;
+  validateMongoDbId(id);
 
-        // Update the rental location
-        const updatedRentalLocation = await RentalLocation.findByIdAndUpdate(
-            id,
-            req.body,
-            {
-                new: true,
-            }
-        );
+  try {
+    // Get the original rental location to know its old status
+    const originalRentalLocation = await RentalLocation.findById(id);
 
-        // Create a log entry for this update
-        await RentalLocationStatusLog.create({
-            rentalLocationId: updatedRentalLocation._id,
-            oldStatus: originalRentalLocation.status || null,
-            newStatus: updatedRentalLocation.status,
-            note: `Rental location updated from ${originalRentalLocation.status || 'null'} to ${updatedRentalLocation.status}`
-        });
-        res.json(updatedRentalLocation);
-    } catch (error) {
-        throw new Error(error);
+    if (!originalRentalLocation) {
+      return res.status(404).json({
+        success: false,
+        message: "Rental location not found",
+      });
     }
+
+    const oldStatus = originalRentalLocation.status;
+
+    // Update the rental location
+    const updatedRentalLocation = await RentalLocation.findByIdAndUpdate(
+      id,
+      req.body,
+      {
+        new: true,
+      }
+    );
+
+    // Only create a log entry if the status has changed
+    if (oldStatus !== updatedRentalLocation.status) {
+      await RentalLocationStatusLog.create({
+        rentalLocationId: updatedRentalLocation._id,
+        oldStatus: oldStatus || null,
+        newStatus: updatedRentalLocation.status,
+        note: req.body.note || " ",
+      });
+    }
+
+    res.json({
+      success: true,
+      data: updatedRentalLocation,
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
 });
 
 const deleteRentalLocation = asyncHandler(async (req, res) => {
-    const {id} = req.params;
-    try {
-        const deletedRentalLocation = await softDelete(RentalLocation, id);
+  const { id } = req.params;
+  try {
+    const deletedRentalLocation = await softDelete(RentalLocation, id);
 
-        if (!deletedRentalLocation) {
-            return res.status(404).json({message: "RentalLocation not found"});
-        }
-
-        res.json({
-            message: "RentalLocation deleted successfully",
-            data: deletedRentalLocation,
-        });
-    } catch (error) {
-        res.status(500).json({message: error.message});
+    if (!deletedRentalLocation) {
+      return res.status(404).json({ message: "RentalLocation not found" });
     }
+
+    res.json({
+      message: "RentalLocation deleted successfully",
+      data: deletedRentalLocation,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 const getRentalLocation = asyncHandler(async (req, res) => {
-    const {id} = req.params;
-    validateMongoDbId(id);
+  const { id } = req.params;
+  validateMongoDbId(id);
 
-    try {
-        const rentalLocation = await RentalLocation.findOne({
-            _id: id,
-            isDelete: false,
-        })
-            .populate({
-                path: "ownerId",
-                populate: [
-                    {
-                        path: "userId",
-                        match: {
-                            roleID: "67927ff7a0a58ce4f7e8e83d",
-                            isDelete: false,
-                        },
-                        select: "-password -createdAt -updatedAt -__v",
-                    },
-                    {
-                        path: "businessInformationId",
-                        select: "-createdAt -updatedAt -__v",
-                    },
-                ],
-                select: "isApproved note",
-            })
-            .populate({
-                path: "landUsesRightId",
-                select: "", // Include the fields you want from LandUsesRight model
-            });
+  try {
+    const rentalLocation = await RentalLocation.findOne({
+      _id: id,
+      isDelete: false,
+    })
+      .populate({
+        path: "ownerId",
+        populate: [
+          {
+            path: "userId",
+            match: {
+              roleID: "67f87ca3c19b91da666bbdc7",
+              isDelete: false,
+            },
+            select: "-password -createdAt -updatedAt -__v",
+          },
+          {
+            path: "businessInformationId",
+            select: "-createdAt -updatedAt -__v",
+          },
+        ],
+        select: "isApproved note",
+      })
+      .populate({
+        path: "landUsesRightId",
+        select: "", // Include the fields you want from LandUsesRight model
+      });
 
-        if (!rentalLocation) {
-            return res
-                .status(404)
-                .json({success: false, message: "Rental location not found"});
-        }
-
-        res.json({success: true, data: rentalLocation});
-    } catch (error) {
-        throw new Error(error);
+    if (!rentalLocation) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Rental location not found" });
     }
+
+    res.json({ success: true, data: rentalLocation });
+  } catch (error) {
+    throw new Error(error);
+  }
 });
 
 const getAllAccommodationTypeOfRentalLocation = asyncHandler(
-    async (req, res) => {
-        const {id} = req.params;
-        validateMongoDbId(id);
-        try {
-            const rentalLocation = await RentalLocation.findOne({
-                _id: id,
-                isDelete: false,
-            }).populate({
-                path: "ownerId",
-                select: "-createdAt -updatedAt -isDelete",
-                populate: {path: "userId", select: "fullName"},
-            });
+  async (req, res) => {
+    const { id } = req.params;
+    validateMongoDbId(id);
+    try {
+      const rentalLocation = await RentalLocation.findOne({
+        _id: id,
+        isDelete: false,
+      }).populate({
+        path: "ownerId",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: { path: "userId", select: "fullName" },
+      });
 
-            const formattedRentalLocations = rentalLocation.toJSON();
+      const formattedRentalLocations = rentalLocation.toJSON();
 
-            console.log(id);
-            const accommodationTypeIds = await AccommodationType.find({
-                rentalLocationId: id,
-                isDelete: false,
-            }).populate({
-                path: "serviceIds",
-                select: "name",
-            });
+      console.log(id);
+      const accommodationTypeIds = await AccommodationType.find({
+        rentalLocationId: id,
+        isDelete: false,
+      }).populate({
+        path: "serviceIds",
+        select: "name",
+      });
 
-            // Đếm số lượng accommodationTypeIds trước
-            const accommodationTypeCount = await AccommodationType.countDocuments({
-                rentalLocationId: id,
-                isDelete: false,
-            });
+      // Đếm số lượng accommodationTypeIds trước
+      const accommodationTypeCount = await AccommodationType.countDocuments({
+        rentalLocationId: id,
+        isDelete: false,
+      });
 
-            formattedRentalLocations.accommodationTypeIds = {
-                count: accommodationTypeCount,
-                data: accommodationTypeIds,
-            };
+      formattedRentalLocations.accommodationTypeIds = {
+        count: accommodationTypeCount,
+        data: accommodationTypeIds,
+      };
 
-            res.status(200).json({
-                success: true,
-                data: formattedRentalLocations,
-            });
-        } catch (error) {
-            res.status(500).json({
-                success: false,
-                message: error.message || "Internal Server Error",
-            });
-        }
+      res.status(200).json({
+        success: true,
+        data: formattedRentalLocations,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: error.message || "Internal Server Error",
+      });
     }
+  }
 );
 
 const getAllRentalLocation = asyncHandler(async (req, res) => {
-    try {
-        const {ownerId} = req.query;
+  try {
+    const { ownerId } = req.query;
 
-        const filter = {isDelete: false};
-        if (ownerId) {
-            if (!isValidObjectId(ownerId)) {
-                return res.status(400).json({
-                    success: false,
-                    message: "Invalid ownerId format",
-                });
-            }
-            filter.ownerId = ownerId;
-        }
-
-        const rentalLocations = await RentalLocation.find(filter)
-            .populate({
-                path: "ownerId",
-                populate: [
-                    {
-                        path: "userId",
-                        match: {
-                            roleID: "67927ff7a0a58ce4f7e8e83d",
-                        },
-                        select: "fullName email phone avatarUrl",
-                    },
-                    {
-                        path: "businessInformationId",
-                        select: "companyName companyAddress taxID",
-                    },
-                ],
-            })
-            .populate({
-                path: "landUsesRightId",
-                select: "", // Include the fields you want from LandUsesRight model
-            });
-
-        res.status(200).json({
-            success: true,
-            data: rentalLocations,
+    const filter = { isDelete: false };
+    if (ownerId) {
+      if (!isValidObjectId(ownerId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid ownerId format",
         });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: error.message || "Internal Server Error",
-        });
+      }
+      filter.ownerId = ownerId;
     }
+
+    const rentalLocations = await RentalLocation.find(filter)
+      .populate({
+        path: "ownerId",
+        populate: [
+          {
+            path: "userId",
+            match: {
+              roleID: "67f87ca3c19b91da666bbdc7",
+            },
+            select: "fullName email phone avatarUrl",
+          },
+          {
+            path: "businessInformationId",
+            select: "companyName companyAddress taxID",
+          },
+        ],
+      })
+      .populate({
+        path: "landUsesRightId",
+        select: "", // Include the fields you want from LandUsesRight model
+      });
+
+    res.status(200).json({
+      success: true,
+      data: rentalLocations,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message || "Internal Server Error",
+    });
+  }
 });
 
 // const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
@@ -243,7 +264,7 @@ const getAllRentalLocation = asyncHandler(async (req, res) => {
 //         populate: [
 //           {
 //             path: "userId",
-//             match: { roleID: "67927ff7a0a58ce4f7e8e83d" },
+//             match: { roleID: "67f87ca3c19b91da666bbdc7" },
 //             select: "fullName email phone avatarUrl",
 //           },
 //           {
@@ -396,151 +417,171 @@ const getAllRentalLocation = asyncHandler(async (req, res) => {
 // });
 
 const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
-    try {
-        const {ownerId} = req.query;
+  try {
+    const { ownerId } = req.query;
 
-        if (ownerId && !isValidObjectId(ownerId)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid ownerId format",
-            });
-        }
-
-        const filter = {isDelete: false, ...(ownerId ? {ownerId} : {})};
-
-        const rentalLocations = await RentalLocation.find(filter)
-            .populate({
-                path: "ownerId",
-                populate: [
-                    {
-                        path: "userId",
-                        match: {roleID: "67927ff7a0a58ce4f7e8e83d"},
-                        select: "fullName email phone avatarUrl",
-                    },
-                    {
-                        path: "businessInformationId",
-                        select: "companyName companyAddress taxID",
-                    },
-                ],
-            })
-            .populate({
-                path: "landUsesRightId",
-                select: "",
-            });
-
-        if (!rentalLocations.length) {
-            return res
-                .status(404)
-                .json({success: false, message: "No rental locations found"});
-        }
-
-        const rentalData = await Promise.all(
-            rentalLocations.map(async (rental) => {
-                const rentalId = rental._id.toString();
-
-                // Lấy danh sách accommodationType thuộc rentalLocation
-                const accommodationTypes = await AccommodationType.find({
-                    rentalLocationId: rentalId,
-                    isDelete: false,
-                }).populate({
-                    path: "serviceIds",
-                    select: "name",
-                });
-
-                // Tính minPrice và maxPrice từ basePrice của accommodationType
-                const basePrices = accommodationTypes
-                    .map((type) => type.basePrice)
-                    .filter((price) => price !== undefined);
-                const minPrice = basePrices.length > 0 ? Math.min(...basePrices) : null;
-                const maxPrice = basePrices.length > 0 ? Math.max(...basePrices) : null;
-
-                const accommodations = await Accommodation.find({
-                    rentalLocationId: rentalId,
-                }).select("_id accommodationTypeId");
-
-                const bookings = await Booking.find({
-                    accommodationId: {$in: accommodations.map((a) => a._id)},
-                }).select("_id");
-
-                const feedbacks = await Feedback.find({
-                    isDelete: false,
-                    rating: {$exists: true},
-                    bookingId: {$in: bookings.map((b) => b._id)},
-                }).select("rating");
-
-                const totalRating = feedbacks.reduce(
-                    (sum, feedback) => sum + feedback.rating,
-                    0
-                );
-                const averageRating = feedbacks.length
-                    ? parseFloat((totalRating / feedbacks.length).toFixed(2))
-                    : 0;
-
-                return {
-                    ...rental.toObject(),
-                    averageRating,
-                    totalFeedbacks: feedbacks.length,
-                    accommodationTypeIds: {
-                        count: accommodationTypes.length,
-                        data: accommodationTypes,
-                    },
-                    minPrice,
-                    maxPrice,
-                };
-            })
-        );
-
-        res.status(200).json({success: true, data: rentalData});
-    } catch (error) {
-        console.error("Error:", error);
-        res.status(500).json({success: false, message: "Internal Server Error"});
+    if (ownerId && !isValidObjectId(ownerId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid ownerId format",
+      });
     }
+
+    const filter = { isDelete: false, ...(ownerId ? { ownerId } : {}) };
+
+    const rentalLocations = await RentalLocation.find(filter)
+      .populate({
+        path: "ownerId",
+        populate: [
+          {
+            path: "userId",
+            match: { roleID: "67f87ca3c19b91da666bbdc7" },
+            select: "fullName email phone avatarUrl",
+          },
+          {
+            path: "businessInformationId",
+            select: "companyName companyAddress taxID",
+          },
+        ],
+      })
+      .populate({
+        path: "landUsesRightId",
+        select: "",
+      });
+
+    if (!rentalLocations.length) {
+      return res
+        .status(404)
+        .json({ success: false, message: "No rental locations found" });
+    }
+
+    const rentalData = await Promise.all(
+      rentalLocations.map(async (rental) => {
+        const rentalId = rental._id.toString();
+
+        // Lấy danh sách accommodationType thuộc rentalLocation
+        const accommodationTypes = await AccommodationType.find({
+          rentalLocationId: rentalId,
+          isDelete: false,
+        }).populate({
+          path: "serviceIds",
+          select: "name",
+        });
+
+        // Tính minPrice và maxPrice từ basePrice của accommodationType
+        const basePrices = accommodationTypes
+          .map((type) => type.basePrice)
+          .filter((price) => price !== undefined);
+        const minPrice = basePrices.length > 0 ? Math.min(...basePrices) : null;
+        const maxPrice = basePrices.length > 0 ? Math.max(...basePrices) : null;
+
+        const accommodations = await Accommodation.find({
+          rentalLocationId: rentalId,
+        }).select("_id accommodationTypeId");
+
+        const bookings = await Booking.find({
+          accommodationId: { $in: accommodations.map((a) => a._id) },
+        }).select("_id");
+
+        const feedbacks = await Feedback.find({
+          isDelete: false,
+          rating: { $exists: true },
+          bookingId: { $in: bookings.map((b) => b._id) },
+        }).select("rating");
+
+        const totalRating = feedbacks.reduce(
+          (sum, feedback) => sum + feedback.rating,
+          0
+        );
+        const averageRating = feedbacks.length
+          ? parseFloat((totalRating / feedbacks.length).toFixed(2))
+          : 0;
+
+        return {
+          ...rental.toObject(),
+          averageRating,
+          totalFeedbacks: feedbacks.length,
+          accommodationTypeIds: {
+            count: accommodationTypes.length,
+            data: accommodationTypes,
+          },
+          minPrice,
+          maxPrice,
+        };
+      })
+    );
+
+    res.status(200).json({ success: true, data: rentalData });
+  } catch (error) {
+    console.error("Error:", error);
+    res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
 });
 
-
 const updateRentalLocationStatus = asyncHandler(async (req, res) => {
-    const {id} = req.params;
-    const {status} = req.body;
+  const { id } = req.params;
+  const { status } = req.body;
 
-    validateMongoDbId(id);
+  validateMongoDbId(id);
 
-    if (![1, 2, 3, 4].includes(status)) {
-        return res.status(400).json({
-            success: false,
-            message:
-                "Invalid status value. Status must be 1 (Pending), 2 (Inactive), 3 (Active), 4 (Pause), 5 (Deleted), or 6 (Needs_Update)",
-        });
+  if (![1, 2, 3, 4, 5, 6].includes(status)) {
+    return res.status(400).json({
+      success: false,
+      message:
+        "Invalid status value. Status must be 1 (Pending), 2 (Inactive), 3 (Active), 4 (Pause), 5 (Deleted), or 6 (Needs_Update)",
+    });
+  }
+
+  try {
+    // Get the original rental location to know its old status
+    const originalRentalLocation = await RentalLocation.findById(id);
+
+    if (!originalRentalLocation) {
+      return res.status(404).json({
+        success: false,
+        message: "Rental location not found",
+      });
     }
 
-    try {
-        const updatedLocation = await RentalLocation.findByIdAndUpdate(
-            id,
-            {status: status},
-            {new: true}
-        );
-
-        if (!updatedLocation) {
-            return res.status(404).json({
-                success: false,
-                message: "Rental location not found",
-            });
-        }
-        res.json({
-            success: true,
-            data: updatedLocation,
-        });
-    } catch (error) {
-        throw new Error(error);
+    const oldStatus = originalRentalLocation.status;
+    if (oldStatus === status) {
+      return res.json({
+        success: true,
+        data: originalRentalLocation,
+        message: "No change in status",
+      });
     }
+    // Update the rental location
+    const updatedLocation = await RentalLocation.findByIdAndUpdate(
+      id,
+      { status: status },
+      { new: true }
+    );
+
+    // Create a log entry for this status update
+    await RentalLocationStatusLog.create({
+      rentalLocationId: updatedLocation._id,
+      oldStatus: oldStatus || null,
+      newStatus: updatedLocation.status,
+      note: req.body.note || " ",
+    });
+
+    res.json({
+      success: true,
+      data: updatedLocation,
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
 });
 
 module.exports = {
-    createRentalLocation,
-    updateRentalLocation,
-    deleteRentalLocation,
-    getRentalLocation,
-    getAllRentalLocation,
-    updateRentalLocationStatus,
-    getAllAccommodationTypeOfRentalLocation,
-    getAllRentalLocationHaveRating,
+  createRentalLocation,
+  updateRentalLocation,
+  deleteRentalLocation,
+  getRentalLocation,
+  getAllRentalLocation,
+  updateRentalLocationStatus,
+  getAllAccommodationTypeOfRentalLocation,
+  getAllRentalLocationHaveRating,
 };
