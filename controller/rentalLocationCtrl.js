@@ -454,76 +454,13 @@ const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
         .status(404)
         .json({ success: false, message: "No rental locations found" });
     }
+      res.json({
+          success: true,
+          data: rentalLocations,
+      });
 
-    if (![1, 2, 3, 4, 5, 6].includes(status)) {
-        return res.status(400).json({
-            success: false,
-            message:
-                "Invalid status value. Status must be 1 (Pending), 2 (Inactive), 3 (Active), 4 (Pause), 5 (Deleted), or 6 (Needs_Update)",
-        });
-    }
-    try {
-        // Get the original rental location to know its old status
-        const originalRentalLocation = await RentalLocation.findById(id);
-
-        if (!originalRentalLocation) {
-            return res.status(404).json({
-                success: false,
-                message: "Rental location not found",
-            });
-        }
-
-        const oldStatus = originalRentalLocation.status;
-        if (oldStatus === status) {
-            return res.json({
-                success: true,
-                data: originalRentalLocation,
-                message: "No change in status"
-            });
-        }
-        // Update the rental location
-        const updatedLocation = await RentalLocation.findByIdAndUpdate(
-            id,
-            {status: status},
-            {new: true}
-        );
-
-        // Create a log entry for this status update
-        await RentalLocationStatusLog.create({
-            rentalLocationId: updatedLocation._id,
-            oldStatus: oldStatus || null,
-            newStatus: updatedLocation.status,
-            note: req.body.note || " ",
-        });
-
-        res.json({
-            success: true,
-            data: updatedLocation,
-        });
-    } catch (error) {
-        throw new Error(error);
-    }
-    // Update the rental location
-    const updatedLocation = await RentalLocation.findByIdAndUpdate(
-      id,
-      { status: status },
-      { new: true }
-    );
-
-    // Create a log entry for this status update
-    await RentalLocationStatusLog.create({
-      rentalLocationId: updatedLocation._id,
-      oldStatus: oldStatus || null,
-      newStatus: updatedLocation.status,
-      note: req.body.note || " ",
-    });
-
-    res.json({
-      success: true,
-      data: updatedLocation,
-    });
   } catch (error) {
-    throw new Error(error);
+      throw new Error(error);
   }
 });
 
