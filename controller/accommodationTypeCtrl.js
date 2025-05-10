@@ -1,4 +1,5 @@
 const AccommodationType = require("../models/accommodationTypeModel");
+const {RentalLocation, RENTALLOCATION_STATUS,} = require("../models/rentalLocationModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const softDelete = require("../utils/softDelete");
@@ -144,10 +145,22 @@ const getAccommodationType = asyncHandler(async (req, res) => {
 
 const getAllAccommodationType = asyncHandler(async (req, res) => {
     try {
-        const { ownerId } = req.query;
+        const { ownerId, rentalLocationId } = req.query;
         const query = { isDelete: false };
         if (ownerId) {
             query.ownerId = ownerId;
+        }
+        if (rentalLocationId) {
+            const rentalLocation = await RentalLocation.findById(rentalLocationId);
+
+            if (rentalLocation && rentalLocation.accommodationTypeIds && rentalLocation.accommodationTypeIds.length > 0) {
+                query._id = { $in: rentalLocation.accommodationTypeIds };
+            } else {
+                return res.status(200).json({
+                    success: true,
+                    data: [],
+                });
+            }
         }
         const accommodationTypes = await AccommodationType.find(query)
             .populate({
