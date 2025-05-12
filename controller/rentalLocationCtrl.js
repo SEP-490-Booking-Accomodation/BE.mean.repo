@@ -479,7 +479,7 @@ const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
             { $match: {
                     "accommodation.rentalLocationId": { $in: rentalLocationIds },
                     "isDelete": false,
-                    "rating": { $exists: true }
+                    "rating": { $exists: true, $gte: 1, $lte: 5 }
                 }},
 
             { $group: {
