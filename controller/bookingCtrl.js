@@ -2,6 +2,7 @@ const Booking = require("../models/bookingModel");
 const Transaction = require("../models/transactionModel");
 const { RentalLocation } = require("../models/rentalLocationModel");
 const PolicySystem = require("../models/policySystemModel");
+const PolicyOwner = require("../models/policyOwnerModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const softDelete = require("../utils/softDelete");
@@ -74,23 +75,78 @@ const createBooking = asyncHandler(async (req, res) => {
       accommodationTypeId: accommodationTypeId,
     });
 
-    // Tìm danh sách phòng đã bị đặt trong khoảng thời gian đó
-    const bookedRoomIds = await Booking.find({
+    // Lấy ownerId từ accommodationTypeId
+    const accommodationType = await AccommodationType.findById(
+      accommodationTypeId
+    ).lean();
+
+    // Truy vấn policy nguời dùng để lấy thời gian timeout thanh toán
+    if (!accommodationType || !accommodationType.ownerId) {
+      return res
+        .status(400)
+        .json({ message: "Accommodation type or owner not found." });
+    }
+
+    // Lấy danh sách policyOwner theo ownerId
+    const policyOwners = await PolicyOwner.find({
+      ownerId: accommodationType.ownerId,
+      isDelete: false,
+      status: 1,
+    })
+      .populate("values")
+      .lean();
+
+    console.log("policyOwners:", policyOwners);
+
+    let prepareMinutes = 0;
+    let foundP = false;
+
+    for (const policy of policyOwners) {
+      if (Array.isArray(policy.values)) {
+        const timeValue = policy.values.find(
+          (v) => v.hashTag === "#pretime" && !v.isDelete
+        );
+
+        if (timeValue && !isNaN(parseInt(timeValue.val))) {
+          prepareMinutes = parseInt(timeValue.val);
+          console.log("Found prepare minutes:", prepareMinutes);
+          foundP = true;
+          break;
+        }
+      }
+    }
+    if (!foundP) {
+      console.log("Không tìm thấy hashtag #pretime, dùng mặc định 0 phút");
+    }
+
+    // Lấy tất cả bookings nằm trong khoảng có khả năng bị trùng
+    const allBookings = await Booking.find({
       accommodationId: { $in: availableRooms.map((room) => room._id) },
-      checkInHour: { $lt: vietnamTime2 },
-      checkOutHour: { $gt: vietnamTime1 },
-    }).distinct("accommodationId");
+      checkInHour: { $lt: vietnamTime2 }, // vẫn giữ điều kiện lọc sơ bộ
+      checkOutHour: { $ne: null },
+    });
+
+    // Lọc các bookings có trùng sau khi cộng thời gian chuẩn bị
+    const bookedRoomIds = allBookings
+      .filter((b) => {
+        const checkoutWithPrep = moment(b.checkOutHour).add(
+          prepareMinutes,
+          "minutes"
+        );
+        return (
+          moment(vietnamTime1).isBefore(checkoutWithPrep) &&
+          moment(vietnamTime2).isAfter(moment(b.checkInHour))
+        );
+      })
+      .map((b) => b.accommodationId.toString());
 
     console.log(bookedRoomIds);
 
-    // Lọc ra những phòng chưa bị đặt trùng thời gian
-    const bookedRoomIdStrings = bookedRoomIds.map((id) => id.toString());
-
     const suitableRooms = availableRooms.filter(
-      (room) => !bookedRoomIdStrings.includes(room._id.toString())
+      (room) => !bookedRoomIds.includes(room._id.toString())
     );
 
-    console.log(suitableRooms);
+    // console.log(suitableRooms);
 
     // Lấy phòng đầu tiên phù hợp
     const room = suitableRooms.length > 0 ? suitableRooms[0] : null;
@@ -127,6 +183,40 @@ const createBooking = asyncHandler(async (req, res) => {
 
     await newBooking.save();
 
+    // Truy vấn policy hệ thống để lấy thời gian timeout thanh toán
+    const expirePolicies = await PolicySystem.find({
+      isDelete: false,
+    })
+      .populate("values")
+      .lean()
+      .exec();
+
+    console.log("expirePolicies:", expirePolicies);
+
+    let expireMinutes = 15;
+    let found = false;
+
+    for (const policy of expirePolicies) {
+      if (Array.isArray(policy.values)) {
+        const timeValue = policy.values.find(
+          (v) => v.hashTag === "#expiretimepayment" && !v.isDelete
+        );
+
+        if (timeValue && !isNaN(parseInt(timeValue.val))) {
+          expireMinutes = parseInt(timeValue.val);
+          console.log("Found expire time:", expireMinutes);
+          found = true;
+          break;
+        }
+      }
+    }
+
+    if (!found) {
+      console.log(
+        "Không tìm thấy hashtag #expiretimepayment, dùng mặc định 15 phút"
+      );
+    }
+
     // Nếu là trạng thái chờ thanh toán => set timeout huỷ sau 15 phút
     if (newBooking.paymentStatus === 2) {
       setTimeout(async () => {
@@ -138,7 +228,8 @@ const createBooking = asyncHandler(async (req, res) => {
             `[AUTO CANCEL] Booking ${latestBooking._id} canceled due to timeout`
           );
         }
-      }, 15 * 60 * 1000); // 15 phút
+      }, expireMinutes * 60 * 1000); // 15 phút
+      console.log("expireMinutes: ", expireMinutes);
     }
 
     res.status(201).json({
