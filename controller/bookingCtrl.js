@@ -223,6 +223,7 @@ const createBooking = asyncHandler(async (req, res) => {
         const latestBooking = await Booking.findById(newBooking._id);
         if (latestBooking && latestBooking.paymentStatus !== 3) {
           latestBooking.status = 6;
+          latestBooking.note = "Cancel booking due to overdue payment!!!";
           await latestBooking.save();
           console.log(
             `[AUTO CANCEL] Booking ${latestBooking._id} canceled due to timeout`
