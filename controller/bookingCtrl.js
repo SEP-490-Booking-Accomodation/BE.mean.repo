@@ -19,6 +19,7 @@ const createBooking = asyncHandler(async (req, res) => {
       policySystemIds,
       customerId,
       accommodationTypeId,
+      rentalLocationId,
       couponId,
       feedbackId,
       checkInHour,
@@ -68,11 +69,17 @@ const createBooking = asyncHandler(async (req, res) => {
           .tz("Asia/Ho_Chi_Minh")
           .toDate()
       : null;
+    const vietnamTime5 = timeExpireRefund
+      ? moment(timeExpireRefund, "DD-MM-YYYY HH:mm:ss")
+          .tz("Asia/Ho_Chi_Minh")
+          .toDate()
+      : null;
 
     // Tìm tất cả phòng AVAILABLE với accommodationTypeId
     const availableRooms = await Accommodation.find({
       status: 1,
       accommodationTypeId: accommodationTypeId,
+      rentalLocationId: rentalLocationId
     });
 
     // Lấy ownerId từ accommodationTypeId
@@ -177,7 +184,7 @@ const createBooking = asyncHandler(async (req, res) => {
       totalPrice,
       passwordRoom,
       note,
-      timeExpireRefund,
+      timeExpireRefund: vietnamTime5,
       status,
     });
 
@@ -312,15 +319,19 @@ const updateBooking = asyncHandler(async (req, res) => {
   try {
     const updateData = { ...req.body };
 
-    ["checkInHour", "checkOutHour", "confirmDate", "completedDate"].forEach(
-      (field) => {
-        if (updateData[field]) {
-          updateData[field] = moment(updateData[field], "DD-MM-YYYY HH:mm:ss")
-            .tz("Asia/Ho_Chi_Minh")
-            .toDate();
-        }
+    [
+      "checkInHour",
+      "checkOutHour",
+      "confirmDate",
+      "completedDate",
+      "timeExpireRefund",
+    ].forEach((field) => {
+      if (updateData[field]) {
+        updateData[field] = moment(updateData[field], "DD-MM-YYYY HH:mm:ss")
+          .tz("Asia/Ho_Chi_Minh")
+          .toDate();
       }
-    );
+    });
 
     const updatedBooking = await Booking.findByIdAndUpdate(id, updateData, {
       new: true,
