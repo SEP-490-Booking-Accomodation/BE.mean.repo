@@ -1,12 +1,6 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
-const ENUM_PASSWORD = Object.freeze({
-  0: 0,
-  2: 1,
-  4: 2,
-  6: 3,
-  8: 4,
-});
+
 var accommodationTypeSchema = new mongoose.Schema(
   {
     ownerId: {
@@ -42,7 +36,6 @@ var accommodationTypeSchema = new mongoose.Schema(
     },
     numberOfPasswordRoom: {
       type: Number,
-      enum: Object.values(ENUM_PASSWORD),
       required: true,
     },
     isDelete: {
