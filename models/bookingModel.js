@@ -9,7 +9,7 @@ const BOOKING_STATUS = Object.freeze({
   CANCELLED: 6,
   COMPLETED: 7,
   PENDING: 8,
-  REFUND: 9
+  REFUND: 9,
 });
 
 const PAYMENT_STATUS = Object.freeze({
@@ -140,6 +140,11 @@ var bookingSchema = new mongoose.Schema(
             .tz("Asia/Ho_Chi_Minh")
             .format("DD/MM/YYYY HH:mm:ss");
         }
+        if (ret.timeExpireRefund) {
+          ret.timeExpireRefund = moment(ret.timeExpireRefund)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
         return ret;
       },
     },
@@ -169,6 +174,11 @@ var bookingSchema = new mongoose.Schema(
         }
         if (ret.completedDate) {
           ret.completedDate = moment(ret.completedDate)
+            .tz("Asia/Ho_Chi_Minh")
+            .format("DD/MM/YYYY HH:mm:ss");
+        }
+        if (ret.timeExpireRefund) {
+          ret.timeExpireRefund = moment(ret.timeExpireRefund)
             .tz("Asia/Ho_Chi_Minh")
             .format("DD/MM/YYYY HH:mm:ss");
         }
@@ -203,6 +213,13 @@ bookingSchema.pre("save", async function (next) {
     // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
     this.completedDate = moment
       .tz(this.completedDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+      .utc()
+      .toDate();
+  }
+  if (this.timeExpireRefund && typeof this.timeExpireRefund === "string") {
+    // Chuyển đổi từ định dạng DD-MM-YYYY sang UTC
+    this.timeExpireRefund = moment
+      .tz(this.timeExpireRefund, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
       .utc()
       .toDate();
   }

@@ -47,6 +47,9 @@ const {
  *         accommodationTypeId:
  *           type: string
  *           description: Reference to AccommodationType
+ *         rentalLocationId:
+ *           type: string
+ *           description: Reference to RentalLocation
  *         couponId:
  *           type: string
  *           description: Reference to Coupon
