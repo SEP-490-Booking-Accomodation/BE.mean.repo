@@ -10,6 +10,7 @@ const {
   getBookingsByRentalLocation,
   getBookingsByCustomerId,
   getBookingsByOwner,
+  getAllOwnerBookings,
   processMoMoPayment,
   processMoMoNotify,
   processMomoCallback,
@@ -65,20 +66,20 @@ const {
  *         checkInHour:
  *           type: string
  *           format: date-time
- *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
- *           example: "04-02-2025 15:30:45 +07:00"
+ *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2}"
+ *           example: "04-02-2025 15:30:45"
  *           description: Check-in time
  *         checkOutHour:
  *           type: string
  *           format: date-time
- *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
- *           example: "04-02-2025 15:30:45 +07:00"
+ *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2}"
+ *           example: "04-02-2025 15:30:45"
  *           description: Check-out time
  *         confirmDate:
  *           type: string
  *           format: date-time
- *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
- *           example: "04-02-2025 15:30:45 +07:00"
+ *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2}"
+ *           example: "04-02-2025 15:30:45"
  *           description: Confirmation date
  *         paymentMethod:
  *           type: integer
@@ -100,8 +101,8 @@ const {
  *         completedDate:
  *           type: string
  *           format: date-time
- *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
- *           example: "04-02-2025 15:30:45 +07:00"
+ *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2}"
+ *           example: "04-02-2025 15:30:45"
  *           description: Completion date
  *         totalPrice:
  *           type: number
@@ -115,8 +116,8 @@ const {
  *         timeExpireRefund:
  *           type: string
  *           format: date-time
- *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2} \\+07:00$"
- *           example: "04-02-2025 15:30:45 +07:00"
+ *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2}"
+ *           example: "04-02-2025 15:30:45"
  *           description: Time for valid refund
  *         status:
  *           type: integer
@@ -522,6 +523,20 @@ router.get(
     authMiddleware,
     getBookingsByOwner
 );
+
+/**
+ * @swagger
+ * /api/booking/all-owner-bookings:
+ *   get:
+ *     summary: Get all owner bookings
+ *     tags: [Booking]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of owner bookings
+ */
+router.get("/all-owner-bookings", authMiddleware, getAllOwnerBookings);
 
 /**
  * @swagger
