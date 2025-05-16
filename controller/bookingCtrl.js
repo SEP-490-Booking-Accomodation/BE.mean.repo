@@ -356,13 +356,15 @@ const updateBooking = asyncHandler(async (req, res) => {
           accommodation.accommodationTypeId
         );
 
+        console.log("type:",accommodationType);
+
         if (accommodationType) {
           const passwordLength = accommodationType.numberOfPasswordRoom || 4;
           const password = Array.from({ length: passwordLength }, () =>
             Math.floor(Math.random() * 10)
           ).join("");
 
-          console.log(accommodationType.numberOfPasswordRoom);
+          console.log("Number password:", accommodationType.numberOfPasswordRoom);
           console.log(passwordLength);
 
           await Booking.findByIdAndUpdate(updatedBooking._id, {
