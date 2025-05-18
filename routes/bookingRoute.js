@@ -98,12 +98,6 @@ const {
  *         durationBookingHour:
  *           type: number
  *           description: Booking duration in hours
- *         completedDate:
- *           type: string
- *           format: date-time
- *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2}"
- *           example: "04-02-2025 15:30:45"
- *           description: Completion date
  *         totalPrice:
  *           type: number
  *           description: Total Price of Booking
