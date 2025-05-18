@@ -337,13 +337,44 @@ const getAllFeedbackByOwnerId = async (req, res) => {
     });
 
     // Lọc các booking hợp lệ (vì match không loại bỏ object, chỉ null hóa)
-    const validFeedbacks = bookings
+    const feedbackIds = bookings
       .filter((b) => b.accommodationId !== null)
       .map((b) => b.feedbackId);
 
+    const feedbacks = await Feedback.find({
+      _id: { $in: feedbackIds },
+      isDelete: false,
+    })
+      .populate({
+        path: "bookingId",
+        select:
+          "-createdAt -updatedAt -__v -isDelete -isDelete -feedbackId -checkInHour -checkOutHour -confirmDate -paymentMethod -paymentStatus -adultNumber -basePrice -overtimeHourlyPrice -childNumber -durationBookingHour -totalPrice -note -timeExpireRefund -status", // bỏ ở cấp booking
+        populate: [
+          {
+            path: "accommodationId",
+            select: "-createdAt -updatedAt -__v -isDelete", // bỏ ở cấp accommodation
+            populate: {
+              path: "rentalLocationId",
+              select:
+                "-createdAt -updatedAt -__v -_id -accommodationTypeIds -status -image -description -address -longitude -latitude -openHour -closeHour -isOverNight -isDelete -ward -district -city", // bỏ thêm _id nếu không muốn
+            },
+          },
+          {
+            path: "customerId",
+            select: "-createdAt -updatedAt -__v -isDelete",
+            populate: {
+              path: "userId",
+              select:
+                "-createdAt -updatedAt -__v -_id -email -password -phone -doB -avatarUrl -roleID -isActive -isVerifiedEmail -isVerifiedPhone -isDelete", // chỉ lấy các field cần
+            },
+          },
+        ],
+      })
+      .lean();
+
     return res.status(200).json({
       success: true,
-      data: validFeedbacks,
+      data: feedbacks,
     });
   } catch (error) {
     console.error("Error in getAllFeedbackByOwnerId:", error);
