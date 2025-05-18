@@ -15,6 +15,10 @@ var transactionSchema = new mongoose.Schema(
       type: mongoose.Schema.ObjectId,
       ref: "Booking",
     },
+    ownerId: {
+      type: mongoose.Schema.ObjectId,
+      ref: "Owner",
+    },
     paymentCode: {
       type: String,
       required: true,
@@ -81,6 +85,16 @@ var transactionSchema = new mongoose.Schema(
     },
   }
 );
+transactionSchema.pre("validate", function (next) {
+  if (!this.bookingId && !this.ownerId) {
+    this.invalidate(
+      "bookingId",
+      "Either bookingId or ownerId must be provided."
+    );
+    this.invalidate("ownerId", "Either bookingId or ownerId must be provided.");
+  }
+  next();
+});
 transactionSchema.pre("save", async function (next) {
   if (this.transactionEndDate && typeof this.transactionEndDate === "string") {
     this.transactionEndDate = moment
