@@ -5,6 +5,8 @@ const softDelete = require("../utils/softDelete");
 const Coupon = require("../models/couponModel");
 const Booking = require("../models/bookingModel");
 const Accommodation = require("../models/accommodationModel");
+const AccommodationType = require("../models/accommodationTypeModel");
+const {RentalLocation} = require("../models/rentalLocationModel");
 
 const createFeedback = asyncHandler(async (req, res) => {
   try {
@@ -289,42 +291,68 @@ const getAllFeedbackByCustomerId = asyncHandler(async (req, res) => {
   }
 });
 
-const getAllFeedbackByOwnerId = asyncHandler(async (req, res) => {
-  const { ownerId } = req.params;
-  validateMongoDbId(ownerId);
-
+const getAllFeedbackByOwnerId = async (req, res) => {
   try {
-    const feedback = await Feedback.find({
-      replyBy: ownerId,
+    const { ownerId } = req.params;
+
+    // Lấy danh sách accommodationTypeId thuộc về rentalLocation của owner này
+    const rentalLocations = await RentalLocation.find({
+      ownerId,
       isDelete: false,
+    }).select("accommodationTypeIds");
+
+    console.log("Rental Locations of Owner:", rentalLocations);
+
+    // Gom tất cả accommodationTypeId thành một mảng phẳng
+    const accommodationTypeIds = rentalLocations
+      .flatMap((r) => r.accommodationTypeIds)
+      .map((id) => id.toString());
+    
+    console.log(
+      "AccommodationTypeIds from RentalLocations:",
+      accommodationTypeIds
+    );
+
+    // Tìm tất cả bookings có feedback, không bị xóa, và accommodation thuộc accommodationTypeIds của owner
+    const bookings = await Booking.find({
+      isDelete: false,
+      feedbackId: { $ne: null },
     })
+      .populate("feedbackId")
       .populate({
-        path: "replyBy",
-        model: "Owner",
-        select: "-createdAt -updatedAt -isDelete",
-        populate: {
-          path: "userId",
-          select: "fullName email avatarUrl phone", // Loại bỏ trường nhạy cảm
+        path: "accommodationId",
+        match: {
+          accommodationTypeId: { $in: accommodationTypeIds },
         },
-      })
-      .populate({
-        path: "bookingId",
-        model: "Booking",
-        select: "checkInHour durationBookingHour",
-        populate: {
-          path: "customerId",
-          populate: {
-            path: "userId",
-            select:
-              "-password -tokenId -createdAt -updatedAt -isDelete -roleID -isActive -isVerifiedPhone -isVerifiedEmail",
-          },
-        },
+        select: "accommodationTypeId",
       });
-    res.json(feedback);
+    
+    console.log("Bookings found:", bookings.length);
+    bookings.forEach((b, i) => {
+      console.log(`Booking ${i + 1}:`, {
+        accommodationId: b.accommodationId?._id,
+        accommodationTypeId: b.accommodationId?.accommodationTypeId,
+        feedback: b.feedbackId,
+      });
+    });
+
+    // Lọc các booking hợp lệ (vì match không loại bỏ object, chỉ null hóa)
+    const validFeedbacks = bookings
+      .filter((b) => b.accommodationId !== null)
+      .map((b) => b.feedbackId);
+
+    return res.status(200).json({
+      success: true,
+      data: validFeedbacks,
+    });
   } catch (error) {
-    throw new Error(error);
+    console.error("Error in getAllFeedbackByOwnerId:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Lỗi khi lấy feedback theo ownerId",
+    });
   }
-});
+};
 
 module.exports = {
   createFeedback,
