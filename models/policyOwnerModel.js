@@ -37,7 +37,7 @@ var policyOwnerSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    status: {
+    isActive: {
       type: Number,
       enum: Object.values(POLICYOWNER_STATUS),
       default: POLICYOWNER_STATUS.PENDING,
