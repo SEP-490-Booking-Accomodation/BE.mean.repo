@@ -70,11 +70,10 @@ const {
  *           type: boolean
  *           description: Flag indicating if the policy has been deleted
  *           default: false
- *         status:
- *           type: integer
- *           enum: [1, 2, 3]
- *           description: Status of the policy (1=PENDING, 2=APPROVED, 3=DENIED)
- *           default: 1
+ *         isActive:
+ *           type: boolean
+ *           description: Flag indicating if the policy has been active or not
+ *           default: false
  *         updatedBy:
  *           type: string
  *           description: The admin check for the policy
@@ -85,7 +84,7 @@ const {
  *         startDate: "2025-02-01T12:00:00Z"
  *         endDate: "2025-12-31T12:00:00Z"
  *         isDelete: false
- *         status: 1
+ *         isActive: false
  *         updateBy: "67b7b63be768c5abd6cf5e67"
  *         values: [
  *           {
@@ -153,7 +152,7 @@ router.post("/create-policy-owner", authMiddleware, createPolicyOwner);
  *             startDate: "2025-02-01T12:00:00Z"
  *             endDate: "2025-12-31T12:00:00Z"
  *             isDelete: false
- *             status: 1
+ *             isActive: false
  *             updateBy: "67b7b63be768c5abd6cf5e67"
  *             values: [
  *               {
