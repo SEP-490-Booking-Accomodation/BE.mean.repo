@@ -7,6 +7,7 @@ const {
   deleteTransaction,
   getAllTransaction,
   getTransaction,
+  getAllTransactionByOwnerId,
 } = require("../controller/transactionCtrl");
 
 /**
@@ -16,7 +17,6 @@ const {
  *     Transaction:
  *       type: object
  *       required:
- *         - bookingId
  *         - paymentCode
  *         - amount
  *       properties:
@@ -26,13 +26,17 @@ const {
  *         bookingId:
  *           type: string
  *           description: The ID of the related booking
+ *         ownerId:
+ *           type: string
+ *           description: The ID of the related ownerId
  *         paymentCode:
  *           type: string
  *           description: Unique payment code for the transaction
  *         transactionEndDate:
  *           type: string
  *           format: date-time
- *           description: The end date of the transaction (UTC)
+ *           pattern: "^\\d{2}-\\d{2}-\\d{4} \\d{2}:\\d{2}:\\d{2}"
+ *           description: The end date of the transaction
  *         transactionStatus:
  *           type: boolean
  *           description: The status of the transaction (completed or not)
@@ -57,8 +61,9 @@ const {
  *           description: The date when the transaction was last updated
  *       example:
  *         bookingId: "63b92f4e17d7b3c2a4e4f3d2"
+ *         ownerId: ""
  *         paymentCode: "PAY123456"
- *         transactionEndDate: "06/02/2025 10:30:00"
+ *         transactionEndDate: "06-02-2025 10:30:00"
  *         transactionStatus: true
  *         description: "Payment for booking ID 63b92f4e17d7b3c2a4e4f3d2"
  *         typeTransaction: 1
@@ -176,6 +181,37 @@ router.delete("/:id", authMiddleware, deleteTransaction);
  *         description: No transactions found
  */
 router.get("/all-transactions", authMiddleware, getAllTransaction);
+
+/**
+ * @swagger
+ * /api/transaction/all-transactions/{ownerId}:
+ *   get:
+ *     summary: Get all transactions by ownerId
+ *     description: Retrieves a list of all transactions by ownerId
+ *     tags:
+ *       - Transaction
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: ownerId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           description: The ID of the transaction to retrieve by ownerId
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved all transactions by ownerId
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Transaction'
+ *       404:
+ *         description: No transactions found
+ */
+router.get("/all-transactions/:ownerId", authMiddleware, getAllTransactionByOwnerId);
 
 /**
  * @swagger

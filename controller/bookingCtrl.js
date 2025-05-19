@@ -19,6 +19,7 @@ const createBooking = asyncHandler(async (req, res) => {
       policySystemIds,
       customerId,
       accommodationTypeId,
+      rentalLocationId,
       couponId,
       feedbackId,
       checkInHour,
@@ -42,8 +43,8 @@ const createBooking = asyncHandler(async (req, res) => {
     const vietnamTimeNow = moment().tz("Asia/Ho_Chi_Minh");
 
     const vietnamTime1 = checkInHour
-      ? moment(checkInHour, "DD-MM-YYYY HH:mm:ss")
-          .tz("Asia/Ho_Chi_Minh")
+      ? moment
+          .tz(checkInHour, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
           .toDate()
       : null;
 
@@ -54,18 +55,23 @@ const createBooking = asyncHandler(async (req, res) => {
     }
 
     const vietnamTime2 = checkOutHour
-      ? moment(checkOutHour, "DD-MM-YYYY HH:mm:ss")
-          .tz("Asia/Ho_Chi_Minh")
+      ? moment
+          .tz(checkOutHour, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
           .toDate()
       : null;
     const vietnamTime3 = confirmDate
-      ? moment(confirmDate, "DD-MM-YYYY HH:mm:ss")
-          .tz("Asia/Ho_Chi_Minh")
+      ? moment
+          .tz(confirmDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
           .toDate()
       : null;
     const vietnamTime4 = completedDate
-      ? moment(completedDate, "DD-MM-YYYY HH:mm:ss")
-          .tz("Asia/Ho_Chi_Minh")
+      ? moment
+          .tz(completedDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+          .toDate()
+      : null;
+    const vietnamTime5 = timeExpireRefund
+      ? moment
+          .tz(timeExpireRefund, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
           .toDate()
       : null;
 
@@ -73,6 +79,7 @@ const createBooking = asyncHandler(async (req, res) => {
     const availableRooms = await Accommodation.find({
       status: 1,
       accommodationTypeId: accommodationTypeId,
+      rentalLocationId: rentalLocationId,
     });
 
     // Lấy ownerId từ accommodationTypeId
@@ -177,7 +184,7 @@ const createBooking = asyncHandler(async (req, res) => {
       totalPrice,
       passwordRoom,
       note,
-      timeExpireRefund,
+      timeExpireRefund: vietnamTime5,
       status,
     });
 
@@ -223,6 +230,7 @@ const createBooking = asyncHandler(async (req, res) => {
         const latestBooking = await Booking.findById(newBooking._id);
         if (latestBooking && latestBooking.paymentStatus !== 3) {
           latestBooking.status = 6;
+          latestBooking.note = "Cancel booking due to overdue payment!!!";
           await latestBooking.save();
           console.log(
             `[AUTO CANCEL] Booking ${latestBooking._id} canceled due to timeout`
@@ -311,15 +319,19 @@ const updateBooking = asyncHandler(async (req, res) => {
   try {
     const updateData = { ...req.body };
 
-    ["checkInHour", "checkOutHour", "confirmDate", "completedDate"].forEach(
-      (field) => {
-        if (updateData[field]) {
-          updateData[field] = moment(updateData[field], "DD-MM-YYYY HH:mm:ss")
-            .tz("Asia/Ho_Chi_Minh")
-            .toDate();
-        }
+    [
+      "checkInHour",
+      "checkOutHour",
+      "confirmDate",
+      "completedDate",
+      "timeExpireRefund",
+    ].forEach((field) => {
+      if (updateData[field]) {
+        updateData[field] = moment(updateData[field], "DD-MM-YYYY HH:mm:ss")
+          .tz("Asia/Ho_Chi_Minh")
+          .toDate();
       }
-    );
+    });
 
     const updatedBooking = await Booking.findByIdAndUpdate(id, updateData, {
       new: true,
@@ -344,13 +356,15 @@ const updateBooking = asyncHandler(async (req, res) => {
           accommodation.accommodationTypeId
         );
 
+        console.log("type:",accommodationType);
+
         if (accommodationType) {
           const passwordLength = accommodationType.numberOfPasswordRoom || 4;
           const password = Array.from({ length: passwordLength }, () =>
             Math.floor(Math.random() * 10)
           ).join("");
 
-          console.log(accommodationType.numberOfPasswordRoom);
+          console.log("Number password:", accommodationType.numberOfPasswordRoom);
           console.log(passwordLength);
 
           await Booking.findByIdAndUpdate(updatedBooking._id, {
@@ -888,6 +902,93 @@ const getBookingsByOwner = asyncHandler(async (req, res) => {
   }
 });
 
+const getAllOwnerBookings = asyncHandler(async (req, res) => {
+  try {
+    // 1. Lấy tất cả rental locations và populate owner → user
+    const rentalLocations = await RentalLocation.find()
+      .populate({
+        path: "ownerId",
+        populate: {
+          path: "userId",
+          select: "fullName email",
+        },
+      })
+      .lean();
+
+    const ownerGroups = {};
+    let totalBooking = 0; // ✅ Biến tổng
+
+    for (const location of rentalLocations) {
+      const owner = location.ownerId;
+      if (!owner || !owner.userId) continue; // đảm bảo dữ liệu không bị thiếu
+
+      const ownerId = owner._id.toString();
+      const ownerName = owner.userId.fullName || "Unknown";
+
+      if (!ownerGroups[ownerId]) {
+        ownerGroups[ownerId] = {
+          ownerId,
+          ownerName,
+          bookings: [],
+        };
+      }
+
+      // 2. Lấy các accommodation thuộc rentalLocation này
+      const accommodations = await Accommodation.find({
+        rentalLocationId: location._id,
+      }).select("_id");
+
+      const accommodationIds = accommodations.map((a) => a._id);
+      if (accommodationIds.length === 0) continue;
+
+      // 3. Lấy tất cả bookings thuộc các accommodation
+      const bookings = await Booking.find({
+        accommodationId: { $in: accommodationIds },
+      })
+        .populate({
+          path: "accommodationId",
+          populate: [
+            {
+              path: "rentalLocationId",
+              select: "name address",
+            },
+            {
+              path: "accommodationTypeId",
+              select: "name maxPeopleNumber basePrice overtimeHourlyPrice",
+            },
+          ],
+        })
+        .populate({
+          path: "customerId",
+          populate: { path: "userId", select: "fullName" },
+        })
+        .populate("policySystemIds")
+        .lean();
+
+      // ✅ Cộng tổng số booking
+      totalBooking += bookings.length;
+      ownerGroups[ownerId].bookings.push(...bookings);
+    }
+
+    // 4. Sort theo tên owner
+    const sortedResults = Object.values(ownerGroups).sort((a, b) =>
+      a.ownerName.localeCompare(b.ownerName)
+    );
+
+    res.status(200).json({
+      totalOwner: sortedResults.length,
+      totalBooking,
+      owners: sortedResults,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Failed to fetch grouped owner bookings",
+      error: error.message,
+    });
+  }
+});
+
 const checkRoomAvailability = asyncHandler(async (req, res) => {
   try {
     const { accommodationTypeId, checkIn, checkOut } = req.body;
@@ -967,6 +1068,7 @@ module.exports = {
   getBooking,
   getBookingsByCustomerId,
   getBookingsByOwner,
+  getAllOwnerBookings,
   getBookingsByRentalLocation,
   getAllBooking,
   getOccupiedTimeSlots,

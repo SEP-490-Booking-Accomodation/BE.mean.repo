@@ -49,14 +49,8 @@ const {
  *           type: number
  *           description: The hourly price for overtime stay
  *         numberOfPasswordRoom:
- *           type: integer
- *           enum: [0, 1, 2, 3, 4]
+ *           type: number
  *           description: The number of password for room
- *             0 - 0 number
- *             1 - 2 numbers
- *             2 - 4 numbers
- *             3 - 6 numbers
- *             4 - 8 numbers
  *         image:
  *           type: array
  *           items:
