@@ -21,7 +21,7 @@ const {
  *         - policyDescription
  *         - startDate
  *         - endDate
- *         - status
+ *         - isActive
  *       properties:
  *         ownerId:
  *           type: string
