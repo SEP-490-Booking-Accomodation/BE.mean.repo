@@ -7,6 +7,7 @@ const Booking = require("../models/bookingModel");
 const Accommodation = require("../models/accommodationModel");
 const AccommodationType = require("../models/accommodationTypeModel");
 const {RentalLocation} = require("../models/rentalLocationModel");
+const { populate } = require("../models/policyOwnerModel");
 
 const createFeedback = asyncHandler(async (req, res) => {
   try {
@@ -262,28 +263,6 @@ const getAllFeedbackByCustomerId = asyncHandler(async (req, res) => {
         },
       ],
     });
-      // .populate({
-      //   path: "replyBy",
-      //   model: "Owner",
-      //   select: "-createdAt -updatedAt -isDelete",
-      //   populate: {
-      //     path: "userId",
-      //     select: "fullName email avatarUrl phone",
-      //   },
-      // })
-      // .populate({
-      //   path: "bookingId",
-      //   model: "Booking",
-      //   select: "checkInHour durationBookingHour",
-      //   populate: {
-      //     path: "customerId",
-      //     populate: {
-      //       path: "userId",
-      //       select:
-      //         "-password -tokenId -createdAt -updatedAt -isDelete -roleID -isActive -isVerifiedPhone -isVerifiedEmail",
-      //     },
-      //   },
-      // });
 
     res.json(feedbacks);
   } catch (error) {
@@ -358,6 +337,21 @@ const getAllFeedbackByOwnerId = async (req, res) => {
               select:
                 "-createdAt -updatedAt -__v -_id -accommodationTypeIds -status -image -description -address -longitude -latitude -openHour -closeHour -isOverNight -isDelete -ward -district -city", // bỏ thêm _id nếu không muốn
             },
+            populate: {
+              path: "accommodationTypeId",
+              select:
+                "-createdAt -updatedAt -__v -_id -numberOfPasswordRoom -overtimeHourlyPrice -description -basePrice -maxPeopleNumber -serviceIds -isDelete", // bỏ thêm _id nếu không muốn
+              populate: {
+                path: "ownerId",
+                select:
+                  "-createdAt -updatedAt -__v -isDelete -isApproved -businessInformationId -paymentInformationId -note -approvalStatus",
+                populate: {
+                  path: "userId",
+                  select:
+                    "-createdAt -updatedAt -__v -_id -avatarUrl -email -password -phone -doB -roleID -isActive -isVerifiedEmail -isVerifiedPhone -isDelete", // chỉ lấy các field cần
+                },
+              },
+            },
           },
           {
             path: "customerId",
@@ -365,7 +359,7 @@ const getAllFeedbackByOwnerId = async (req, res) => {
             populate: {
               path: "userId",
               select:
-                "-createdAt -updatedAt -__v -_id -email -password -phone -doB -avatarUrl -roleID -isActive -isVerifiedEmail -isVerifiedPhone -isDelete", // chỉ lấy các field cần
+                "-createdAt -updatedAt -__v -_id -email -password -phone -doB -roleID -isActive -isVerifiedEmail -isVerifiedPhone -isDelete", // chỉ lấy các field cần
             },
           },
         ],

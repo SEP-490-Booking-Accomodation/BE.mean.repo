@@ -61,95 +61,9 @@ const createPolicySystem = asyncHandler(async (req, res) => {
   }
 });
 
-// const updatePolicySystem = asyncHandler(async (req, res) => {
-//   const { id } = req.params;
-//   validateMongoDbId(id);
-//   try {
-//     const updatePolicySystem = await PolicySystem.findByIdAndUpdate(
-//       id,
-//       req.body,
-//       {
-//         new: true,
-//       }
-//     );
-//     res.json(updatePolicySystem);
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// });
-
-// const updatePolicySystem = asyncHandler(async (req, res) => {
-//   const { id } = req.params;
-//   validateMongoDbId(id);
-
-//   try {
-//     const updateData = {};
-//     const currentDateVN = moment().tz("Asia/Ho_Chi_Minh");
-
-//     if (req.body.startDate) {
-//       const startDate = moment(req.body.startDate, "DD-MM-YYYY HH:mm:ss").tz(
-//         "Asia/Ho_Chi_Minh"
-//       );
-//       if (!startDate.isAfter(currentDateVN)) {
-//         return res
-//           .status(400)
-//           .json({ message: "Start date must be after the current date." });
-//       }
-//       updateData.startDate = startDate.toDate();
-//     }
-
-//     if (req.body.endDate) {
-//       const endDate = moment(req.body.endDate, "DD-MM-YYYY HH:mm:ss").tz(
-//         "Asia/Ho_Chi_Minh"
-//       );
-//       if (updateData.startDate && !endDate.isAfter(updateData.startDate)) {
-//         return res
-//           .status(400)
-//           .json({ message: "End date must be after the start date." });
-//       }
-//       updateData.endDate = endDate.toDate();
-//     }
-
-//     Object.keys(req.body).forEach((key) => {
-//       if (!["startDate", "endDate"].includes(key)) {
-//         updateData[key] = req.body[key];
-//       }
-//     });
-
-//     const updatedPolicySystem = await PolicySystem.findByIdAndUpdate(
-//       id,
-//       { $set: updateData },
-//       { new: true }
-//     );
-
-//     if (!updatedPolicySystem) {
-//       return res.status(404).json({ message: "Policy System not found" });
-//     }
-
-//     res.json({
-//       message: "Policy System updated successfully",
-//       policySystem: updatedPolicySystem,
-//     });
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// });
-
 const updatePolicySystem = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
-  // try {
-  //   const updatePolicySystem = await PolicySystem.findByIdAndUpdate(
-  //     id,
-  //     req.body,
-  //     {
-  //       new: true,
-  //     }
-  //   );
-  //   res.json(updatePolicySystem);
-  // } catch (error) {
-  //   throw new Error(error);
-  // }
 
   try {
     const { values, ...policySystemData } = req.body;
@@ -157,7 +71,7 @@ const updatePolicySystem = asyncHandler(async (req, res) => {
     session.startTransaction();
 
     try {
-      const updatedPolicyOwner = await PolicySystem.findByIdAndUpdate(
+      const updatedPolicySystem = await PolicySystem.findByIdAndUpdate(
         id,
         policySystemData,
         { new: true, session }

@@ -299,19 +299,6 @@ const getOccupiedTimeSlots = asyncHandler(async (req, res) => {
   }
 });
 
-// const updateBooking = asyncHandler(async (req, res) => {
-//   const { id } = req.params;
-//   validateMongoDbId(id);
-//   try {
-//     const updateBooking = await Booking.findByIdAndUpdate(id, req.body, {
-//       new: true,
-//     });
-//     res.json(updateBooking);
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// });
-
 const updateBooking = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
@@ -811,21 +798,6 @@ const getAllBooking = asyncHandler(async (req, res) => {
         path: "customerId",
         populate: { path: "userId", select: "fullName" },
       });
-
-    // const formattedBookings = await Promise.all(
-    //   getAllBooking.map(async (doc) => {
-    //     const docObj = doc.toJSON();
-
-    //     const policySystemIds = await PolicySystem.find({
-    //       bookingId: doc._id,
-    //       isDelete: false,
-    //     }).select("_id name description status");
-
-    //     docObj.policySystemIds = policySystemIds;
-
-    //     return docObj;
-    //   })
-    // );
 
     res.status(200).json({
       success: true,
