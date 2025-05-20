@@ -84,35 +84,6 @@ const createUser = asyncHandler(async (req, res) => {
   }
 });
 
-//Login a user
-// const loginUserCtrl = asyncHandler(async (req, res) => {
-//   const { email, password } = req.body;
-//   //check if user exists or not
-//   const findUser = await User.findOne({ email });
-//   if (findUser && (await findUser.isPasswordMatched(password))) {
-//     const refToken = await generateRefreshToken(findUser?._id);
-//     const updateUser = await User.findByIdAndUpdate(
-//       findUser.id,
-//       {
-//         refreshToken: refToken,
-//       },
-//       { new: true }
-//     );
-//     res.cookie("refreshToken", refToken, {
-//       httpOnly: true,
-//       maxAge: 72 * 60 * 60 * 1000,
-//     });
-//     res.json({
-//       _id: findUser?._id,
-//       fullName: findUser?.fullName,
-//       email: findUser?.email,
-//       phoneNumber: findUser?.phoneNumber,
-//       value: generateToken(findUser?._id),
-//     });
-//   } else {
-//     throw new Error("Thông tin không hợp lệ");
-//   }
-// });
 const loginUserCtrl = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   // Kiểm tra xem người dùng có tồn tại không
@@ -153,29 +124,6 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
   }
 });
 
-//Logout functionality
-// const logout = asyncHandler(async (req, res) => {
-//   const cookie = req.cookies;
-//   if (!cookie?.refreshToken)
-//     throw new Error("Không làm mới Token trong Cookies");
-//   const refreshTokenn = cookie.refreshToken;
-//   const user = await User.findOne({ refreshTokenn });
-//   if (!user) {
-//     res.clearCookie("refreshToken", {
-//       httpOnly: true,
-//       secure: true,
-//     });
-//     return res.sendStatus(204); //fobidden
-//   }
-//   await User.findOneAndUpdate(refreshTokenn, {
-//     refreshToken: "",
-//   });
-//   res.clearCookie("refreshToken", {
-//     httpOnly: true,
-//     secure: true,
-//   });
-//   res.sendStatus(204); //fobidden
-// });
 const logout = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
   if (!cookie?.refreshToken)
@@ -193,26 +141,6 @@ const logout = asyncHandler(async (req, res) => {
   });
   res.sendStatus(204); // No Content
 });
-
-// //handle refresh token
-// const handleRefreshToken = asyncHandler(async (req, res) => {
-//   const cookie = req.cookies;
-//   if (!cookie?.refreshToken)
-//     throw new Error("Không làm mới Token trong Cookies");
-//   const refreshToken = cookie.refreshToken;
-//   const user = await User.findOne({ refreshToken });
-//   if (!user)
-//     throw new Error(
-//       "Không làm mới Token hiện tại trong cơ sở dữ liệu hoặc không phù hợp"
-//     );
-//   jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
-//     if (err || user.id !== decoded.id) {
-//       throw new Error("Có gì đó sai xót với refresh Token");
-//     }
-//     const accessToken = generateToken(user?._id);
-//     res.json({ accessToken });
-//   });
-// });
 
 const handleRefreshToken = asyncHandler(async (req, res) => {
   const cookie = req.cookies;
