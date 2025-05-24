@@ -343,7 +343,7 @@ const updateBooking = asyncHandler(async (req, res) => {
           accommodation.accommodationTypeId
         );
 
-        console.log("type:",accommodationType);
+        console.log("type:", accommodationType);
 
         if (accommodationType) {
           const passwordLength = accommodationType.numberOfPasswordRoom || 4;
@@ -351,7 +351,10 @@ const updateBooking = asyncHandler(async (req, res) => {
             Math.floor(Math.random() * 10)
           ).join("");
 
-          console.log("Number password:", accommodationType.numberOfPasswordRoom);
+          console.log(
+            "Number password:",
+            accommodationType.numberOfPasswordRoom
+          );
           console.log(passwordLength);
 
           await Booking.findByIdAndUpdate(updatedBooking._id, {
@@ -375,6 +378,7 @@ const updateBooking = asyncHandler(async (req, res) => {
             setTimeout(async () => {
               await Booking.findByIdAndUpdate(updatedBooking._id, {
                 $unset: { passwordRoom: "" },
+                $set: { status: 7 },
               });
 
               console.log(
@@ -533,6 +537,15 @@ const processMoMoNotify = async (req, res) => {
       transaction.transactionStatus = 2; // Đánh dấu đã thanh toán
       transaction.transactionEndDate = new Date(responseTime);
       booking.paymentStatus = 3;
+
+      // 🔄 Cập nhật các transaction cũ của cùng bookingId thành FAILED
+      await Transaction.updateMany(
+        {
+          bookingId: transaction.bookingId,
+          _id: { $ne: transaction._id }, // Loại trừ giao dịch hiện tại
+        },
+        { $set: { transactionStatus: 3 } } // FAILED
+      );
     } else {
       transaction.transactionStatus = 3; // Thanh toán thất bại
       booking.paymentStatus = 5;
