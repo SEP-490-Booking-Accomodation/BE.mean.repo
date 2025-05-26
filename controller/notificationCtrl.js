@@ -5,12 +5,36 @@ const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
 
 const createNotification = asyncHandler(async (req, res) => {
-  try {
-    const newNotification = await Notification.create(req.body);
-    res.json(newNotification);
-  } catch (error) {
-    throw new Error(error);
+  const { userId, ...notificationData } = req.body;
+
+  // Validate required fields
+  if (!userId) {
+    return res.status(400).json({
+      success: false,
+      message: "userId is required"
+    });
   }
+
+  const newNotification = await Notification.create(req.body);
+
+  // Emit via WebSocket
+  const io = req.app.get("io");
+  console.log("New notification created for user:", userId);
+
+  if (io) {
+    const userRoom = io.sockets.adapter.rooms.get(userId.toString());
+    if (userRoom && userRoom.size > 0) {
+      io.to(userId.toString()).emit("notification", newNotification);
+      console.log(`Notification sent to user ${userId}`);
+    } else {
+      console.log(`User ${userId} not connected`);
+    }
+  }
+
+  res.status(201).json({
+    success: true,
+    data: newNotification
+  });
 });
 const updateNotification = asyncHandler(async (req, res) => {
   const { id } = req.params;
