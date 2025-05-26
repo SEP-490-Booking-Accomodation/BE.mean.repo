@@ -3,10 +3,20 @@ const twilio = require("twilio");
 const dbConnect = require("./config/dbConnect");
 const { swaggerUi, swaggerSpec } = require("./config/swaggerConfig");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
 const dotenv = require("dotenv").config();
 const PORT = process.env.PORT || 4000;
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+    },
+});
+app.set("io", io);
 
 // Import routes
 const authRouter = require("./routes/authRoute");
@@ -102,6 +112,18 @@ app.use("/api/rental-location-status-log", rentalLocationStatusLogRoute);
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+io.on("connection", (socket) => {
+    console.log("Socket connected:", socket.id);
+
+    socket.on("join-room", (userId) => {
+        socket.join(userId);
+        console.log(` User ${userId} joined room`);
+    });
+
+    socket.on("disconnect", () => {
+        console.log("Socket disconnected:", socket.id);
+    });
+});
+server.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });

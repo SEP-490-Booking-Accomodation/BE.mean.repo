@@ -58,15 +58,63 @@ const createAccommodation = asyncHandler(async (req, res) => {
     }
 });
 const updateAccommodation = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     validateMongoDbId(id);
+
     try {
-        const updateAccommodation = await Accommodation.findByIdAndUpdate(id, req.body, {
+        // Check if roomNo or rentalLocationId is being updated
+        if (req.body.roomNo || req.body.rentalLocationId) {
+            // Get the current accommodation data
+            const currentAccommodation = await Accommodation.findById(id);
+
+            if (!currentAccommodation) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Accommodation not found"
+                });
+            }
+
+            // Use the new values if provided, otherwise keep the current ones
+            const roomNo = req.body.roomNo || currentAccommodation.roomNo;
+            const rentalLocationId = req.body.rentalLocationId || currentAccommodation.rentalLocationId;
+
+            // Check for duplicates (excluding the current record being updated)
+            const existingRoom = await Accommodation.findOne({
+                roomNo: roomNo,
+                rentalLocationId: rentalLocationId,
+                isDelete: false,
+                _id: { $ne: id } // Exclude the current record
+            });
+
+            if (existingRoom) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Room ${roomNo} at location ${rentalLocationId} already exists`
+                });
+            }
+        }
+
+        // If no duplicates, proceed with the update
+        const updatedAccommodation = await Accommodation.findByIdAndUpdate(id, req.body, {
             new: true,
         });
-        res.json(updateAccommodation);
+
+        if (!updatedAccommodation) {
+            return res.status(404).json({
+                success: false,
+                message: "Accommodation not found"
+            });
+        }
+
+        res.json({
+            success: true,
+            data: updatedAccommodation
+        });
     } catch (error) {
-        throw new Error(error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 });
 
