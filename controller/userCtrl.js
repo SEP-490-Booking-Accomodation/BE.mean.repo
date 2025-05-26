@@ -265,7 +265,7 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
   try {
     const resetToken = await user.createPasswordResetToken();
     await user.save({ validateBeforeSave: false }); // Lưu token vào DB mà không cần validate các field khác
-    const resetURL = `Xin chào, vui lòng theo đường dẫn này để thay đổi mật khẩu của bạn. Đường dẫn này khả dụng trong 10 phút kể từ giờ. <a href='http://localhost:3000/set-new-password/${resetToken}'>Nhấn vào đây</a>`;
+    const resetURL = `Xin chào, vui lòng theo đường dẫn này để thay đổi mật khẩu của bạn. Đường dẫn này khả dụng trong 10 phút kể từ giờ. <a href='https://mean-dep.vercel.app/set-new-password/${resetToken}'>Nhấn vào đây</a>`;
     if (!resetToken) {
       throw new Error("Failed to generate reset token");
     }
