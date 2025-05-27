@@ -2,7 +2,7 @@ const User = require("../models/userModel");
 const Token = require("../models/tokenModel");
 const Role = require("../models/roleModel");
 const Admin = require("../models/adminModel");
-const { Owner} = require("../models/ownerModel");
+const { Owner } = require("../models/ownerModel");
 const Customer = require("../models/customerModel");
 const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
@@ -25,63 +25,66 @@ const ROLE_IDS = {
 
 //Create a user
 const createUser = asyncHandler(async (req, res) => {
-  const email = req.body.email;
-  const findUser = await User.findOne({ email: email });
-  if (!findUser) {
-    // //Create a new User
-    // const newUser = await User.create(req.body);
-    // res.json(newUser);
-    const {
-      fullName,
-      email,
-      password,
-      phone,
-      doB,
-      avatarUrl,
-      roleID,
-      isActive,
-      isVerifiedEmail,
-      isVerifiedPhone,
-    } = req.body;
+  const {
+    fullName,
+    email,
+    password,
+    phone,
+    doB,
+    avatarUrl,
+    roleID,
+    isActive,
+    isVerifiedEmail,
+    isVerifiedPhone,
+  } = req.body;
 
-    // Chuyển đổi doB từ định dạng DD-MM-YYYY sang giờ Việt Nam trước khi lưu
-    const vietnamTime = doB
-      ? moment(doB, "DD-MM-YYYY").tz("Asia/Ho_Chi_Minh").toDate()
-      : null;
+  const existingUser = await User.findOne({
+    $or: [{ email: email }, { phone: phone }],
+  });
 
-    // Tiến hành tạo người dùng với doB đã được chuyển đổi
-    const newUser = new User({
-      fullName,
-      email,
-      password,
-      phone,
-      doB,
-      avatarUrl,
-      roleID,
-      isActive,
-      isVerifiedEmail,
-      isVerifiedPhone,
-    });
-
-    await newUser.save();
-
-    // Kiểm tra roleID và lưu vào bảng tương ứng
-    if (roleID === ROLE_IDS.admin) {
-      await Admin.create({ userId: newUser._id });
-    } else if (roleID === ROLE_IDS.owner) {
-      await Owner.create({ userId: newUser._id });
-    } else if (roleID === ROLE_IDS.customer) {
-      await Customer.create({ userId: newUser._id });
+  if (existingUser) {
+    if (existingUser.email === email) {
+      throw new Error("Email already exists");
     }
-
-    res.status(201).json({
-      message: "User registered successfully",
-      user: newUser,
-    });
-  } else {
-    //User already exists
-    throw new Error("Người dùng đã tồn tại");
+    if (existingUser.phone === phone) {
+      throw new Error("Phone number already exists");
+    }
   }
+
+  // Chuyển đổi doB từ định dạng DD-MM-YYYY sang giờ Việt Nam trước khi lưu
+  const vietnamTime = doB
+    ? moment(doB, "DD-MM-YYYY").tz("Asia/Ho_Chi_Minh").toDate()
+    : null;
+
+  // Tiến hành tạo người dùng với doB đã được chuyển đổi
+  const newUser = new User({
+    fullName,
+    email,
+    password,
+    phone,
+    doB,
+    avatarUrl,
+    roleID,
+    isActive,
+    isVerifiedEmail,
+    isVerifiedPhone,
+  });
+
+  await newUser.save();
+
+  // Kiểm tra roleID và lưu vào bảng tương ứng
+  if (roleID === ROLE_IDS.admin) {
+    await Admin.create({ userId: newUser._id });
+  } else if (roleID === ROLE_IDS.owner) {
+    await Owner.create({ userId: newUser._id });
+  } else if (roleID === ROLE_IDS.customer) {
+    await Customer.create({ userId: newUser._id });
+  }
+
+  res.status(201).json({
+    message: "User registered successfully",
+    user: newUser,
+  });
 });
 
 const loginUserCtrl = asyncHandler(async (req, res) => {
