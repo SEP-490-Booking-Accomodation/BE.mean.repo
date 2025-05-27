@@ -8,7 +8,7 @@ const { Owner } = require("../models/ownerModel");
 
 const createBusinessInformation = asyncHandler(async (req, res) => {
   try {
-    const { ownerId, taxID } = req.body;
+    const { ownerId, taxID, citizenIdentification } = req.body;
 
     // Kiểm tra owner có tồn tại không
     const owner = await Owner.findById(ownerId);
@@ -16,13 +16,24 @@ const createBusinessInformation = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: "Owner not found" });
     }
 
-    // Kiểm tra trùng taxId
+    // Kiểm tra trùng taxID
     const existingTax = await BusinessInformation.findOne({
       taxID,
       isDelete: false,
     });
     if (existingTax) {
       return res.status(400).json({ message: "Tax ID already exists" });
+    }
+
+    // Kiểm tra trùng citizenIdentification
+    const existingCID = await BusinessInformation.findOne({
+      citizenIdentification,
+      isDelete: false,
+    });
+    if (existingCID) {
+      return res
+        .status(400)
+        .json({ message: "Citizen Identification already exists" });
     }
 
     const newBusinessInformation = await BusinessInformation.create(req.body);
@@ -36,10 +47,35 @@ const createBusinessInformation = asyncHandler(async (req, res) => {
     throw new Error(error);
   }
 });
+
 const updateBusinessInformation = asyncHandler(async (req, res) => {
   const { id } = req.params;
   validateMongoDbId(id);
   try {
+    const { taxID, citizenIdentification } = req.body;
+
+    // Kiểm tra trùng taxID (trừ bản ghi hiện tại)
+    const existingTax = await BusinessInformation.findOne({
+      _id: { $ne: id },
+      taxID,
+      isDelete: false,
+    });
+    if (existingTax) {
+      return res.status(400).json({ message: "Tax ID already exists" });
+    }
+
+    // Kiểm tra trùng citizenIdentification (trừ bản ghi hiện tại)
+    const existingCID = await BusinessInformation.findOne({
+      _id: { $ne: id },
+      citizenIdentification,
+      isDelete: false,
+    });
+    if (existingCID) {
+      return res
+        .status(400)
+        .json({ message: "Citizen Identification already exists" });
+    }
+
     const updateBusinessInformation =
       await BusinessInformation.findByIdAndUpdate(id, req.body, {
         new: true,
