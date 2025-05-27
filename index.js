@@ -3,13 +3,19 @@ const twilio = require("twilio");
 const dbConnect = require("./config/dbConnect");
 const { swaggerUi, swaggerSpec } = require("./config/swaggerConfig");
 const cors = require("cors");
-const http = require("http");
+const https = require("https");
 const { Server } = require("socket.io");
+const fs = require("fs");
 
 const app = express();
 const dotenv = require("dotenv").config();
 const PORT = process.env.PORT || 4000;
-const server = http.createServer(app);
+
+const privateKey = fs.readFileSync("key.pem", "utf8");
+const certificate = fs.readFileSync("cert.pem", "utf8");
+const credentials = { key: privateKey, cert: certificate };
+
+const server = https.createServer(credentials, app);
 const io = new Server(server, {
     cors: {
         origin: "*",
