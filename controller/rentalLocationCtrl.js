@@ -227,11 +227,16 @@ const getAllRentalLocation = asyncHandler(async (req, res) => {
             })
             .populate({
                 path: "landUsesRightId",
-                select: "", // Include the fields you want from LandUsesRight model
+                select: "",
             })
             .populate({
                 path: "accommodationTypeIds",
-                select: "name ", // Add the fields you need from AccommodationType
+                select: "name ",
+                populate: {
+                    path: "serviceIds",
+                    model: "Service",
+                    select: "name",
+                },
             });
 
         res.status(200).json({
@@ -280,6 +285,14 @@ const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
             .populate({
                 path: "landUsesRightId",
                 select: "",
+            })
+            .populate({
+                path: "accommodationTypeIds",
+                select: "name serviceIds",
+                populate: {
+                    path: "serviceIds",
+                    select: "name ",
+                },
             });
 
         if (!rentalLocations.length) {
@@ -380,11 +393,23 @@ const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
                 }
             });
         });
-
+        const accTypeMap = new Map();
+        accommodationTypes.forEach(accType => {
+            accTypeMap.set(accType._id.toString(), accType);
+        });
         const rentalData = rentalLocations.map(rental => {
             const rentalId = rental._id.toString();
             const ratingInfo = ratingMap.get(rentalId) || { averageRating: 0, totalFeedbacks: 0 };
             const priceInfo = priceMap.get(rentalId) || { min: 0, max: 0 };
+            //const accTypeIds = rentalToAccTypesMap.get(rentalId) || [];
+
+            // const services = [];
+            // accTypeIds.forEach(accId => {
+            //     const acc = accTypeMap.get(accId);
+            //     if (acc && acc.serviceIds && Array.isArray(acc.serviceIds)) {
+            //         services.push(...acc.serviceIds);
+            //     }
+            // });
 
             return {
                 ...rental.toObject(),
@@ -392,6 +417,7 @@ const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
                 totalFeedbacks: ratingInfo.totalFeedbacks || 0,
                 minPrice: priceInfo.min,
                 maxPrice: priceInfo.max
+                //services,
             };
         });
 
