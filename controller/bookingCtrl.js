@@ -111,7 +111,7 @@ const createBooking = asyncHandler(async (req, res) => {
     for (const policy of policyOwners) {
       if (Array.isArray(policy.values)) {
         const timeValue = policy.values.find(
-          (v) => v.hashTag === "#pretime" && !v.isDelete
+          (v) => v.hashTag === "pretime" && !v.isDelete
         );
 
         if (timeValue && !isNaN(parseInt(timeValue.val))) {
@@ -206,7 +206,7 @@ const createBooking = asyncHandler(async (req, res) => {
     for (const policy of expirePolicies) {
       if (Array.isArray(policy.values)) {
         const timeValue = policy.values.find(
-          (v) => v.hashTag === "#expiretimepayment" && !v.isDelete
+          (v) => v.hashTag === "expiretimepayment" && !v.isDelete
         );
 
         if (timeValue && !isNaN(parseInt(timeValue.val))) {
@@ -230,11 +230,13 @@ const createBooking = asyncHandler(async (req, res) => {
         const latestBooking = await Booking.findById(newBooking._id);
         if (latestBooking && latestBooking.paymentStatus !== 3) {
           latestBooking.status = 6;
+          latestBooking.paymentStatus = 5;
           latestBooking.note = "Cancel booking due to overdue payment!!!";
           await latestBooking.save();
           console.log(
             `[AUTO CANCEL] Booking ${latestBooking._id} canceled due to timeout`
           );
+          //thêm đổi trạng thái thanh toán thành huỷ
         }
       }, expireMinutes * 60 * 1000); // 15 phút
       console.log("expireMinutes: ", expireMinutes);
@@ -548,6 +550,7 @@ const processMoMoNotify = async (req, res) => {
           _id: { $ne: transaction._id }, // Loại trừ giao dịch hiện tại
         },
         { $set: { transactionStatus: 3 } } // FAILED
+        //thêm đổi status thanh toán thành huỷ
       );
     } else {
       transaction.transactionStatus = 3; // Thanh toán thất bại
@@ -979,7 +982,7 @@ const getAllOwnerBookings = asyncHandler(async (req, res) => {
 
 const checkRoomAvailability = asyncHandler(async (req, res) => {
   try {
-    const { accommodationTypeId, checkIn, checkOut } = req.body;
+    const { accommodationTypeId,rentalLocationId, checkIn, checkOut } = req.body;
 
     if (!accommodationTypeId || !checkIn || !checkOut) {
       return res.status(400).json({
@@ -1002,6 +1005,7 @@ const checkRoomAvailability = asyncHandler(async (req, res) => {
 
     const accommodations = await Accommodation.find({
       accommodationTypeId: accommodationTypeId,
+      rentalLocationId: rentalLocationId,
       status: 1,
     });
 
