@@ -118,18 +118,46 @@ app.use("/api/rental-location-status-log", rentalLocationStatusLogRoute);
 app.use(notFound);
 app.use(errorHandler);
 
+const onlineUsers = new Map(); // Add this at the top of the io.on block
+
 io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
 
-    socket.on("join-room", (userId) => {
-        socket.join(userId);
-        console.log(` User ${userId} joined room`);
+    // Register user with their ID
+    socket.on("register", (userId) => {
+        onlineUsers.set(userId, socket.id);
+        console.log(`User ${userId} registered with socket ${socket.id}`);
     });
 
-    socket.on("disconnect", () => {
-        console.log("Socket disconnected:", socket.id);
+    socket.on("disconnect", (reason) => {
+        for (const [userId, id] of onlineUsers.entries()) {
+            if (id === socket.id) {
+                onlineUsers.delete(userId);
+                console.log(`User ${userId} disconnected`);
+                break;
+            }
+        }
+        console.log("Socket disconnected:", socket.id, "Reason:", reason);
+    });
+
+    socket.on("error", (err) => {
+        console.error("Socket error:", err);
+    });
+
+    // Optional test endpoint
+    socket.on("test-notification", ({ toUserId, message }) => {
+        const targetSocketId = onlineUsers.get(toUserId);
+        if (targetSocketId) {
+            io.to(targetSocketId).emit("notification", { message });
+            console.log(`Notification sent to ${toUserId}`);
+        }
     });
 });
+
+server.on("error", (err) => {
+    console.error("Server error:", err);
+});
+
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
