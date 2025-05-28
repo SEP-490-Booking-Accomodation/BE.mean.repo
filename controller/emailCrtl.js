@@ -13,7 +13,7 @@ const sendEmail = asyncHandler(async (data, req, res) => {
   });
   //send mail with defined transport object
   let info = await transporter.sendMail({
-    from: '"Hey 👻" <mean@gmail.com.vn>',
+    from: '"Mean CapsuleRoom" <mean@gmail.com.vn>',
     to: data.to,
     subject: data.subject,
     text: data.text,
@@ -38,7 +38,7 @@ const sendOTPEmail = asyncHandler(async (email, otp) => {
   });
 
   let info = await transporter.sendMail({
-    from: '"Hey 👻" <mean@gmail.com.vn>',
+    from: '"Mean CapsuleRoom" <mean@gmail.com.vn>',
     to: email,
     subject: "Email Verification OTP",
     text: `Your OTP for email verification is: ${otp}`,
