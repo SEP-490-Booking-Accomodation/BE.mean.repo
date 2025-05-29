@@ -5,11 +5,13 @@ const { swaggerUi, swaggerSpec } = require("./config/swaggerConfig");
 const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
+const fs = require("fs");
 
 const app = express();
 const dotenv = require("dotenv").config();
 const PORT = process.env.PORT || 4000;
 const server = http.createServer(app);
+
 const io = new Server(server, {
     cors: {
         origin: "*",
