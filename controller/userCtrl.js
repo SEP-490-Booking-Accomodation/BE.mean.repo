@@ -81,6 +81,35 @@ const createUser = asyncHandler(async (req, res) => {
     await Customer.create({ userId: newUser._id });
   }
 
+  // Gửi email cho toàn bộ admin nếu là owner hoặc customer
+  if (roleID === ROLE_IDS.owner || roleID === ROLE_IDS.customer) {
+    const admins = await Admin.find().populate("userId", "email fullName");
+
+    const adminEmails = admins
+      .map((admin) => admin.userId?.email)
+      .filter((email) => !!email);
+
+    if (adminEmails.length > 0) {
+      await sendEmail({
+        to: adminEmails,
+        subject: "Yêu cầu xác nhận tài khoản mới",
+        text: `Một người dùng mới đã đăng ký với vai trò: ${
+          roleID === ROLE_IDS.owner ? "Owner" : "Customer"
+        }.`,
+        html: `
+          <h3>Thông báo đăng ký tài khoản mới</h3>
+          <p><b>Họ tên:</b> ${fullName}</p>
+          <p><b>Email:</b> ${email}</p>
+          <p><b>Số điện thoại:</b> ${phone}</p>
+          <p><b>Vai trò:</b> ${
+            roleID === ROLE_IDS.owner ? "Owner" : "Customer"
+          }</p>
+          <p>Vui lòng đăng nhập hệ thống để xác nhận người dùng này.</p>
+        `,
+      });
+    }
+  }
+
   res.status(201).json({
     message: "User registered successfully",
     user: newUser,
@@ -419,10 +448,37 @@ const verifyPhoneOTP = async (req, res) => {
 //Get all users
 const getAllUser = asyncHandler(async (req, res) => {
   try {
-    const getUsers = await User.find();
-    res.json(getUsers);
+    const users = await User.find().lean(); // dùng .lean() để kết quả là plain JS object
+
+    const userIds = users.map((user) => user._id);
+
+    const [owners, customers, admins] = await Promise.all([
+      Owner.find({ userId: { $in: userIds }, isDelete: false }).lean(),
+      Customer.find({ userId: { $in: userIds }, isDelete: false }).lean(),
+      Admin.find({ userId: { $in: userIds }, isDelete: false }).lean(),
+    ]);
+
+    // Tạo map để truy nhanh
+    const ownerMap = new Map(owners.map((o) => [String(o.userId), o]));
+    const customerMap = new Map(customers.map((c) => [String(c.userId), c]));
+    const adminMap = new Map(admins.map((a) => [String(a.userId), a]));
+
+    const enrichedUsers = users.map((user) => {
+      const userIdStr = String(user._id);
+      return {
+        ...user,
+        owner: ownerMap.get(userIdStr) || null,
+        customer: customerMap.get(userIdStr) || null,
+        admin: adminMap.get(userIdStr) || null,
+      };
+    });
+
+    res.json(enrichedUsers);
   } catch (error) {
-    throw new Error(error);
+    res.status(500).json({
+      message: "Error fetch data",
+      error: error.message,
+    });
   }
 });
 
