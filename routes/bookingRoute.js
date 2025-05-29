@@ -397,12 +397,17 @@ router.get("/occupied-time-slots", getOccupiedTimeSlots);
  *             type: object
  *             required:
  *               - accommodationTypeId
+ *               - rentalLocationId
  *               - checkIn
  *               - checkOut
  *             properties:
  *               accommodationTypeId:
  *                 type: string
  *                 description: The ID of the accommodation type
+ *                 example: "67f40b0ca4689ec49f9f6afd"
+ *               rentalLocationId:
+ *                 type: string
+ *                 description: The ID of the rental location
  *                 example: "67f40b0ca4689ec49f9f6afd"
  *               checkIn:
  *                 type: string
