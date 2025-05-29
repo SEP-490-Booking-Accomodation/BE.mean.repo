@@ -54,6 +54,27 @@ const updateRentalLocation = asyncHandler(async (req, res) => {
 
         const oldStatus = originalRentalLocation.status;
 
+        const oldTypeIds = originalRentalLocation.accommodationTypeIds.map(id => id.toString());
+        const newTypeIds = req.body.accommodationTypeIds?.map(id => id.toString()) || [];
+
+        // Find removed accommodationTypeIds
+        const removedTypeIds = oldTypeIds.filter(id => !newTypeIds.includes(id));
+
+        // Check if any accommodations use the removed types
+        for (const typeId of removedTypeIds) {
+            const accommodationUsingType = await Accommodation.findOne({
+                rentalLocationId: id,
+                accommodationTypeId: typeId,
+            });
+
+            if (accommodationUsingType) {
+                return res.status(400).json({
+                    success: false,
+                    message: `AccommodationTypeId ${typeId} cannot be deleted because it's used by an accommodation in this rentalLocation!.`,
+                });
+            }
+        }
+
         // Update the rental location
         const updatedRentalLocation = await RentalLocation.findByIdAndUpdate(
             id,

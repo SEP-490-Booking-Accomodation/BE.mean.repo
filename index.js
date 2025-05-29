@@ -3,19 +3,15 @@ const twilio = require("twilio");
 const dbConnect = require("./config/dbConnect");
 const { swaggerUi, swaggerSpec } = require("./config/swaggerConfig");
 const cors = require("cors");
-const https = require("https");
+const http = require("http");
 const { Server } = require("socket.io");
 const fs = require("fs");
 
 const app = express();
 const dotenv = require("dotenv").config();
 const PORT = process.env.PORT || 4000;
+const server = http.createServer(app);
 
-const privateKey = fs.readFileSync("key.pem", "utf8");
-const certificate = fs.readFileSync("cert.pem", "utf8");
-const credentials = { key: privateKey, cert: certificate };
-
-const server = https.createServer(credentials, app);
 const io = new Server(server, {
     cors: {
         origin: "*",
@@ -118,46 +114,18 @@ app.use("/api/rental-location-status-log", rentalLocationStatusLogRoute);
 app.use(notFound);
 app.use(errorHandler);
 
-const onlineUsers = new Map(); // Add this at the top of the io.on block
-
 io.on("connection", (socket) => {
     console.log("Socket connected:", socket.id);
 
-    // Register user with their ID
-    socket.on("register", (userId) => {
-        onlineUsers.set(userId, socket.id);
-        console.log(`User ${userId} registered with socket ${socket.id}`);
+    socket.on("join-room", (userId) => {
+        socket.join(userId);
+        console.log(` User ${userId} joined room`);
     });
 
-    socket.on("disconnect", (reason) => {
-        for (const [userId, id] of onlineUsers.entries()) {
-            if (id === socket.id) {
-                onlineUsers.delete(userId);
-                console.log(`User ${userId} disconnected`);
-                break;
-            }
-        }
-        console.log("Socket disconnected:", socket.id, "Reason:", reason);
-    });
-
-    socket.on("error", (err) => {
-        console.error("Socket error:", err);
-    });
-
-    // Optional test endpoint
-    socket.on("test-notification", ({ toUserId, message }) => {
-        const targetSocketId = onlineUsers.get(toUserId);
-        if (targetSocketId) {
-            io.to(targetSocketId).emit("notification", { message });
-            console.log(`Notification sent to ${toUserId}`);
-        }
+    socket.on("disconnect", () => {
+        console.log("Socket disconnected:", socket.id);
     });
 });
-
-server.on("error", (err) => {
-    console.error("Server error:", err);
-});
-
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
