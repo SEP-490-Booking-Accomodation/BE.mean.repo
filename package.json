@@ -36,12 +36,13 @@
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
     "nodemon": "^3.1.9",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "telesignsdk": "^3.0.2",
     "twilio": "^5.5.1",
     "uniqid": "^5.4.0"
   },
-  "devDependencies": {},
   "description": ""
 }

@@ -54,6 +54,27 @@ const updateRentalLocation = asyncHandler(async (req, res) => {
 
         const oldStatus = originalRentalLocation.status;
 
+        const oldTypeIds = originalRentalLocation.accommodationTypeIds.map(id => id.toString());
+        const newTypeIds = req.body.accommodationTypeIds?.map(id => id.toString()) || [];
+
+        // Find removed accommodationTypeIds
+        const removedTypeIds = oldTypeIds.filter(id => !newTypeIds.includes(id));
+
+        // Check if any accommodations use the removed types
+        for (const typeId of removedTypeIds) {
+            const accommodationUsingType = await Accommodation.findOne({
+                rentalLocationId: id,
+                accommodationTypeId: typeId,
+            });
+
+            if (accommodationUsingType) {
+                return res.status(400).json({
+                    success: false,
+                    message: `AccommodationTypeId ${typeId} cannot be deleted because it's used by an accommodation in this rentalLocation!.`,
+                });
+            }
+        }
+
         // Update the rental location
         const updatedRentalLocation = await RentalLocation.findByIdAndUpdate(
             id,
@@ -207,7 +228,6 @@ const getAllRentalLocation = asyncHandler(async (req, res) => {
             }
             filter.ownerId = ownerId;
         }
-
         const rentalLocations = await RentalLocation.find(filter)
             .populate({
                 path: "ownerId",
@@ -227,7 +247,16 @@ const getAllRentalLocation = asyncHandler(async (req, res) => {
             })
             .populate({
                 path: "landUsesRightId",
-                select: "", // Include the fields you want from LandUsesRight model
+                select: "",
+            })
+            .populate({
+                path: "accommodationTypeIds",
+                select: "name ",
+                populate: {
+                    path: "serviceIds",
+                    model: "Service",
+                    select: "name",
+                },
             });
 
         res.status(200).json({
@@ -242,179 +271,6 @@ const getAllRentalLocation = asyncHandler(async (req, res) => {
     }
 });
 
-// const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
-//   try {
-//     const { ownerId } = req.query;
-
-//     const filter = { isDelete: false };
-//     if (ownerId) {
-//       if (!isValidObjectId(ownerId)) {
-//         return res.status(400).json({
-//           success: false,
-//           message: "Invalid ownerId format",
-//         });
-//       }
-//       filter.ownerId = ownerId;
-//     }
-
-//     // Lấy danh sách rental locations
-//     const rentalLocations = await RentalLocation.find(filter)
-//       .populate({
-//         path: "ownerId",
-//         populate: [
-//           {
-//             path: "userId",
-//             match: { roleID: "67f87ca3c19b91da666bbdc7" },
-//             select: "fullName email phone avatarUrl",
-//           },
-//           {
-//             path: "businessInformationId",
-//             select: "companyName companyAddress taxID",
-//           },
-//         ],
-//       })
-//       .populate({
-//         path: "landUsesRightId",
-//         select: "",
-//       });
-
-//     if (!rentalLocations.length) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "No rental locations found" });
-//     }
-
-//     // Trích xuất danh sách rentalLocationId
-//     const rentalLocationIds = rentalLocations.map((loc) => loc._id);
-//     console.log("Rental Location IDs:", rentalLocationIds);
-
-//     // Lấy tất cả accommodations theo rentalLocationId
-//     const accommodations = await Accommodation.find({
-//       rentalLocationId: { $in: rentalLocationIds },
-//     }).select("_id rentalLocationId");
-
-//     if (!accommodations.length) {
-//       return res
-//         .status(200)
-//         .json({
-//           success: true,
-//           data: rentalLocations.map((loc) => ({
-//             ...loc.toObject(),
-//             averageRating: 0,
-//             totalFeedbacks: 0,
-//           })),
-//         });
-//     }
-
-//     console.log("Accommodations:", accommodations);
-
-//     // Tạo map cho accommodationId -> rentalLocationId
-//     const accommodationToRentalMap = new Map();
-//     accommodations.forEach((acc) => {
-//       accommodationToRentalMap.set(
-//         acc._id.toString(),
-//         acc.rentalLocationId.toString()
-//       );
-//     });
-
-//     // Lấy tất cả bookingId liên quan đến accommodations
-//     const bookings = await Booking.find({
-//       accommodationId: { $in: accommodations.map((acc) => acc._id) },
-//     }).select("_id accommodationId");
-
-//     if (!bookings.length) {
-//       return res
-//         .status(200)
-//         .json({
-//           success: true,
-//           data: rentalLocations.map((loc) => ({
-//             ...loc.toObject(),
-//             averageRating: 0,
-//             totalFeedbacks: 0,
-//           })),
-//         });
-//     }
-
-//     console.log("Bookings:", bookings);
-
-//     // Tạo map bookingId -> rentalLocationId
-//     const bookingToRentalMap = new Map();
-//     bookings.forEach((book) => {
-//       if (accommodationToRentalMap.has(book.accommodationId.toString())) {
-//         bookingToRentalMap.set(
-//           book._id.toString(),
-//           accommodationToRentalMap.get(book.accommodationId.toString())
-//         );
-//       }
-//     });
-
-//     // Lấy tất cả feedback có rating theo bookingId
-//     const feedbacks = await Feedback.find({
-//       isDelete: false,
-//       rating: { $exists: true },
-//       bookingId: { $in: Array.from(bookingToRentalMap.keys()) },
-//     }).select("rating bookingId");
-
-//     if (!feedbacks.length) {
-//       return res
-//         .status(200)
-//         .json({
-//           success: true,
-//           data: rentalLocations.map((loc) => ({
-//             ...loc.toObject(),
-//             averageRating: 0,
-//             totalFeedbacks: 0,
-//           })),
-//         });
-//     }
-
-//     console.log("Feedbacks:", feedbacks);
-
-//     // Tính trung bình rating theo rentalId
-//     const rentalRatingMap = new Map();
-//     feedbacks.forEach((fb) => {
-//       const rentalId = bookingToRentalMap.get(fb.bookingId.toString());
-//       if (!rentalId) return;
-
-//       if (!rentalRatingMap.has(rentalId)) {
-//         rentalRatingMap.set(rentalId, { totalRating: 0, count: 0 });
-//       }
-//       const ratingInfo = rentalRatingMap.get(rentalId);
-//       ratingInfo.totalRating += fb.rating;
-//       ratingInfo.count += 1;
-//       rentalRatingMap.set(rentalId, ratingInfo);
-//     });
-
-//     console.log("Rental Rating Map:", rentalRatingMap);
-
-//     // Gắn rating vào rentalLocations
-//     const rentalData = rentalLocations.map((rental) => {
-//       const rentalIdStr = rental._id.toString();
-//       const ratingInfo = rentalRatingMap.get(rentalIdStr) || {
-//         totalRating: 0,
-//         count: 0,
-//       };
-
-//       return {
-//         ...rental.toObject(),
-//         averageRating: ratingInfo.count
-//           ? parseFloat((ratingInfo.totalRating / ratingInfo.count).toFixed(2))
-//           : 0,
-//         totalFeedbacks: ratingInfo.count,
-//       };
-//     });
-
-//     res.status(200).json({ success: true, data: rentalData });
-//   } catch (error) {
-//     console.error("Error:", error);
-//     res
-//       .status(500)
-//       .json({
-//         success: false,
-//         message: error.message || "Internal Server Error",
-//       });
-//   }
-// });
 
 const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
     try {
@@ -430,7 +286,6 @@ const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
         const filter = { isDelete: false };
         if (ownerId) filter.ownerId = ownerId;
 
-        // Get rental locations with populated data
         const rentalLocations = await RentalLocation.find(filter)
             .populate({
                 path: "ownerId",
@@ -449,6 +304,14 @@ const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
             .populate({
                 path: "landUsesRightId",
                 select: "",
+            })
+            .populate({
+                path: "accommodationTypeIds",
+                select: "name serviceIds basePrice",
+                populate: {
+                    path: "serviceIds",
+                    select: "name ",
+                },
             });
 
         if (!rentalLocations.length) {
@@ -550,20 +413,36 @@ const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
             });
         });
 
+        const accTypeMap = new Map();
+        accommodationTypes.forEach(accType => {
+            accTypeMap.set(accType._id.toString(), accType);
+        });
+
         const rentalData = rentalLocations.map(rental => {
             const rentalId = rental._id.toString();
             const ratingInfo = ratingMap.get(rentalId) || { averageRating: 0, totalFeedbacks: 0 };
-            const priceInfo = priceMap.get(rentalId) || { min: 0, max: 0 };
+            let minPrice = 0;
+            let maxPrice = 0;
+            
+            if (rental.accommodationTypeIds && Array.isArray(rental.accommodationTypeIds)) {
+                const prices = rental.accommodationTypeIds
+                    .map(accType => accType.basePrice || 0)
+                    .filter(price => price > 0);
+                
+                if (prices.length > 0) {
+                    minPrice = Math.min(...prices);
+                    maxPrice = Math.max(...prices);
+                }
+            }
 
             return {
                 ...rental.toObject(),
                 averageRating: ratingInfo.averageRating || 0,
                 totalFeedbacks: ratingInfo.totalFeedbacks || 0,
-                minPrice: priceInfo.min,
-                maxPrice: priceInfo.max
+                minPrice,
+                maxPrice
             };
         });
-
         res.status(200).json({
             success: true,
             data: rentalData
