@@ -4,6 +4,7 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const moment = require("moment-timezone");
 const softDelete = require("../utils/softDelete");
 const parseDateFields = require('../utils/parseDateFields');
+const checkAndDeactivateCouponIfExpired = require("../utils/checkAndDeactivateCouponIfExpired");
 
 const createCoupon = asyncHandler(async (req, res) => {
     try {
@@ -80,6 +81,8 @@ const updateCoupon = asyncHandler(async (req, res) => {
         const updatedCoupon = await Coupon.findByIdAndUpdate(id, data, { new: true });
         if (!updatedCoupon) return res.status(404).json({ message: "Coupon not found" });
 
+        updatedCoupon = await checkAndDeactivateCouponIfExpired(updatedCoupon);
+
         res.json(updatedCoupon);
     } catch (error) {
         res.status(400).json({ message: error.message || 'Failed to update coupon' });
@@ -101,20 +104,31 @@ const deleteCoupon = asyncHandler(async (req, res) => {
 });
 
 const getCoupon = asyncHandler(async (req, res) => {
-    const {id} = req.params;
+    const { id } = req.params;
     validateMongoDbId(id);
     try {
-        const get1Coupon = await Coupon.findOne({_id: id, isDelete: false});
-        res.json(get1Coupon);
+      let coupon = await Coupon.findOne({ _id: id, isDelete: false });
+      if (!coupon) return res.status(404).json({ message: "Coupon not found" });
+
+      coupon = await checkAndDeactivateCouponIfExpired(coupon);
+
+      res.json(coupon);
     } catch (error) {
-        throw new Error(error);
+      throw new Error(error);
     }
 });
 
 const getAllCoupon = asyncHandler(async (req, res) => {
     try {
-        const getAllCoupon = await Coupon.find({isDelete: false});
-        res.json(getAllCoupon);
+        const getAllCoupon = await Coupon.find({ isDelete: false });
+        
+        const allCoupons = await Promise.all(
+          getAllCoupon.map((coupon) =>
+            checkAndDeactivateCouponIfExpired(coupon)
+          )
+        );
+
+        res.json(allCoupons);
     } catch (error) {
         throw new Error(error);
     }
