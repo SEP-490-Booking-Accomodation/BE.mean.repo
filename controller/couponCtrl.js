@@ -19,17 +19,24 @@ const createCoupon = asyncHandler(async (req, res) => {
             isActive,
         } = req.body;
 
-        const vietnamTime1 = moment(startDate, "DD-MM-YYYY HH:mm:ss")
-            .tz("Asia/Ho_Chi_Minh")
-            .toDate();
-        const vietnamTime2 = moment(endDate, "DD-MM-YYYY HH:mm:ss")
-            .tz("Asia/Ho_Chi_Minh")
-            .toDate();
+        const vietnamTime1 = startDate
+          ? moment
+              .tz(startDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+              .toDate()
+          : null;
+        const vietnamTime2 = endDate
+          ? moment
+              .tz(endDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+              .toDate()
+          : null;
 
         // Kiểm tra điều kiện startDate phải sau ngày tạo hệ thống (createdAt)
         const currentDate = new Date();
-        const currentDateVN = moment(currentDate, "DD/MM/YYYY HH:mm:ss")
-            .tz("Asia/Ho_Chi_Minh");
+        const currentDateVN = currentDate
+          ? moment
+              .tz(currentDate, "DD-MM-YYYY HH:mm:ss", "Asia/Ho_Chi_Minh")
+              .toDate()
+          : null;
 
         if (vietnamTime1 <= currentDateVN) {
             return res.status(400).json({
