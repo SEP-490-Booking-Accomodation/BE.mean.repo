@@ -241,7 +241,7 @@ const getAllRentalLocation = asyncHandler(async (req, res) => {
                     },
                     {
                         path: "businessInformationId",
-                        select: "companyName companyAddress taxID",
+                        select: "companyName representativeName companyAddress taxID",
                     },
                 ],
             })
