@@ -228,7 +228,6 @@ const getAllRentalLocation = asyncHandler(async (req, res) => {
             }
             filter.ownerId = ownerId;
         }
-
         const rentalLocations = await RentalLocation.find(filter)
             .populate({
                 path: "ownerId",
@@ -287,7 +286,6 @@ const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
         const filter = { isDelete: false };
         if (ownerId) filter.ownerId = ownerId;
 
-        // Get rental locations with populated data
         const rentalLocations = await RentalLocation.find(filter)
             .populate({
                 path: "ownerId",
@@ -309,7 +307,7 @@ const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
             })
             .populate({
                 path: "accommodationTypeIds",
-                select: "name serviceIds",
+                select: "name serviceIds basePrice",
                 populate: {
                     path: "serviceIds",
                     select: "name ",
@@ -414,34 +412,37 @@ const getAllRentalLocationHaveRating = asyncHandler(async (req, res) => {
                 }
             });
         });
+
         const accTypeMap = new Map();
         accommodationTypes.forEach(accType => {
             accTypeMap.set(accType._id.toString(), accType);
         });
+
         const rentalData = rentalLocations.map(rental => {
             const rentalId = rental._id.toString();
             const ratingInfo = ratingMap.get(rentalId) || { averageRating: 0, totalFeedbacks: 0 };
-            const priceInfo = priceMap.get(rentalId) || { min: 0, max: 0 };
-            //const accTypeIds = rentalToAccTypesMap.get(rentalId) || [];
-
-            // const services = [];
-            // accTypeIds.forEach(accId => {
-            //     const acc = accTypeMap.get(accId);
-            //     if (acc && acc.serviceIds && Array.isArray(acc.serviceIds)) {
-            //         services.push(...acc.serviceIds);
-            //     }
-            // });
+            let minPrice = 0;
+            let maxPrice = 0;
+            
+            if (rental.accommodationTypeIds && Array.isArray(rental.accommodationTypeIds)) {
+                const prices = rental.accommodationTypeIds
+                    .map(accType => accType.basePrice || 0)
+                    .filter(price => price > 0);
+                
+                if (prices.length > 0) {
+                    minPrice = Math.min(...prices);
+                    maxPrice = Math.max(...prices);
+                }
+            }
 
             return {
                 ...rental.toObject(),
                 averageRating: ratingInfo.averageRating || 0,
                 totalFeedbacks: ratingInfo.totalFeedbacks || 0,
-                minPrice: priceInfo.min,
-                maxPrice: priceInfo.max
-                //services,
+                minPrice,
+                maxPrice
             };
         });
-
         res.status(200).json({
             success: true,
             data: rentalData
