@@ -17,7 +17,11 @@ const {
   generateRoomPassword,
   query,
   getOccupiedTimeSlots,
-  checkRoomAvailability
+  checkRoomAvailability,
+  getWeeklyBookingCountByOwner,
+  getMonthlyBookingCountByOwner,
+  getWeeklyRevenueByOwner,
+  getMonthlyRevenueByOwner,
 } = require("../controller/bookingCtrl");
 
 /**
@@ -477,6 +481,82 @@ router.get("/occupied-time-slots", getOccupiedTimeSlots);
  *                   example: "Server error"
  */
 router.post("/check-availability", checkRoomAvailability);
+
+/**
+ * @swagger
+ * /api/booking/stats/weekly-count/{userId}:
+ *   get:
+ *     summary: Get booking count for each weekday [T2 - CN]
+ *     tags: [Booking Statistics]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID of the owner
+ *     responses:
+ *       200:
+ *         description: Weekly booking count returned successfully
+ */
+router.get("/stats/weekly-count/:userId", getWeeklyBookingCountByOwner);
+
+/**
+ * @swagger
+ * /api/booking/stats/monthly-count/{userId}:
+ *   get:
+ *     summary: Get booking count for each month in the current year [T1 - T12]
+ *     tags: [Booking Statistics]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID of the owner
+ *     responses:
+ *       200:
+ *         description: Monthly booking count returned successfully
+ */
+router.get("/stats/monthly-count/:userId", getMonthlyBookingCountByOwner);
+
+/**
+ * @swagger
+ * /api/booking/stats/weekly-revenue/{userId}:
+ *   get:
+ *     summary: Get total revenue for each weekday [T2 - CN]
+ *     tags: [Booking Statistics]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID of the owner
+ *     responses:
+ *       200:
+ *         description: Weekly revenue returned successfully
+ */
+router.get("/stats/weekly-revenue/:userId", getWeeklyRevenueByOwner);
+
+/**
+ * @swagger
+ * /api/booking/stats/monthly-revenue/{userId}:
+ *   get:
+ *     summary: Get total revenue for each month in the current year [T1 - T12]
+ *     tags: [Booking Statistics]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID of the owner
+ *     responses:
+ *       200:
+ *         description: Monthly revenue returned successfully
+ */
+router.get("/stats/monthly-revenue/:userId", getMonthlyRevenueByOwner);
 
 /**
  * @swagger

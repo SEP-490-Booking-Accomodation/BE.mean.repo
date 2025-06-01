@@ -8,6 +8,7 @@ const validateMongoDbId = require("../utils/validateMongodbId");
 const softDelete = require("../utils/softDelete");
 const Accommodation = require("../models/accommodationModel");
 const AccommodationType = require("../models/accommodationTypeModel");
+const { Owner } = require("../models/ownerModel");
 const moment = require("moment-timezone");
 const crypto = require("crypto");
 const mongoose = require("mongoose");
@@ -983,7 +984,8 @@ const getAllOwnerBookings = asyncHandler(async (req, res) => {
 
 const checkRoomAvailability = asyncHandler(async (req, res) => {
   try {
-    const { accommodationTypeId,rentalLocationId, checkIn, checkOut } = req.body;
+    const { accommodationTypeId, rentalLocationId, checkIn, checkOut } =
+      req.body;
 
     if (!accommodationTypeId || !checkIn || !checkOut) {
       return res.status(400).json({
@@ -1054,6 +1056,143 @@ const checkRoomAvailability = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+const getWeeklyBookingCountByOwner = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const owner = await Owner.findOne({ userId, isDelete: false });
+  if (!owner) return res.status(404).json({ message: "Owner not found" });
+
+  const rentalLocations = await RentalLocation.find({ ownerId: owner._id });
+  const locationIds = rentalLocations.map((loc) => loc._id);
+  const accommodations = await Accommodation.find({
+    rentalLocationId: { $in: locationIds },
+  });
+  const accommodationIds = accommodations.map((a) => a._id);
+
+  const bookings = await Booking.find({
+    accommodationId: { $in: accommodationIds },
+    isDelete: false,
+  });
+
+  const weekdayMap = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+  const weekStats = { T2: 0, T3: 0, T4: 0, T5: 0, T6: 0, T7: 0, CN: 0 };
+
+  bookings.forEach((booking) => {
+    const weekdayIndex = moment(booking.createdAt)
+      .tz("Asia/Ho_Chi_Minh")
+      .isoWeekday(); // 1–7
+    const key = weekdayMap[weekdayIndex - 1]; // 0-based index
+    weekStats[key]++;
+  });
+
+  res.json({ userId, ownerId: owner._id, weeklyBookingCounts: weekStats });
+});
+
+const getMonthlyBookingCountByOwner = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const owner = await Owner.findOne({ userId, isDelete: false });
+  if (!owner) return res.status(404).json({ message: "Owner not found" });
+
+  const year = moment().year();
+  const rentalLocations = await RentalLocation.find({ ownerId: owner._id });
+  const locationIds = rentalLocations.map((loc) => loc._id);
+  const accommodations = await Accommodation.find({
+    rentalLocationId: { $in: locationIds },
+  });
+  const accommodationIds = accommodations.map((a) => a._id);
+
+  const bookings = await Booking.find({
+    accommodationId: { $in: accommodationIds },
+    createdAt: {
+      $gte: moment
+        .tz(`${year}-01-01`, "YYYY-MM-DD", "Asia/Ho_Chi_Minh")
+        .toDate(),
+      $lte: moment
+        .tz(`${year}-12-31`, "YYYY-MM-DD", "Asia/Ho_Chi_Minh")
+        .endOf("month")
+        .toDate(),
+    },
+    isDelete: false,
+  });
+
+  const monthStats = {};
+  for (let i = 1; i <= 12; i++) monthStats[`T${i}`] = 0;
+
+  bookings.forEach((booking) => {
+    const month = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").month() + 1;
+    monthStats[`T${month}`]++;
+  });
+
+  res.json({ userId, ownerId: owner._id, monthlyBookingCounts: monthStats });
+});
+
+const getWeeklyRevenueByOwner = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const owner = await Owner.findOne({ userId, isDelete: false });
+  if (!owner) return res.status(404).json({ message: "Owner not found" });
+
+  const rentalLocations = await RentalLocation.find({ ownerId: owner._id });
+  const locationIds = rentalLocations.map((loc) => loc._id);
+  const accommodations = await Accommodation.find({
+    rentalLocationId: { $in: locationIds },
+  });
+  const accommodationIds = accommodations.map((a) => a._id);
+
+  const bookings = await Booking.find({
+    accommodationId: { $in: accommodationIds },
+    paymentStatus: 3, // Only PAID
+    isDelete: false,
+  });
+
+  const weekRevenue = { T2: 0, T3: 0, T4: 0, T5: 0, T6: 0, T7: 0, CN: 0 };
+  bookings.forEach((booking) => {
+    const day = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").isoWeekday();
+    const key = day === 7 ? "CN" : `T${day}`;
+    weekRevenue[key] += booking.totalPrice;
+  });
+
+  res.json({ userId, ownerId: owner._id, weeklyRevenue: weekRevenue });
+});
+
+const getMonthlyRevenueByOwner = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const owner = await Owner.findOne({ userId, isDelete: false });
+  if (!owner) return res.status(404).json({ message: "Owner not found" });
+
+  const year = moment().year();
+  const rentalLocations = await RentalLocation.find({ ownerId: owner._id });
+  const locationIds = rentalLocations.map((loc) => loc._id);
+  const accommodations = await Accommodation.find({
+    rentalLocationId: { $in: locationIds },
+  });
+  const accommodationIds = accommodations.map((a) => a._id);
+
+  const bookings = await Booking.find({
+    accommodationId: { $in: accommodationIds },
+    paymentStatus: 3,
+    createdAt: {
+      $gte: moment
+        .tz(`${year}-01-01`, "YYYY-MM-DD", "Asia/Ho_Chi_Minh")
+        .toDate(),
+      $lte: moment
+        .tz(`${year}-12-31`, "YYYY-MM-DD", "Asia/Ho_Chi_Minh")
+        .endOf("month")
+        .toDate(),
+    },
+    isDelete: false,
+  });
+
+  const monthRevenue = {};
+  for (let i = 1; i <= 12; i++) monthRevenue[`T${i}`] = 0;
+
+  bookings.forEach((booking) => {
+    const month = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").month() + 1;
+    monthRevenue[`T${month}`] += booking.totalPrice;
+  });
+
+  res.json({ userId, ownerId: owner._id, monthlyRevenue: monthRevenue });
+});
+
 module.exports = {
   createBooking,
   updateBooking,
@@ -1071,4 +1210,8 @@ module.exports = {
   generateRoomPassword,
   query,
   checkRoomAvailability,
+  getWeeklyBookingCountByOwner,
+  getMonthlyBookingCountByOwner,
+  getWeeklyRevenueByOwner,
+  getMonthlyRevenueByOwner,
 };
