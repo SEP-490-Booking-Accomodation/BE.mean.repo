@@ -586,6 +586,11 @@ router.get("/stats/weekly-revenue/:userId", getWeeklyRevenueByOwner);
  *           type: string
  *         description: User ID of the owner
  *       - in: query
+ *         name: month
+ *         schema:
+ *           type: integer
+ *         description: Month (1-12, default is current month)
+ *       - in: query
  *         name: year
  *         required: false
  *         schema: { type: integer }

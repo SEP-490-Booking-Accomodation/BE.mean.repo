@@ -1342,54 +1342,64 @@ const getWeeklyRevenueByOwnerNoParam = asyncHandler(async (req, res) => {
 // 4. Monthly Revenue
 const getMonthlyRevenueByOwner = asyncHandler(async (req, res) => {
   const { userId } = req.params;
-  const { year } = req.query;
+  const { year, month } = req.query;
 
+  // Lấy thời điểm hiện tại theo múi giờ Việt Nam
   const today = moment().tz("Asia/Ho_Chi_Minh");
-  const targetYear = parseInt(year) || today.year();
 
-  // Lấy owner info
+  // Năm và tháng mục tiêu
+  const targetYear = parseInt(year) || today.year();
+  const targetMonth = parseInt(month) || today.month() + 1; // month() trả về 0-11 nên +1
+  const targetMonthPadded = String(targetMonth).padStart(2, "0");
+
+  // Tính ngày bắt đầu và kết thúc tháng
+  const startOfMonth = moment
+    .tz(`${targetYear}-${targetMonthPadded}-01`, "Asia/Ho_Chi_Minh")
+    .startOf("month");
+
+  const endOfMonth = startOfMonth.clone().endOf("month");
+
+  // Lấy thông tin chủ sở hữu
   const owner = await User.findById(userId).select("fullName");
   if (!owner) {
     return res.status(404).json({ message: "Owner not found" });
   }
 
+  // Lấy danh sách accommodation thuộc owner
   const { accommodationIds } = await getOwnerAccommodationIds(userId);
 
-  const start = moment
-    .tz(`${targetYear}-01-01`, "Asia/Ho_Chi_Minh")
-    .startOf("month");
-  const end = moment
-    .tz(`${targetYear}-12-31`, "Asia/Ho_Chi_Minh")
-    .endOf("month");
-
+  // Tìm các booking đã thanh toán trong tháng
   const bookings = await Booking.find({
     accommodationId: { $in: accommodationIds },
     paymentStatus: 3,
     isDelete: false,
-    createdAt: { $gte: start.toDate(), $lte: end.toDate() },
+    createdAt: { $gte: startOfMonth.toDate(), $lte: endOfMonth.toDate() },
   });
 
-  const monthRevenue = {};
-  let totalRevenueInYear = 0;
+  // Tính doanh thu theo từng ngày
+  const daysInMonth = endOfMonth.date();
+  const dailyRevenue = {};
+  let totalRevenueInMonth = 0;
 
-  for (let i = 1; i <= 12; i++) {
-    monthRevenue[`T${i}`] = 0;
+  for (let i = 1; i <= daysInMonth; i++) {
+    dailyRevenue[`Ngày ${i}`] = 0;
   }
 
   bookings.forEach((booking) => {
-    const month = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").month() + 1;
+    const day = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").date();
     const revenue = booking.totalPrice || 0;
-    monthRevenue[`T${month}`] += revenue;
-    totalRevenueInYear += revenue;
+    dailyRevenue[`Ngày ${day}`] += revenue;
+    totalRevenueInMonth += revenue;
   });
 
   res.json({
     userId,
     ownerId: owner._id,
     ownerFullName: owner.fullName,
+    month: targetMonth,
     year: targetYear,
-    totalRevenueInYear,
-    monthlyRevenue: monthRevenue,
+    totalRevenueInMonth,
+    dailyRevenue,
   });
 });
 
