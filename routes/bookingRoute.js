@@ -22,6 +22,10 @@ const {
   getMonthlyBookingCountByOwner,
   getWeeklyRevenueByOwner,
   getMonthlyRevenueByOwner,
+  getWeeklyBookingCountByOwnerNoParam,
+  getMonthlyBookingCountByOwnerNoParam,
+  getWeeklyRevenueByOwnerNoParam,
+  getMonthlyRevenueByOwnerNoParam,
 } = require("../controller/bookingCtrl");
 
 /**
@@ -495,6 +499,16 @@ router.post("/check-availability", checkRoomAvailability);
  *         schema:
  *           type: string
  *         description: User ID of the owner
+ *       - in: query
+ *         name: week
+ *         required: false
+ *         schema: { type: integer }
+ *         description: Tuần ISO (1-53), mặc định là tuần hiện tại
+ *       - in: query
+ *         name: year
+ *         required: false
+ *         schema: { type: integer }
+ *         description: Năm cần thống kê, mặc định là năm hiện tại
  *     responses:
  *       200:
  *         description: Weekly booking count returned successfully
@@ -514,6 +528,15 @@ router.get("/stats/weekly-count/:userId", getWeeklyBookingCountByOwner);
  *         schema:
  *           type: string
  *         description: User ID of the owner
+ *       - in: query
+ *         name: month
+ *         schema:
+ *           type: integer
+ *         description: Month (1-12, default is current month)
+ *       - in: query
+ *         name: year
+ *         required: false
+ *         schema: { type: integer }
  *     responses:
  *       200:
  *         description: Monthly booking count returned successfully
@@ -533,6 +556,16 @@ router.get("/stats/monthly-count/:userId", getMonthlyBookingCountByOwner);
  *         schema:
  *           type: string
  *         description: User ID of the owner
+ *       - in: query
+ *         name: week
+ *         required: false
+ *         schema: { type: integer }
+ *         description: Tuần ISO (1-53), mặc định là tuần hiện tạ
+ *       - in: query
+ *         name: year
+ *         required: false
+ *         schema: { type: integer }
+ *         description: Năm cần thống kê, mặc định là năm hiện tại
  *     responses:
  *       200:
  *         description: Weekly revenue returned successfully
@@ -552,6 +585,11 @@ router.get("/stats/weekly-revenue/:userId", getWeeklyRevenueByOwner);
  *         schema:
  *           type: string
  *         description: User ID of the owner
+ *       - in: query
+ *         name: year
+ *         required: false
+ *         schema: { type: integer }
+ *         description: Năm cần thống kê, mặc định là năm hiện tại
  *     responses:
  *       200:
  *         description: Monthly revenue returned successfully
