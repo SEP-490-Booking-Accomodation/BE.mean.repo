@@ -15,6 +15,8 @@ const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const softDelete = require("../utils/softDelete");
 const admin = require("../config/firebaseConfig");
+const PolicyOwner = require("../models/policyOwnerModel");
+const Value = require("../models/valueModel");
 
 // Định nghĩa các role ID
 const ROLE_IDS = {
@@ -76,7 +78,37 @@ const createUser = asyncHandler(async (req, res) => {
   if (roleID === ROLE_IDS.admin) {
     await Admin.create({ userId: newUser._id });
   } else if (roleID === ROLE_IDS.owner) {
-    await Owner.create({ userId: newUser._id });
+    const createdOwner = await Owner.create({ userId: newUser._id });
+    // Ngày giờ hiện tại tại Việt Nam
+    const nowVN = moment().tz("Asia/Ho_Chi_Minh");
+    const startDate = nowVN.toDate();
+    const endDate = nowVN.add(200, "years").toDate();
+
+    // Tạo policyOwner
+    const policyOwner = await PolicyOwner.create({
+      ownerId: createdOwner._id,
+      policyTitle: "Preparing Room Policy",
+      policyDescription: "This policy takes time to prepare the room.",
+      startDate,
+      endDate,
+      isActive: true, // Nếu bạn muốn mặc định active
+    });
+
+    // Tạo value tương ứng
+    const val = "0";
+    const value = await Value.create({
+      policyOwnerId: policyOwner._id,
+      val,
+      description: `${val} minutes clean room`,
+      unit: "minutes",
+      valueType: "time",
+      hashTag: "#pretime",
+    });
+
+    // Gắn value vào policyOwner
+    policyOwner.values = [value._id];
+    await value.save();
+    await policyOwner.save();
   } else if (roleID === ROLE_IDS.customer) {
     await Customer.create({ userId: newUser._id });
   }
