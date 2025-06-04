@@ -42,7 +42,8 @@ const {
  *           default: false
  *         type:
  *           type: number
- *           description: The category/type of the notification
+ *           enum: [1, 2, 3]
+ *           description: The category/type of the notification (1=BOOKING, 2=FEEDBACK, 3=PAYMENT)
  *         createdAt:
  *           type: string
  *           format: date-time
