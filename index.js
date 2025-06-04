@@ -6,6 +6,8 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 const fs = require("fs");
+const bookingCheckInCron = require("./utils/cronCheckin");
+const bookingAutoCompleteCron = require("./utils/cronCheckout");
 
 const app = express();
 const dotenv = require("dotenv").config();
@@ -13,10 +15,10 @@ const PORT = process.env.PORT || 4000;
 const server = http.createServer(app);
 
 const io = new Server(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"],
-    },
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
 });
 app.set("io", io);
 
@@ -110,22 +112,24 @@ app.use("/api", verifyRoute);
 app.use("/api/owner-status-log", ownerStatusLogRoute);
 app.use("/api/rental-location-status-log", rentalLocationStatusLogRoute);
 
-
 app.use(notFound);
 app.use(errorHandler);
 
+bookingCheckInCron();
+bookingAutoCompleteCron();
+
 io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.id);
+  console.log("Socket connected:", socket.id);
 
-    socket.on("join-room", (userId) => {
-        socket.join(userId);
-        console.log(` User ${userId} joined room`);
-    });
+  socket.on("join-room", (userId) => {
+    socket.join(userId);
+    console.log(` User ${userId} joined room`);
+  });
 
-    socket.on("disconnect", () => {
-        console.log("Socket disconnected:", socket.id);
-    });
+  socket.on("disconnect", () => {
+    console.log("Socket disconnected:", socket.id);
+  });
 });
 server.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });

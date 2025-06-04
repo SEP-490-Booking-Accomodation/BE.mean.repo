@@ -389,7 +389,7 @@ const updateBooking = asyncHandler(async (req, res) => {
                 `[AUTO] Password removed for booking ${updatedBooking._id}`
               );
               console.log(
-                `[AUTO] Status booking set to failed ${updatedBooking._id}`
+                `[AUTO] Status booking set to completed ${updatedBooking._id}`
               );
             }, timeUntilExpire);
           }
