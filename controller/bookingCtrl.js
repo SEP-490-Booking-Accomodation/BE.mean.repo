@@ -1276,6 +1276,7 @@ const getWeeklyRevenueByOwner = asyncHandler(async (req, res) => {
   const bookings = await Booking.find({
     accommodationId: { $in: accommodationIds },
     paymentStatus: 3,
+    status: 7,
     isDelete: false,
     createdAt: { $gte: startOfWeek.toDate(), $lte: endOfWeek.toDate() },
   });
@@ -1372,6 +1373,7 @@ const getMonthlyRevenueByOwner = asyncHandler(async (req, res) => {
   const bookings = await Booking.find({
     accommodationId: { $in: accommodationIds },
     paymentStatus: 3,
+    status: 7,
     isDelete: false,
     createdAt: { $gte: startOfMonth.toDate(), $lte: endOfMonth.toDate() },
   });
