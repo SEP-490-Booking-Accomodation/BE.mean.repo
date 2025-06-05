@@ -1,9 +1,10 @@
 const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
 const TYPE = Object.freeze({
-    BOOKING: 1,
-    FEEDBACK: 2,
-    PAYMENT: 3,
+  BOOKING: 1,
+  FEEDBACK: 2,
+  PAYMENT: 3,
+  USER: 4,
 });
 
 // Declare the Schema of the Mongo model
