@@ -626,7 +626,16 @@ const getBooking = asyncHandler(async (req, res) => {
         path: "accommodationId",
         populate: [
           { path: "accommodationTypeId" },
-          { path: "rentalLocationId" },
+          {
+            path: "rentalLocationId",
+            populate: {
+              path: "ownerId",
+              populate: {
+                path: "userId",
+                select: "fullName email", // thêm field nếu cần
+              },
+            },
+          },
         ],
       })
       .populate("policySystemIds")
