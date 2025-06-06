@@ -43,7 +43,7 @@ const {
  *         type:
  *           type: number
  *           enum: [1, 2, 3, 4]
- *           description: The category/type of the notification (1=BOOKING, 2=FEEDBACK, 3=PAYMENT, 4=USER)
+ *           description: The category/type of the notification (1=BOOKING, 2=FEEDBACK, 3=PAYMENT, 4=USER, 5=RENTAL, 6=MESSAGE)
  *         createdAt:
  *           type: string
  *           format: date-time
