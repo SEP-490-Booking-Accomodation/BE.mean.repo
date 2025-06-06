@@ -886,7 +886,7 @@ const getBookingsByOwner = asyncHandler(async (req, res) => {
       })
       .populate({
         path: "customerId",
-        populate: { path: "userId", select: "fullName" },
+        populate: { path: "userId", select: "fullName email phone" },
       })
       .populate("policySystemIds");
 
