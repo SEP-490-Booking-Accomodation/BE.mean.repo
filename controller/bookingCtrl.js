@@ -656,14 +656,14 @@ const processPayosPayment = async (req, res) => {
       description: orderInfo,
       returnUrl: `${
         process.env.SERVER_DOMAIN
-      }/api/booking/payos/return?orderCode=${orderCode}&redirect=${encodeURIComponent(
+      }/api/booking/payos/return?orderCode=${orderCode}&redirect=${
         successRedirectUrl || ""
-      )}`,
+      }`,
       cancelUrl: `${
         process.env.SERVER_DOMAIN
-      }/api/booking/payos/cancel?orderCode=${orderCode}&redirect=${encodeURIComponent(
+      }/api/booking/payos/cancel?orderCode=${orderCode}&redirect=${
         failRedirectUrl || ""
-      )}`,
+      }`,
     });
 
     const transaction = new Transaction({
