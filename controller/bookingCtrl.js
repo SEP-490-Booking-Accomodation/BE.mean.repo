@@ -243,6 +243,50 @@ const createBooking = asyncHandler(async (req, res) => {
       }, expireMinutes * 60 * 1000); // 15 phút
       console.log("expireMinutes: ", expireMinutes);
     }
+    // Truy xuất thời gian timeout cho việc chủ không xác nhận
+    let ownerAcceptMinutes = 20; // Mặc định 60 phút
+    let foundOwnerAccept = false;
+
+    for (const policy of expirePolicies) {
+      if (Array.isArray(policy.values)) {
+        const timeValue = policy.values.find(
+          (v) => v.hashTag === "owneraccepttime" && !v.isDelete
+        );
+
+        if (timeValue && !isNaN(parseInt(timeValue.val))) {
+          ownerAcceptMinutes = parseInt(timeValue.val);
+          console.log("Found owner accept time:", ownerAcceptMinutes);
+          foundOwnerAccept = true;
+          break;
+        }
+      }
+    }
+
+    if (!foundOwnerAccept) {
+      console.log(
+        "Không tìm thấy hashtag #owneraccepttime, dùng mặc định 60 phút"
+      );
+    }
+
+    // Set timeout để hủy nếu chủ không xác nhận trong thời gian quy định
+    setTimeout(async () => {
+      const latestBooking = await Booking.findById(newBooking._id);
+
+      if (
+        latestBooking &&
+        latestBooking.paymentStatus == 3 &&
+        latestBooking.status == 8
+      ) {
+        latestBooking.status = 6; // bị hủy
+        latestBooking.paymentStatus = 4; // thanh toán bị hủy
+        latestBooking.note =
+          "Cancel booking due to owner's delay in confirmation!!!";
+        await latestBooking.save();
+        console.log(
+          `[AUTO CANCEL - OWNER TIMEOUT] Booking ${latestBooking._id} canceled due to owner's confirmation timeout`
+        );
+      }
+    }, ownerAcceptMinutes * 60 * 1000);
 
     res.status(201).json({
       message: "Booking created successfully",
@@ -251,51 +295,6 @@ const createBooking = asyncHandler(async (req, res) => {
   } catch (error) {
     throw new Error(error);
   }
-
-  // Truy xuất thời gian timeout cho việc chủ không xác nhận
-  let ownerAcceptMinutes = 20; // Mặc định 60 phút
-  let foundOwnerAccept = false;
-
-  for (const policy of expirePolicies) {
-    if (Array.isArray(policy.values)) {
-      const timeValue = policy.values.find(
-        (v) => v.hashTag === "owneraccepttime" && !v.isDelete
-      );
-
-      if (timeValue && !isNaN(parseInt(timeValue.val))) {
-        ownerAcceptMinutes = parseInt(timeValue.val);
-        console.log("Found owner accept time:", ownerAcceptMinutes);
-        foundOwnerAccept = true;
-        break;
-      }
-    }
-  }
-
-  if (!foundOwnerAccept) {
-    console.log(
-      "Không tìm thấy hashtag #owneraccepttime, dùng mặc định 60 phút"
-    );
-  }
-
-  // Set timeout để hủy nếu chủ không xác nhận trong thời gian quy định
-  setTimeout(async () => {
-    const latestBooking = await Booking.findById(newBooking._id);
-
-    if (
-      latestBooking &&
-      latestBooking.paymentStatus == 3 &&
-      latestBooking.status == 8
-    ) {
-      latestBooking.status = 6; // bị hủy
-      latestBooking.paymentStatus = 4; // thanh toán bị hủy
-      latestBooking.note =
-        "Cancel booking due to owner's delay in confirmation!!!";
-      await latestBooking.save();
-      console.log(
-        `[AUTO CANCEL - OWNER TIMEOUT] Booking ${latestBooking._id} canceled due to owner's confirmation timeout`
-      );
-    }
-  }, ownerAcceptMinutes * 60 * 1000);
 });
 
 const getOccupiedTimeSlots = asyncHandler(async (req, res) => {
