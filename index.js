@@ -20,6 +20,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"],
   },
 });
+
 app.set("io", io);
 
 // Import routes
@@ -111,6 +112,8 @@ app.use("/api/value", valueRoute);
 app.use("/api", verifyRoute);
 app.use("/api/owner-status-log", ownerStatusLogRoute);
 app.use("/api/rental-location-status-log", rentalLocationStatusLogRoute);
+
+
 
 app.use(notFound);
 app.use(errorHandler);

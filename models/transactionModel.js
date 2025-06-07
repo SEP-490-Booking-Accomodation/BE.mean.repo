@@ -2,11 +2,12 @@ const mongoose = require("mongoose"); // Erase if already required
 const moment = require("moment-timezone");
 const TYPE_TRANSACTION = Object.freeze({
   MOMO_PAYMENT: 1,
+  PAYOS_PAYMENT: 2,
 });
 const TRANSACTION_STATUS = Object.freeze({
-    PENDING: 1,
-    COMPLETED: 2,
-    FAILED: 3
+  PENDING: 1,
+  COMPLETED: 2,
+  FAILED: 3,
 });
 
 var transactionSchema = new mongoose.Schema(

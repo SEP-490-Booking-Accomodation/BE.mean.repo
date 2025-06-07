@@ -19,6 +19,11 @@ const updateReport = asyncHandler(async (req, res) => {
     const updateReport = await Report.findByIdAndUpdate(id, req.body, {
       new: true,
     });
+
+    // title: báo cáo đã được xử lý
+    // nội dung: Báo cáo #id cho #bookingId đã được xử lý
+    // vui lòng truy cập ứng dụng Mean (in đậm) để xem chi tiết
+    // trân trọng
     res.json(updateReport);
   } catch (error) {
     throw new Error(error);
@@ -60,6 +65,18 @@ const getReport = asyncHandler(async (req, res) => {
           "-password -tokenId -createdAt -updatedAt -isDelete -roleId -isActive -isVerifiedPhone", // Loại bỏ trường nhạy cảm
       },
     });
+
+    //thêm gửi mail, title: Hệ thống đang xử lý đơn báo cáo của bạn (#Id report)
+    //body: Hệ thống chúng tôi đã nhận đơn báo cáo của bạn vào thời gian (createdAt)
+    //thông tin báo cáo của bạn bao gồm:
+    //bookingId:
+    //reason:
+    //content:
+    //chúng tôi sẽ cố gắng xử lý đơn báo cáo của bạn trong thời gian sớm nhất
+    //cảm ơn bạn đã sử dụng dịch vụ của chúng thôi
+    //Đội ngũ team Mean
+
+    //gửi noti
     res.json(get1Report);
   } catch (error) {
     throw new Error(error);
