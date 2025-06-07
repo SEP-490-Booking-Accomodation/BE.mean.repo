@@ -8,7 +8,7 @@ const bookingCheckInCron = () => {
   // Mỗi phút kiểm tra 1 lần
   cron.schedule("* * * * *", async () => {
     try {
-      const now = moment();
+      const now = moment().tz("Asia/Ho_Chi_Minh");
 
       const bookings = await Booking.find({
         checkInHour: { $lte: now.toDate() },
