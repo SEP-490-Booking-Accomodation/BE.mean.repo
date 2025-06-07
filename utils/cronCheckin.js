@@ -12,7 +12,8 @@ const bookingCheckInCron = () => {
 
       const bookings = await Booking.find({
         checkInHour: { $lte: now.toDate() },
-        status: { $nin: [3, 5, 6, 7, 9] }, // KHÔNG phải CHECKEDIN (3), CHECKEDOUT (5), CANCELLED (6)
+        status: 1, 
+        paymentStatus: 3
       });
 
       for (const booking of bookings) {
