@@ -26,6 +26,10 @@ const {
   getMonthlyBookingCountByOwnerNoParam,
   getWeeklyRevenueByOwnerNoParam,
   getMonthlyRevenueByOwnerNoParam,
+  processPayosPayment,
+  processPayosNotify,
+  returnPayosProcess,
+  cancelPayosProcess
 } = require("../controller/bookingCtrl");
 
 /**
@@ -91,8 +95,8 @@ const {
  *           description: Confirmation date
  *         paymentMethod:
  *           type: integer
- *           enum: [1]
- *           description: Payment method (1=MOMO)
+ *           enum: [1, 2]
+ *           description: Payment method (1=MOMO, 2=PAYOS)
  *         paymentStatus:
  *           type: integer
  *           enum: [1, 2, 3, 4, 5]
@@ -269,6 +273,150 @@ router.post("/momo/payment", processMoMoPayment);
 router.post("/momo/notify", processMoMoNotify); // API nhận notify từ MoMo
 
 router.post("/momo/call-back", processMomoCallback);
+
+/**
+ * @swagger
+ * /api/booking/payos/payment:
+ *   post:
+ *     summary: Initiate PayOS payment
+ *     tags: [PayOs Payment]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/x-www-form-urlencoded:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - bookingId
+ *               - amount
+ *               - orderIdFE
+ *             properties:
+ *               bookingId:
+ *                 type: string
+ *                 description: ID of the booking
+ *               amount:
+ *                 type: number
+ *                 description: Payment amount
+ *               description:
+ *                 type: string
+ *                 description: Payment description (optional)
+ *               orderIdFE:
+ *                 type: string
+ *                 description: Order ID for transaction tracking
+ *               successRedirectUrl:
+ *                 type: string
+ *                 description: Frontend URL to redirect on successful payment
+ *               failRedirectUrl:
+ *                 type: string
+ *                 description: Frontend URL to redirect on failed payment
+ *     responses:
+ *       200:
+ *         description: Returns PayOS payment URL
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 payUrl:
+ *                   type: string
+ *                   description: PayOS payment URL
+ *                 qrCodeUrl:
+ *                   type: string
+ *                   description: QR code for PayOS payment
+ *                 orderCode:
+ *                   type: string
+ *                   description: Internal order code used by PayOS
+ *       400:
+ *         description: Missing required fields.
+ *       404:
+ *         description: Booking not found.
+ *       500:
+ *         description: Server error.
+ */
+router.post("/payos/payment", processPayosPayment);
+
+/**
+ * @swagger
+ * /api/booking/payos/notify:
+ *   post:
+ *     summary: Receive PayOS payment notification
+ *     description: Handles PayOS payment status updates (webhook).
+ *     tags: [PayOs Payment]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - code
+ *               - data
+ *             properties:
+ *               code:
+ *                 type: string
+ *                 example: "00"
+ *                 description: Result code ("00" = success)
+ *               data:
+ *                 type: object
+ *                 required:
+ *                   - orderCode
+ *                   - transactionDateTime
+ *                 properties:
+ *                   orderCode:
+ *                     type: string
+ *                     description: Order code used in the payment
+ *                   transactionDateTime:
+ *                     type: string
+ *                     format: date-time
+ *                     description: Time of transaction
+ *               signature:
+ *                 type: string
+ *                 description: HMAC signature (optional, currently not verified)
+ *     responses:
+ *       200:
+ *         description: Notification processed successfully
+ *       400:
+ *         description: Invalid notification
+ *       500:
+ *         description: Server error
+ */
+router.post("/payos/notify", processPayosNotify);
+
+/**
+ * @swagger
+ * /api/booking/payos/return:
+ *   get:
+ *     summary: Handle successful PayOS payment
+ *     tags: [PayOs Payment]
+ *     parameters:
+ *       - in: query
+ *         name: orderCode
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       302:
+ *         description: Redirect to frontend success page
+ */
+router.get("/payos/return", returnPayosProcess);
+
+/**
+ * @swagger
+ * /api/booking/payos/cancel:
+ *   get:
+ *     summary: Handle failed/cancelled PayOS payment
+ *     tags: [PayOs Payment]
+ *     parameters:
+ *       - in: query
+ *         name: orderCode
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       302:
+ *         description: Redirect to frontend fail page
+ */
+router.get("/payos/cancel", cancelPayosProcess);
 
 /**
  * @swagger

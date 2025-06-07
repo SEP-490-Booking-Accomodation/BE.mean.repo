@@ -22,6 +22,7 @@ const PAYMENT_STATUS = Object.freeze({
 
 const PAYMENT_METHOD = Object.freeze({
   MOMO: 1,
+  PAYOS: 2
 });
 
 // Declare the Schema of the Mongo model

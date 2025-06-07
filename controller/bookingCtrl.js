@@ -14,6 +14,13 @@ const moment = require("moment-timezone");
 const crypto = require("crypto");
 const mongoose = require("mongoose");
 const axios = require("axios");
+const PayOS = require("@payos/node");
+
+const payOS = new PayOS(
+  "ed3691f9-ad6d-4581-a2d0-18c43cc2723d",
+  "a4664d63-ff11-4262-bd1d-d362df5fdaa0",
+  "d4204c4d7dd3d16cb7106bc52fd3c7ac7d6184d11e16f7d79123a3248dac51c5"
+);
 
 const createBooking = asyncHandler(async (req, res) => {
   try {
@@ -614,6 +621,166 @@ const processMoMoNotify = async (req, res) => {
   }
 };
 
+/*------------------------------------------------------------------------------------*/
+//PAYOS
+const processPayosPayment = async (req, res) => {
+  try {
+    const {
+      bookingId,
+      amount,
+      description,
+      // returnUrlFE,
+      // cancelUrlFE,
+      successRedirectUrl,
+      failRedirectUrl,
+      orderIdFE,
+    } = req.body;
+    if (!bookingId || !amount) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // const returnUrl = returnUrlFE;
+    // const cancelUrl = cancelUrlFE;
+    const notifyUrl = process.env.PAYOS_NOTIFY_URL;
+    const orderCode = Number(orderIdFE);
+    const orderInfo = description || "Payment for booking";
+
+    const payment = await payOS.createPaymentLink({
+      orderCode,
+      amount: Number(amount),
+      description: orderInfo,
+      returnUrl: `${
+        process.env.SERVER_DOMAIN
+      }/api/booking/payos/return?orderCode=${orderCode}&redirect=${encodeURIComponent(
+        successRedirectUrl || ""
+      )}`,
+      cancelUrl: `${
+        process.env.SERVER_DOMAIN
+      }/api/booking/payos/cancel?orderCode=${orderCode}&redirect=${encodeURIComponent(
+        failRedirectUrl || ""
+      )}`,
+    });
+
+    const transaction = new Transaction({
+      bookingId,
+      paymentCode: orderCode,
+      amount,
+      description: orderInfo,
+      typeTransaction: 2, // 2: PayOS
+      transactionStatus: 1, // Pending
+    });
+
+    await Transaction.updateMany(
+      { bookingId, _id: { $ne: transaction._id } },
+      { $set: { transactionStatus: 3 } }
+    );
+
+    await transaction.save();
+
+    return res.json({
+      payUrl: payment.checkoutUrl,
+      qrCodeUrl: payment.qrCode,
+      orderCode: payment.orderCode,
+    });
+  } catch (error) {
+    console.error("PayOS Payment Error:", error.message || error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+const processPayosNotify = async (req, res) => {
+  try {
+    const { code, data } = req.body;
+    console.log("PAYOS Notify Received:", req.body);
+
+    const transaction = await Transaction.findOne({
+      paymentCode: String(data.orderCode),
+    });
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    const booking = await Booking.findById(transaction.bookingId);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (code === "00") {
+      transaction.transactionStatus = 2; // Success
+      transaction.transactionEndDate = new Date(data.transactionDateTime);
+      booking.paymentStatus = 3;
+    } else {
+      transaction.transactionStatus = 3; // Failed
+      booking.paymentStatus = 5;
+    }
+
+    await transaction.save();
+    await booking.save();
+
+    return res.json({ message: "PayOS notification processed successfully" });
+  } catch (error) {
+    console.error("PayOS Notify Error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+const returnPayosProcess = async (req, res) => {
+  try {
+    const { orderCode, redirect } = req.query;
+
+    const transaction = await Transaction.findOne({
+      paymentCode: String(orderCode),
+    });
+    if (!transaction) return res.redirect(process.env.FRONTEND_FAIL_URL || "/");
+
+    const booking = await Booking.findById(transaction.bookingId);
+    if (!booking) return res.redirect(redirect || "/");
+
+    transaction.transactionStatus = 2;
+    transaction.transactionEndDate = new Date();
+    booking.paymentStatus = 3;
+
+    await transaction.save();
+    await booking.save();
+
+    return res.redirect(redirect || "/payment-success");
+  } catch (err) {
+    console.error("PayOS Return Error:", err);
+    return res.redirect("/");
+  }
+};
+
+const cancelPayosProcess = async (req, res) => {
+  try {
+    const { orderCode, redirect } = req.query;
+
+    const transaction = await Transaction.findOne({
+      paymentCode: String(orderCode),
+    });
+    if (!transaction) return res.redirect(redirect || "/");
+
+    const booking = await Booking.findById(transaction.bookingId);
+    if (!booking) return res.redirect(redirect || "/");
+
+    transaction.transactionStatus = 3;
+    booking.paymentStatus = 5;
+
+    await transaction.save();
+    await booking.save();
+
+    return res.redirect(redirect || "/payment-failed");
+  } catch (err) {
+    console.error("PayOS Cancel Error:", err);
+    return res.redirect("/");
+  }
+};
+
+/*------------------------------------------------------------------------------------*/
 // Danh sách collection hợp lệ
 const validCollections = ["Booking", "Transaction", "User"];
 
@@ -1522,4 +1689,8 @@ module.exports = {
   getMonthlyBookingCountByOwnerNoParam,
   getWeeklyRevenueByOwnerNoParam,
   getMonthlyRevenueByOwnerNoParam,
+  processPayosPayment,
+  processPayosNotify,
+  returnPayosProcess,
+  cancelPayosProcess
 };

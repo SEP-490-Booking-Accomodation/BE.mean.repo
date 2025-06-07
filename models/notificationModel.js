@@ -6,7 +6,8 @@ const TYPE = Object.freeze({
   PAYMENT: 3,
   USER: 4,
   RENTAL: 5,
-  MESSAGE: 6
+  MESSAGE: 6,
+  REPORT: 7
 });
 
 // Declare the Schema of the Mongo model
