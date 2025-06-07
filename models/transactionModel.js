@@ -3,6 +3,7 @@ const moment = require("moment-timezone");
 const TYPE_TRANSACTION = Object.freeze({
   MOMO_PAYMENT: 1,
   PAYOS_PAYMENT: 2,
+  BANKING: 3
 });
 const TRANSACTION_STATUS = Object.freeze({
   PENDING: 1,
