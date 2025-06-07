@@ -19,6 +19,7 @@ const bookingCheckInCron = () => {
       for (const booking of bookings) {
         // Kiểm tra xem đã có notification type 3 cho booking này chưa
         const existedNotification = await Notification.findOne({
+          bookingId: booking._id,
           title: "Yêu cầu nhận phòng",
           type: 1,
         });
