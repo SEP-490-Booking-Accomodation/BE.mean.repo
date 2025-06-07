@@ -14,7 +14,7 @@ const bookingCheckInCron = () => {
         checkInHour: { $lte: now.toDate() },
         status: 1,
         paymentStatus: 3,
-      });
+      });     
 
       for (const booking of bookings) {
         // Kiểm tra xem đã có notification type 3 cho booking này chưa
