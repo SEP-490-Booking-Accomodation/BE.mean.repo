@@ -24,7 +24,6 @@ const bookingAutoCompleteCron = () => {
         if (now.isAfter(endTime)) {
           // Kiểm tra đã gửi notification chưa
           const existingNoti = await Notification.findOne({
-            bookingId: booking._id,
             title: "Đặt phòng đã hoàn tất tự động",
             type: 1,
           });
