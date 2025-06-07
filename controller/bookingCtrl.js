@@ -287,7 +287,7 @@ const createBooking = asyncHandler(async (req, res) => {
       latestBooking.status !== 6
     ) {
       latestBooking.status = 6; // bị hủy
-      latestBooking.paymentStatus = 5; // thanh toán bị hủy
+      latestBooking.paymentStatus = 4; // thanh toán bị hủy
       latestBooking.note =
         "Cancel booking due to owner's delay in confirmation!!!";
       await latestBooking.save();
