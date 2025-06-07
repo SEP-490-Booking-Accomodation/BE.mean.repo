@@ -283,8 +283,8 @@ const createBooking = asyncHandler(async (req, res) => {
 
     if (
       latestBooking &&
-      latestBooking.status !== 3 &&
-      latestBooking.status !== 6
+      latestBooking.paymentStatus == 3 &&
+      latestBooking.status == 8
     ) {
       latestBooking.status = 6; // bị hủy
       latestBooking.paymentStatus = 4; // thanh toán bị hủy
