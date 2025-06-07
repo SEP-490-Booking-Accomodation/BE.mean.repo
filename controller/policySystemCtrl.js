@@ -357,6 +357,74 @@ const getPolicySystemByHashtag = async (req, res) => {
   }
 };
 
+const getPolicySystemByCategoryName = asyncHandler(async (req, res) => {
+  try {
+    const { categoryName } = req.params;
+
+    if (!categoryName) {
+      return res.status(400).json({ message: "categoryName is required" });
+    }
+
+    // Tìm category theo tên
+    const category =
+      await require("../models/policySystemCategoryModel").findOne({
+        categoryName,
+        isDelete: false,
+      });
+
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    const policySystems = await PolicySystem.find({
+      policySystemCategoryId: category._id,
+      isDelete: false,
+    })
+      .populate({
+        path: "adminId",
+        model: "Admin",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select:
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleID -isActive -isVerifiedPhone",
+        },
+      })
+      .populate({
+        path: "updateBy",
+        model: "Admin",
+        select: "-createdAt -updatedAt -isDelete",
+        populate: {
+          path: "userId",
+          select:
+            "-password -tokenId -createdAt -updatedAt -isDelete -roleID -isActive -isVerifiedPhone",
+        },
+      })
+      .populate({
+        path: "policySystemCategoryId",
+        model: "PolicySystemCategory",
+        select: "-createdAt -updatedAt -isDelete",
+      });
+
+    const formattedPolicySystems = await Promise.all(
+      policySystems.map(async (doc) => {
+        const docObj = doc.toJSON();
+        const values = await Value.find({
+          policySystemId: doc._id,
+          isDelete: false,
+        });
+        docObj.values = values;
+        return docObj;
+      })
+    );
+
+    res.status(200).json({ success: true, data: formattedPolicySystems });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+});
+
 module.exports = {
   createPolicySystem,
   updatePolicySystem,
@@ -364,4 +432,5 @@ module.exports = {
   getPolicySystem,
   getAllPolicySystem,
   getPolicySystemByHashtag,
+  getPolicySystemByCategoryName,
 };

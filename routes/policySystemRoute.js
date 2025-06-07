@@ -8,6 +8,7 @@ const {
   getAllPolicySystem,
   getPolicySystem,
   getPolicySystemByHashtag,
+  getPolicySystemByCategoryName,
 } = require("../controller/policySystemCtrl");
 
 /**
@@ -209,6 +210,35 @@ router.get(
   "/all-policy-systems-by-hashtag/:hashTag",
   getPolicySystemByHashtag
 );
+
+/**
+ * @swagger
+ * /api/policy-system/category-name/{categoryName}:
+ *   get:
+ *     summary: Get all policy systems by category name
+ *     description: Retrieves policy systems that belong to a PolicySystemCategory by categoryName
+ *     tags:
+ *       - PolicySystem
+ *     parameters:
+ *       - in: path
+ *         name: categoryName
+ *         required: true
+ *         description: The name of the PolicySystemCategory
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: A list of policy systems belonging to the category
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/PolicySystem'
+ *       404:
+ *         description: Category not found
+ */
+router.get("/category-name/:categoryName", getPolicySystemByCategoryName);
 
 /**
  * @swagger

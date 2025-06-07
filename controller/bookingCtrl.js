@@ -7,7 +7,9 @@ const asyncHandler = require("express-async-handler");
 const validateMongoDbId = require("../utils/validateMongodbId");
 const softDelete = require("../utils/softDelete");
 const Accommodation = require("../models/accommodationModel");
+const User = require("../models/userModel");
 const AccommodationType = require("../models/accommodationTypeModel");
+const { Owner } = require("../models/ownerModel");
 const moment = require("moment-timezone");
 const crypto = require("crypto");
 const mongoose = require("mongoose");
@@ -249,6 +251,51 @@ const createBooking = asyncHandler(async (req, res) => {
   } catch (error) {
     throw new Error(error);
   }
+
+  // Truy xuất thời gian timeout cho việc chủ không xác nhận
+  let ownerAcceptMinutes = 20; // Mặc định 60 phút
+  let foundOwnerAccept = false;
+
+  for (const policy of expirePolicies) {
+    if (Array.isArray(policy.values)) {
+      const timeValue = policy.values.find(
+        (v) => v.hashTag === "owneraccepttime" && !v.isDelete
+      );
+
+      if (timeValue && !isNaN(parseInt(timeValue.val))) {
+        ownerAcceptMinutes = parseInt(timeValue.val);
+        console.log("Found owner accept time:", ownerAcceptMinutes);
+        foundOwnerAccept = true;
+        break;
+      }
+    }
+  }
+
+  if (!foundOwnerAccept) {
+    console.log(
+      "Không tìm thấy hashtag #owneraccepttime, dùng mặc định 60 phút"
+    );
+  }
+
+  // Set timeout để hủy nếu chủ không xác nhận trong thời gian quy định
+  setTimeout(async () => {
+    const latestBooking = await Booking.findById(newBooking._id);
+
+    if (
+      latestBooking &&
+      latestBooking.status !== 3 &&
+      latestBooking.status !== 6
+    ) {
+      latestBooking.status = 6; // bị hủy
+      latestBooking.paymentStatus = 4; // thanh toán bị hủy
+      latestBooking.note =
+        "Cancel booking due to owner's delay in confirmation!!!";
+      await latestBooking.save();
+      console.log(
+        `[AUTO CANCEL - OWNER TIMEOUT] Booking ${latestBooking._id} canceled due to owner's confirmation timeout`
+      );
+    }
+  }, ownerAcceptMinutes * 60 * 1000);
 });
 
 const getOccupiedTimeSlots = asyncHandler(async (req, res) => {
@@ -387,7 +434,7 @@ const updateBooking = asyncHandler(async (req, res) => {
                 `[AUTO] Password removed for booking ${updatedBooking._id}`
               );
               console.log(
-                `[AUTO] Status booking set to failed ${updatedBooking._id}`
+                `[AUTO] Status booking set to completed ${updatedBooking._id}`
               );
             }, timeUntilExpire);
           }
@@ -624,7 +671,16 @@ const getBooking = asyncHandler(async (req, res) => {
         path: "accommodationId",
         populate: [
           { path: "accommodationTypeId" },
-          { path: "rentalLocationId" },
+          {
+            path: "rentalLocationId",
+            populate: {
+              path: "ownerId",
+              populate: {
+                path: "userId",
+                select: "fullName email", // thêm field nếu cần
+              },
+            },
+          },
         ],
       })
       .populate("policySystemIds")
@@ -875,7 +931,7 @@ const getBookingsByOwner = asyncHandler(async (req, res) => {
       })
       .populate({
         path: "customerId",
-        populate: { path: "userId", select: "fullName" },
+        populate: { path: "userId", select: "fullName email phone" },
       })
       .populate("policySystemIds");
 
@@ -983,7 +1039,8 @@ const getAllOwnerBookings = asyncHandler(async (req, res) => {
 
 const checkRoomAvailability = asyncHandler(async (req, res) => {
   try {
-    const { accommodationTypeId,rentalLocationId, checkIn, checkOut } = req.body;
+    const { accommodationTypeId, rentalLocationId, checkIn, checkOut } =
+      req.body;
 
     if (!accommodationTypeId || !checkIn || !checkOut) {
       return res.status(400).json({
@@ -1054,6 +1111,393 @@ const checkRoomAvailability = asyncHandler(async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+// Helper: get owner and accommodationIds
+const getOwnerAccommodationIds = async (userId) => {
+  const owner = await Owner.findOne({ userId, isDelete: false });
+  if (!owner) throw new Error("Owner not found");
+
+  const rentalLocations = await RentalLocation.find({ ownerId: owner._id });
+  const locationIds = rentalLocations.map((loc) => loc._id);
+  const accommodations = await Accommodation.find({
+    rentalLocationId: { $in: locationIds },
+  });
+  const accommodationIds = accommodations.map((a) => a._id);
+
+  return { owner, accommodationIds };
+};
+
+// 1. Weekly Booking Count
+const getWeeklyBookingCountByOwner = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { week, year } = req.query;
+
+  const today = moment().tz("Asia/Ho_Chi_Minh");
+  const targetYear = parseInt(year) || today.year();
+  const targetWeek = parseInt(week) || today.isoWeek();
+
+  const startOfWeek = moment()
+    .tz("Asia/Ho_Chi_Minh")
+    .year(targetYear)
+    .isoWeek(targetWeek)
+    .startOf("isoWeek");
+  const endOfWeek = startOfWeek.clone().endOf("isoWeek");
+
+  const { accommodationIds } = await getOwnerAccommodationIds(userId);
+
+  // Lấy thông tin owner (user)
+  const owner = await User.findById(userId).select("fullName");
+  if (!owner) {
+    return res.status(404).json({ message: "Owner not found" });
+  }
+
+  const bookings = await Booking.find({
+    accommodationId: { $in: accommodationIds },
+    isDelete: false,
+    createdAt: { $gte: startOfWeek.toDate(), $lte: endOfWeek.toDate() },
+  });
+
+  const weekdayMap = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+  const weekStats = Object.fromEntries(weekdayMap.map((day) => [day, 0]));
+
+  bookings.forEach((booking) => {
+    const index = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").isoWeekday();
+    const key = weekdayMap[index - 1];
+    weekStats[key]++;
+  });
+
+  res.json({
+    userId,
+    ownerId: owner._id,
+    ownerFullName: owner.fullName,
+    year: targetYear,
+    week: targetWeek,
+    totalBookingsInWeek: bookings.length,
+    weeklyBookingCounts: weekStats,
+  });
+});
+
+// 1.1 Weekly Booking Count no param
+const getWeeklyBookingCountByOwnerNoParam = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  const today = moment().tz("Asia/Ho_Chi_Minh");
+  const currentWeek = today.isoWeek();
+  const currentYear = today.year();
+  const startOfWeek = today.clone().startOf("isoWeek");
+  const endOfWeek = today.clone().endOf("isoWeek");
+
+  const { owner, accommodationIds } = await getOwnerAccommodationIds(userId);
+
+  const bookings = await Booking.find({
+    accommodationId: { $in: accommodationIds },
+    isDelete: false,
+    createdAt: { $gte: startOfWeek.toDate(), $lte: endOfWeek.toDate() },
+  });
+
+  const weekdayMap = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+  const weekStats = Object.fromEntries(weekdayMap.map((day) => [day, 0]));
+
+  bookings.forEach((booking) => {
+    const index = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").isoWeekday();
+    const key = weekdayMap[index - 1];
+    weekStats[key]++;
+  });
+
+  res.json({
+    userId,
+    ownerId: owner._id,
+    week: currentWeek,
+    year: currentYear,
+    weeklyBookingCounts: weekStats,
+  });
+});
+
+// 2. Monthly Booking Count
+const getMonthlyBookingCountByOwner = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { year, month } = req.query;
+
+  const today = moment().tz("Asia/Ho_Chi_Minh");
+  const targetYear = parseInt(year) || today.year();
+  const targetMonth = parseInt(month) || today.month() + 1;
+  const targetMonthPadded = String(targetMonth).padStart(2, "0");
+
+  const startOfMonth = moment
+    .tz(`${targetYear}-${targetMonthPadded}-01`, "Asia/Ho_Chi_Minh")
+    .startOf("month");
+
+  const endOfMonth = startOfMonth.clone().endOf("month");
+
+  // Lấy owner info
+  const owner = await User.findById(userId).select("fullName");
+  if (!owner) {
+    return res.status(404).json({ message: "Owner not found" });
+  }
+
+  const { accommodationIds } = await getOwnerAccommodationIds(userId);
+
+  const bookings = await Booking.find({
+    accommodationId: { $in: accommodationIds },
+    isDelete: false,
+    createdAt: { $gte: startOfMonth.toDate(), $lte: endOfMonth.toDate() },
+  });
+
+  const dailyBookingCounts = {};
+  const daysInMonth = endOfMonth.date();
+  for (let i = 1; i <= daysInMonth; i++) {
+    dailyBookingCounts[`Ngày ${i}`] = 0;
+  }
+
+  bookings.forEach((booking) => {
+    const day = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").date();
+    dailyBookingCounts[`Ngày ${day}`]++;
+  });
+
+  res.json({
+    userId,
+    ownerId: owner._id,
+    ownerFullName: owner.fullName,
+    month: targetMonth,
+    year: targetYear,
+    totalBookingsInMonth: bookings.length,
+    dailyBookingCounts,
+  });
+});
+
+// 2.1 Monthly Booking Count no param
+const getMonthlyBookingCountByOwnerNoParam = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  const today = moment().tz("Asia/Ho_Chi_Minh");
+  const currentYear = today.year();
+  const currentMonth = today.month() + 1;
+  const startOfMonth = today.clone().startOf("month");
+  const endOfMonth = today.clone().endOf("month");
+
+  const { owner, accommodationIds } = await getOwnerAccommodationIds(userId);
+
+  const bookings = await Booking.find({
+    accommodationId: { $in: accommodationIds },
+    isDelete: false,
+    createdAt: { $gte: startOfMonth.toDate(), $lte: endOfMonth.toDate() },
+  });
+
+  const dayCounts = {};
+  const daysInMonth = endOfMonth.date();
+  for (let i = 1; i <= daysInMonth; i++) {
+    dayCounts[`Ngày ${i}`] = 0;
+  }
+
+  bookings.forEach((booking) => {
+    const day = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").date();
+    dayCounts[`Ngày ${day}`]++;
+  });
+
+  res.json({
+    userId,
+    ownerId: owner._id,
+    month: currentMonth,
+    year: currentYear,
+    dailyBookingCounts: dayCounts,
+  });
+});
+
+// 3. Weekly Revenue
+const getWeeklyRevenueByOwner = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { week, year } = req.query;
+
+  const today = moment().tz("Asia/Ho_Chi_Minh");
+  const targetYear = parseInt(year) || today.year();
+  const targetWeek = parseInt(week) || today.isoWeek();
+
+  const startOfWeek = moment()
+    .tz("Asia/Ho_Chi_Minh")
+    .year(targetYear)
+    .isoWeek(targetWeek)
+    .startOf("isoWeek");
+  const endOfWeek = startOfWeek.clone().endOf("isoWeek");
+
+  // Lấy owner info
+  const owner = await User.findById(userId).select("fullName");
+  if (!owner) {
+    return res.status(404).json({ message: "Owner not found" });
+  }
+
+  const { accommodationIds } = await getOwnerAccommodationIds(userId);
+
+  const bookings = await Booking.find({
+    accommodationId: { $in: accommodationIds },
+    paymentStatus: 3,
+    status: 7,
+    isDelete: false,
+    createdAt: { $gte: startOfWeek.toDate(), $lte: endOfWeek.toDate() },
+  });
+
+  const weekdayMap = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+  const weekRevenue = Object.fromEntries(weekdayMap.map((day) => [day, 0]));
+
+  let totalRevenue = 0;
+
+  bookings.forEach((booking) => {
+    const index = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").isoWeekday();
+    const key = weekdayMap[index - 1];
+    const revenue = booking.totalPrice || 0;
+    weekRevenue[key] += revenue;
+    totalRevenue += revenue;
+  });
+
+  res.json({
+    userId,
+    ownerId: owner._id,
+    ownerFullName: owner.fullName,
+    year: targetYear,
+    week: targetWeek,
+    totalRevenueInWeek: totalRevenue,
+    weeklyRevenue: weekRevenue,
+  });
+});
+
+// 3.1 Weekly Revenue no param
+const getWeeklyRevenueByOwnerNoParam = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  const today = moment().tz("Asia/Ho_Chi_Minh");
+  const currentWeek = today.isoWeek();
+  const currentYear = today.year();
+  const startOfWeek = today.clone().startOf("isoWeek");
+  const endOfWeek = today.clone().endOf("isoWeek");
+
+  const { owner, accommodationIds } = await getOwnerAccommodationIds(userId);
+
+  const bookings = await Booking.find({
+    accommodationId: { $in: accommodationIds },
+    paymentStatus: 3,
+    isDelete: false,
+    createdAt: { $gte: startOfWeek.toDate(), $lte: endOfWeek.toDate() },
+  });
+
+  const weekRevenue = { T2: 0, T3: 0, T4: 0, T5: 0, T6: 0, T7: 0, CN: 0 };
+  bookings.forEach((booking) => {
+    const day = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").isoWeekday();
+    const key = day === 7 ? "CN" : `T${day}`;
+    weekRevenue[key] += booking.totalPrice;
+  });
+
+  res.json({
+    userId,
+    ownerId: owner._id,
+    week: currentWeek,
+    year: currentYear,
+    weeklyRevenue: weekRevenue,
+  });
+});
+
+// 4. Monthly Revenue
+const getMonthlyRevenueByOwner = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+  const { year, month } = req.query;
+
+  // Lấy thời điểm hiện tại theo múi giờ Việt Nam
+  const today = moment().tz("Asia/Ho_Chi_Minh");
+
+  // Năm và tháng mục tiêu
+  const targetYear = parseInt(year) || today.year();
+  const targetMonth = parseInt(month) || today.month() + 1; // month() trả về 0-11 nên +1
+  const targetMonthPadded = String(targetMonth).padStart(2, "0");
+
+  // Tính ngày bắt đầu và kết thúc tháng
+  const startOfMonth = moment
+    .tz(`${targetYear}-${targetMonthPadded}-01`, "Asia/Ho_Chi_Minh")
+    .startOf("month");
+
+  const endOfMonth = startOfMonth.clone().endOf("month");
+
+  // Lấy thông tin chủ sở hữu
+  const owner = await User.findById(userId).select("fullName");
+  if (!owner) {
+    return res.status(404).json({ message: "Owner not found" });
+  }
+
+  // Lấy danh sách accommodation thuộc owner
+  const { accommodationIds } = await getOwnerAccommodationIds(userId);
+
+  // Tìm các booking đã thanh toán trong tháng
+  const bookings = await Booking.find({
+    accommodationId: { $in: accommodationIds },
+    paymentStatus: 3,
+    status: 7,
+    isDelete: false,
+    createdAt: { $gte: startOfMonth.toDate(), $lte: endOfMonth.toDate() },
+  });
+
+  // Tính doanh thu theo từng ngày
+  const daysInMonth = endOfMonth.date();
+  const dailyRevenue = {};
+  let totalRevenueInMonth = 0;
+
+  for (let i = 1; i <= daysInMonth; i++) {
+    dailyRevenue[`Ngày ${i}`] = 0;
+  }
+
+  bookings.forEach((booking) => {
+    const day = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").date();
+    const revenue = booking.totalPrice || 0;
+    dailyRevenue[`Ngày ${day}`] += revenue;
+    totalRevenueInMonth += revenue;
+  });
+
+  res.json({
+    userId,
+    ownerId: owner._id,
+    ownerFullName: owner.fullName,
+    month: targetMonth,
+    year: targetYear,
+    totalRevenueInMonth,
+    dailyRevenue,
+  });
+});
+
+// 4.1 Monthyl Revenue no param
+const getMonthlyRevenueByOwnerNoParam = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  const today = moment().tz("Asia/Ho_Chi_Minh");
+  const currentYear = today.year();
+  const currentMonth = today.month() + 1;
+  const startOfMonth = today.clone().startOf("month");
+  const endOfMonth = today.clone().endOf("month");
+
+  const { owner, accommodationIds } = await getOwnerAccommodationIds(userId);
+
+  const bookings = await Booking.find({
+    accommodationId: { $in: accommodationIds },
+    paymentStatus: 3,
+    isDelete: false,
+    createdAt: { $gte: startOfMonth.toDate(), $lte: endOfMonth.toDate() },
+  });
+
+  const dailyRevenue = {};
+  const daysInMonth = endOfMonth.date();
+  for (let i = 1; i <= daysInMonth; i++) {
+    dailyRevenue[`Ngày ${i}`] = 0;
+  }
+
+  bookings.forEach((booking) => {
+    const day = moment(booking.createdAt).tz("Asia/Ho_Chi_Minh").date();
+    dailyRevenue[`Ngày ${day}`] += booking.totalPrice;
+  });
+
+  res.json({
+    userId,
+    ownerId: owner._id,
+    month: currentMonth,
+    year: currentYear,
+    dailyRevenue: dailyRevenue,
+  });
+});
+
 module.exports = {
   createBooking,
   updateBooking,
@@ -1071,4 +1515,12 @@ module.exports = {
   generateRoomPassword,
   query,
   checkRoomAvailability,
+  getWeeklyBookingCountByOwner,
+  getMonthlyBookingCountByOwner,
+  getWeeklyRevenueByOwner,
+  getMonthlyRevenueByOwner,
+  getWeeklyBookingCountByOwnerNoParam,
+  getMonthlyBookingCountByOwnerNoParam,
+  getWeeklyRevenueByOwnerNoParam,
+  getMonthlyRevenueByOwnerNoParam,
 };
