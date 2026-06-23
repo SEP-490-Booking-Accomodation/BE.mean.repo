@@ -5,6 +5,7 @@ const {
   authMiddleware,
   isAdmin,
   isManager,
+  isAdminAndManager,
 } = require("../middlewares/authMiddleware");
 
 const {
@@ -53,7 +54,7 @@ const {
  *       201:
  *         description: Thành công
  */
-router.post("/create", authMiddleware, isAdmin, isManager, createProvince);
+router.post("/create", authMiddleware, isAdminAndManager, createProvince);
 
 /**
  * @swagger
@@ -137,7 +138,7 @@ router.get("/:id", authMiddleware, getProvince);
  *       200:
  *         description: Thành công
  */
-router.put("/:id", authMiddleware, isAdmin, isManager, updateProvince);
+router.put("/:id", authMiddleware, isAdminAndManager, updateProvince);
 
 /**
  * @swagger
@@ -158,6 +159,6 @@ router.put("/:id", authMiddleware, isAdmin, isManager, updateProvince);
  *       200:
  *         description: Thành công
  */
-router.delete("/:id", authMiddleware, isAdmin, isManager, deleteProvince);
+router.delete("/:id", authMiddleware, isAdminAndManager, deleteProvince);
 
 module.exports = router;

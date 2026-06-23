@@ -20,7 +20,7 @@ const {
   refreshTokenWithParam,
 } = require("../controller/userCtrl");
 
-const { authMiddleware, isAdmin, isManager, isProbationaryEmployee, isBusinessSpecialist } = require("../middlewares/authMiddleware");
+const { authMiddleware, isAdmin, isManager, isProbationaryEmployee, isBusinessSpecialist, isAdminAndManager } = require("../middlewares/authMiddleware");
 const router = express.Router();
 
 /**
@@ -386,7 +386,7 @@ router.get("/logout", logout);
  *       200:
  *         description: List of all users
  */
-router.get("/all-users", authMiddleware, isAdmin, isManager, isProbationaryEmployee, isBusinessSpecialist, getAllUser);
+router.get("/all-users", authMiddleware, isAdminAndManager, isProbationaryEmployee, isBusinessSpecialist, getAllUser);
 
 /**
  * @swagger

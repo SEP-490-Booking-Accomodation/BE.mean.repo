@@ -108,6 +108,18 @@ const isAdminAndOwner = asyncHandler(async (req, res, next) => {
     next();
   }
 });
+const isAdminAndManager = asyncHandler(async (req, res, next) => {
+  const { email } = req.user;
+  const user = await User.findOne({ email });
+  if (
+    !user.roleID.equals("67f87c9ac19b91da666bbdc5") &&
+    !user.roleID.equals("6a3a30ff5b1107c9a166df50")
+  ) {
+    throw new Error("Bạn không phải là 1 quản trị viên hoặc đại diện!");
+  } else {
+    next();
+  }
+});
 
 module.exports = {
   authMiddleware,
@@ -119,5 +131,6 @@ module.exports = {
   isAdminAndOwner,
   isManager,
   isBusinessSpecialist,
-  isProbationaryEmployee
+  isProbationaryEmployee,
+  isAdminAndManager
 };
