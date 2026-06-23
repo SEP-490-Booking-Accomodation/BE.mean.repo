@@ -5,6 +5,7 @@ const {
   authMiddleware,
   isAdmin,
   isManager,
+  isAdminAndManager,
 } = require("../middlewares/authMiddleware");
 
 const {
@@ -94,7 +95,7 @@ const {
  *       403:
  *         description: Forbidden
  */
-router.post("/create", authMiddleware, isAdmin, isManager, createCoQuanBhxh);
+router.post("/create", authMiddleware, isAdminAndManager, createCoQuanBhxh);
 
 /**
  * @swagger
@@ -270,7 +271,7 @@ router.get("/:id", authMiddleware, getCoQuanBhxh);
  *       200:
  *         description: Cập nhật thành công
  */
-router.put("/:id", authMiddleware, isAdmin, isManager, updateCoQuanBhxh);
+router.put("/:id", authMiddleware, isAdminAndManager, updateCoQuanBhxh);
 
 /**
  * @swagger

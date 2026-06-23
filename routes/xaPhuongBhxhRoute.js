@@ -5,6 +5,7 @@ const {
   authMiddleware,
   isAdmin,
   isManager,
+  isAdminAndManager,
 } = require("../middlewares/authMiddleware");
 
 const {
@@ -53,7 +54,7 @@ const {
  *     security:
  *       - bearerAuth: []
  */
-router.post("/create", authMiddleware, isAdmin, isManager, createXaPhuong);
+router.post("/create", authMiddleware, isAdminAndManager, createXaPhuong);
 
 /**
  * @swagger
@@ -149,7 +150,7 @@ router.get("/:id", authMiddleware, getXaPhuong);
  *     security:
  *       - bearerAuth: []
  */
-router.put("/:id", authMiddleware, isAdmin, isManager, updateXaPhuong);
+router.put("/:id", authMiddleware, isAdminAndManager, updateXaPhuong);
 
 /**
  * @swagger
@@ -161,6 +162,6 @@ router.put("/:id", authMiddleware, isAdmin, isManager, updateXaPhuong);
  *     security:
  *       - bearerAuth: []
  */
-router.delete("/:id", authMiddleware, isAdmin, isManager, deleteXaPhuong);
+router.delete("/:id", authMiddleware, isAdminAndManager, deleteXaPhuong);
 
 module.exports = router;
