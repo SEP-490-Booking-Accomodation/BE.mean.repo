@@ -48,6 +48,33 @@ const isCustomer = asyncHandler(async (req, res, next) => {
     next();
   }
 });
+const isManager = asyncHandler(async (req, res, next) => {
+  const { email } = req.user;
+  const BAUser = await User.findOne({ email });
+  if (!BAUser.roleID.equals("6a3a30ff5b1107c9a166df50")) {
+    throw new Error("Bạn không phải là quản lý!");
+  } else {
+    next();
+  }
+});
+const isBusinessSpecialist = asyncHandler(async (req, res, next) => {
+  const { email } = req.user;
+  const BAUser = await User.findOne({ email });
+  if (!BAUser.roleID.equals("6a3a31285b1107c9a166df56")) {
+    throw new Error("Bạn không phải là chuyên viên kinh doanh!");
+  } else {
+    next();
+  }
+});
+const isProbationaryEmployee = asyncHandler(async (req, res, next) => {
+  const { email } = req.user;
+  const BAUser = await User.findOne({ email });
+  if (!BAUser.roleID.equals("6a3a31395b1107c9a166df5a")) {
+    throw new Error("Bạn không phải là nhân viên thử việc!");
+  } else {
+    next();
+  }
+});
 const isNotGuest = asyncHandler(async (req, res, next) => {
   const { email } = req.user;
   const user = await User.findOne({ email });
@@ -90,4 +117,7 @@ module.exports = {
   isNotGuest,
   isCusAndOwner,
   isAdminAndOwner,
+  isManager,
+  isBusinessSpecialist,
+  isProbationaryEmployee
 };

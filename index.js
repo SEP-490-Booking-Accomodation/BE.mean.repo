@@ -52,6 +52,11 @@ const verifyRoute = require("./routes/verifyRoute");
 const queryRoute = require("./routes/bookingRoute");
 const ownerStatusLogRoute = require("./routes/ownerStatusLogRoute");
 const rentalLocationStatusLogRoute = require("./routes/rentalLocationStatusLogRoute");
+const coQuanBhxhRoute = require("./routes/coQuanBhxhRoute");
+const provinceRoute = require("./routes/provinceRoute");
+const xaPhuongBhxhRoute = require("./routes/xaPhuongBhxhRoute");
+const salesRecordRoute = require("./routes/salesRecordRoute");
+
 
 const bodyParser = require("body-parser");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
@@ -112,7 +117,10 @@ app.use("/api/value", valueRoute);
 app.use("/api", verifyRoute);
 app.use("/api/owner-status-log", ownerStatusLogRoute);
 app.use("/api/rental-location-status-log", rentalLocationStatusLogRoute);
-
+app.use("/api/co-quan-bhxh", coQuanBhxhRoute);
+app.use("/api/province", provinceRoute);
+app.use("/api/xa-phuong-bhxh", xaPhuongBhxhRoute);
+app.use("/api/sales-record", salesRecordRoute)
 
 
 app.use(notFound);
