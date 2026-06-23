@@ -23,6 +23,9 @@ const ROLE_IDS = {
   admin: "67f87c9ac19b91da666bbdc5",
   owner: "67f87ca3c19b91da666bbdc7",
   customer: "67f87ca8c19b91da666bbdc9",
+  manager:"6a3a30ff5b1107c9a166df50",
+  businessSpecialist:"6a3a31285b1107c9a166df56",
+  probationaryEmployee:"6a3a31395b1107c9a166df5a"
 };
 
 //Create a user
