@@ -386,7 +386,7 @@ router.get("/logout", logout);
  *       200:
  *         description: List of all users
  */
-router.get("/all-users", authMiddleware, isAdminAndManager, isProbationaryEmployee, isBusinessSpecialist, getAllUser);
+router.get("/all-users", authMiddleware, getAllUser);
 
 /**
  * @swagger
