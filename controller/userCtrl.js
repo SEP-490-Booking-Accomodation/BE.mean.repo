@@ -483,7 +483,7 @@ const verifyPhoneOTP = async (req, res) => {
 //Get all users
 const getAllUser = asyncHandler(async (req, res) => {
   try {
-    const users = await User.find().lean(); // dùng .lean() để kết quả là plain JS object
+    const users = await User.find().populate("roleID", "roleName") .lean(); // dùng .lean() để kết quả là plain JS object
 
     const userIds = users.map((user) => user._id);
 

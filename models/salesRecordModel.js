@@ -19,11 +19,7 @@ const salesRecordSchema = new mongoose.Schema(
 
     sourceType: {
       type: String,
-      enum: [
-        "Marketing",
-        "ChuDong",
-        "CTV_DaiLy",
-      ],
+      enum: ["Marketing", "ChuDong", "CTV_DaiLy"],
       required: true,
       index: true,
     },
@@ -54,6 +50,12 @@ const salesRecordSchema = new mongoose.Schema(
       default: "",
     },
 
+    reportDate: {
+      type: Date,
+      required: true,
+      index: true,
+    },
+
     status: {
       type: Boolean,
       default: true,
@@ -80,7 +82,7 @@ const salesRecordSchema = new mongoose.Schema(
         return ret;
       },
     },
-  }
+  },
 );
 
 salesRecordSchema.index({
@@ -93,7 +95,4 @@ salesRecordSchema.index({
   sourceType: 1,
 });
 
-module.exports = mongoose.model(
-  "SalesRecord",
-  salesRecordSchema
-);
+module.exports = mongoose.model("SalesRecord", salesRecordSchema);
