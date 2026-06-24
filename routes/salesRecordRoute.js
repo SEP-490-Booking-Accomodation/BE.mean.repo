@@ -139,7 +139,11 @@ router.get("/:id", authMiddleware, getSalesRecord);
  * @swagger
  * /api/sales-record/calendar:
  *   get:
- *     summary: Calendar Revenue
+ *     summary: Calendar doanh thu
+ *     tags:
+ *       - SalesRecord
+ *     security:
+ *       - bearerAuth: []
  */
 router.get("/calendar", authMiddleware, getCalendarRevenue);
 
@@ -147,7 +151,11 @@ router.get("/calendar", authMiddleware, getCalendarRevenue);
  * @swagger
  * /api/sales-record/day:
  *   get:
- *     summary: Revenue Detail By Day
+ *     summary: Doanh thu chi tiết mỗi ngày
+ *     tags:
+ *       - SalesRecord
+ *     security:
+ *       - bearerAuth: []
  */
 router.get("/day", authMiddleware, getRevenueByDay);
 
