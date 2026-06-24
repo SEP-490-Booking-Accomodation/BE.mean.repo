@@ -12,6 +12,8 @@ const {
   searchSalesRecord,
   getByUser,
   dashboardSales,
+  getCalendarRevenue,
+  getRevenueByDay,
 } = require("../controller/salesRecordCtrl");
 
 /**
@@ -132,6 +134,22 @@ router.get("/all", authMiddleware, getAllSalesRecord);
  *       - bearerAuth: []
  */
 router.get("/:id", authMiddleware, getSalesRecord);
+
+/**
+ * @swagger
+ * /api/sales-record/calendar:
+ *   get:
+ *     summary: Calendar Revenue
+ */
+router.get("/calendar", authMiddleware, getCalendarRevenue);
+
+/**
+ * @swagger
+ * /api/sales-record/day:
+ *   get:
+ *     summary: Revenue Detail By Day
+ */
+router.get("/day", authMiddleware, getRevenueByDay);
 
 /**
  * @swagger
